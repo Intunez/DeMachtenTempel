@@ -262,14 +262,15 @@ async function createOnline() {
     room = randomId();
     state = newState();
 
-    await firebase.set(
-      firebase.ref(db, roomPath()),
-      {
-        owner: auth.currentUser.uid,
-        state
-      }
+        await firebase.set(
+      firebase.ref(db, roomPath('owner')),
+      auth.currentUser.uid
     );
 
+    await firebase.set(
+      firebase.ref(db, roomPath('state')),
+      state
+    );
     subscribeState();
 
     reqUnsub = firebase.onChildAdded(
