@@ -327,7 +327,7 @@ function createDemo() {
 }
 
 function addTeam(name) {
-  const index = Object.keys(state.teams).length;
+  const index = Object.keys(state.teams || {}).length;
 
   const id = 't' + index + '_' +
     Math.random().toString(36).slice(2, 5);
@@ -519,7 +519,7 @@ function listenJoins() {
             error: 'Het spel is al begonnen.'
           };
 
-        } else if (Object.keys(state.teams).length >= 8) {
+        } else if (Object.keys(state.teams || {}).length >= 8) {
           response = {
             error: 'Maximum 8 teams.'
           };
@@ -568,7 +568,7 @@ function listenJoins() {
 async function startGame() {
   if (!host || state.phase !== 'lobby') return;
 
-  if (Object.keys(state.teams).length < 2) {
+  if (Object.keys(state.teams || {}).length < 2) {
     alert('Er zijn minstens 2 teams nodig.');
     return;
   }
@@ -1459,12 +1459,12 @@ $('finalBtn').onclick = beginFinal;
 $('demoAdd').onclick = async () => {
   if (
     state.phase !== 'lobby' ||
-    Object.keys(state.teams).length >= 8
+    Object.keys(state.teams || {}).length >= 8
   ) return;
 
   addTeam(
     'Testteam ' +
-    (Object.keys(state.teams).length + 1)
+    (Object.keys(state.teams || {}).length + 1)
   );
 
   await writeState();
