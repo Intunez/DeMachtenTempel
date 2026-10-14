@@ -242,7 +242,11 @@ function subscribeState() {
       const value = snapshot.val();
 
       if (value) {
-        state = value;
+        state = {
+  ...value,
+  teams: value.teams || {},
+  duels: value.duels || {}
+};
         render();
       }
     },
