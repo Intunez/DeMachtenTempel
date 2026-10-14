@@ -529,7 +529,7 @@ function listenJoins() {
           };
 
         } else {
-          const existing = Object.values(state.teams).some(
+          const existing = Object.values(state.teams || {}).some(
             team =>
               team.name.toLowerCase() ===
               request.name.toLowerCase()
