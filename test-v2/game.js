@@ -531,7 +531,7 @@ async function handleRequest(r){
  }
  if(r.action==='challenge'&&state.phase==='final'&&!state.winner){
   const other=Object.values(state.teams).find(v=>v.route===n&&v.id!==t.id);
-  if(!other||t.duel||other.duel||t.challengesStarted>=2||Object.values(state.teams).some(v=>v.pendingFrom===t.id)||t.pendingFrom||other.pendingFrom)return;
+  if(!other||t.duel||other.duel||(t.challengesStarted||0)>=2||Object.values(state.teams).some(v=>v.pendingFrom===t.id)||t.pendingFrom||other.pendingFrom)return;
   other.pendingFrom=t.id;flash('⚔ '+t.name+' daagt '+other.name+' uit!');await writeState();return;
  }
  if((r.action==='accept'||r.action==='decline')&&state.phase==='final'){
@@ -1226,7 +1226,7 @@ $('demoAnswer').onclick = async () => {
   await handleRequest({
     action: 'answer',
     teamId: team.id,
-    answer: getQuestion(team).a
+    answer: getQuestion(team).answer[0]
   });
 };
 
