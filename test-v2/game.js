@@ -669,6 +669,32 @@ function escapeHtml(value) {
   );
 }
 
+function mathExpressionHtml(expression){
+ const input=String(expression);
+ let html='';
+ for(let i=0;i<input.length;i++){
+  if(input[i]==='^'){
+   let exponent='';
+   if(input[i+1]==='('){
+    let depth=1,j=i+2;
+    for(;j<input.length&&depth>0;j++){
+     if(input[j]==='(')depth++;
+     else if(input[j]===')')depth--;
+     if(depth>0)exponent+=input[j];
+    }
+    i=j-1;
+   }else{
+    let j=i+1;
+    if(input[j]==='-'||input[j]==='+')exponent+=input[j++];
+    while(j<input.length&&/[0-9a-zA-Z]/.test(input[j]))exponent+=input[j++];
+    i=j-1;
+   }
+   html+='<sup>'+escapeHtml(exponent)+'</sup>';
+  }else html+=escapeHtml(input[i]==='/'?':':input[i]);
+ }
+ return html;
+}
+
 function showOverlay(message) {
   $('overlay').textContent = message;
   $('overlay').classList.remove('hidden');
@@ -731,7 +757,7 @@ function renderStudent(){
    const challenger=state.teams[t.pendingFrom];title.textContent='⚔ Uitdaging ontvangen';txt.textContent=(challenger?.name||'Een team')+' daagt jullie uit. Aanvaarden jullie het duel?';
    for(const [label,action] of [['⚔ Aanvaarden','accept'],['Weigeren','decline']]){const b=document.createElement('button');b.textContent=label;b.onclick=()=>sendRequest(action,{answer:1}).catch(e=>$('feedback').textContent=e.message);$('options').appendChild(b);}return;
   }
-  title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);txt.textContent='Werk uit (oefenreeks '+q.set+'): '+q.q;
+  title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);txt.innerHTML='<span class="exercise-label">Werk uit · oefenreeks '+q.set+'</span><span class="math-exercise">'+mathExpressionHtml(q.q)+'</span>';
   $('numberBox').classList.remove('hidden');$('numberInput').type='text';$('numberInput').placeholder='Bijv. 4a^2b^2';$('numberInput').value='';
   $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v)});$('feedback').textContent='Antwoord ingestuurd!';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};
   if((t.challengesStarted||0)<2&&!Object.values(state.teams).some(v=>v.pendingFrom===t.id)){
