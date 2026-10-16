@@ -20,3 +20,6 @@
 
 /* Herstel afgesneden starttitel en houd de startlay-out binnen het scherm */
 #welcome.welcome{box-sizing:border-box;width:min(100%,1500px);margin:0 auto;padding:clamp(20px,3vw,48px);display:grid;grid-template-columns:minmax(260px,.65fr) minmax(0,1.35fr);align-items:center;overflow:visible;gap:clamp(18px,3vw,45px)}#welcome .hero{min-width:0;max-width:100%;padding:0!important;margin:0!important;transform:none!important;overflow:visible!important}#welcome .hero h1{font-size:clamp(38px,4.3vw,75px)!important;line-height:1.08;overflow-wrap:break-word;word-break:normal;margin:0 0 26px!important;max-width:100%;white-space:normal}#welcome .fantasy-preview{width:100%;min-width:0;margin:0;box-sizing:border-box}@media(max-width:850px){#welcome.welcome{display:flex;flex-direction:column;padding:18px}#welcome .hero,#welcome .fantasy-preview{width:100%}#welcome .hero h1{font-size:clamp(40px,8vw,66px)!important}}
+
+/* Beheer teams: kleine verwijderknop uitsluitend op leerkrachtenscherm */
+.teamrow .remove-team{flex:0 0 auto;min-width:30px;width:30px;height:30px;padding:0;border-radius:8px;border:1px solid #b26d6d88;background:#401f29;color:#ffc9c9;font-size:17px;cursor:pointer;line-height:1}.teamrow .remove-team:hover{background:#8e343f;color:white;border-color:#f6a4a4}.teamrow .pts{margin-left:auto}
