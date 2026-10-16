@@ -881,13 +881,15 @@ function drawStudentCamera(time){
  glow.addColorStop(0,'#ffffff00');glow.addColorStop(1,'#03101899');ctx.fillStyle=glow;ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
+let draw3D=null;
+import('./world3d.js').then(module=>{draw3D=module.draw3D;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
 function animate(time) {
   if (view === 'teacher') {
-    drawWorld($('worldCanvas'), time);
+    if(!draw3D||!draw3D($('worldCanvas'),state,'teacher',null,time))drawWorld($('worldCanvas'), time);
   } else if (view === 'welcome') {
     drawWorld($('previewCanvas'), time);
   } else if (view === 'student') {
-    drawStudentCamera(time);
+    if(!draw3D||!draw3D($('studentWorld'),state,'student',teamId,time))drawStudentCamera(time);
   }
 
   requestAnimationFrame(animate);
