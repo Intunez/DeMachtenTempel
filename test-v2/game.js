@@ -243,7 +243,9 @@ function createDemo() {
 }
 
 function addTeam(name) {
-  const index = Object.keys(state.teams || {}).length;
+  const used=new Set(Object.values(state.teams||{}).map(t=>t.route));
+  const index=Array.from({length:8},(_,i)=>i).find(i=>!used.has(i));
+  if(index===undefined)throw Error('Maximum 8 teams.');
 
   const id = 't' + index + '_' +
     Math.random().toString(36).slice(2, 5);
@@ -265,6 +267,20 @@ function addTeam(name) {
   };
 
   return id;
+}
+
+async function removeTeamFromTeacher(id){
+ if(!host||!state?.teams?.[id])return;
+ const name=state.teams[id].name;
+ if(!confirm('Team "'+name+'" definitief uit dit spel verwijderen?'))return;
+ for(const d of Object.values(state.duels||{})){
+  if(d.a===id||d.b===id){d.done=true;for(const participant of [d.a,d.b]){if(state.teams[participant])state.teams[participant].duel='';}}
+ }
+ for(const team of Object.values(state.teams))if(team.pendingFrom===id)team.pendingFrom='';
+ if(state.winner===id)state.winner='';
+ delete state.teams[id];
+ if(online)await firebase.remove(firebase.ref(db,roomPath('teamOwners/'+id)));
+ flash('Team '+name+' is verwijderd.');await writeState();
 }
 
 function openTeacher() {
@@ -662,7 +678,8 @@ function render(){
  if(view==='teacher'){
   const teams=Object.values(state.teams||{}).sort((a,b)=>b.score-a.score);
   $('teamCount').textContent=teams.length+' / 8';
-  $('scoreboard').innerHTML=teams.map(t=>'<div class="teamrow">'+avatarFace(t.avatar)+'<div><b>'+escapeHtml(t.name)+'</b><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.duel?'⚔ Duel':t.solved+' opdrachten opgelost')+'</small></div><span class="pts">'+t.score+'</span></div>').join('');
+  $('scoreboard').innerHTML=teams.map(t=>'<div class="teamrow">'+avatarFace(t.avatar)+'<div><b>'+escapeHtml(t.name)+'</b><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.duel?'⚔ Duel':t.solved+' opdrachten opgelost')+'</small></div><span class="pts">'+t.score+'</span><button type="button" class="remove-team" data-remove-team="'+escapeHtml(t.id)+'" title="Team verwijderen" aria-label="Verwijder team '+escapeHtml(t.name)+'">✕</button></div>').join('');
+  $('scoreboard').querySelectorAll('[data-remove-team]').forEach(btn=>btn.addEventListener('click',()=>removeTeamFromTeacher(btn.dataset.removeTeam).catch(e=>alert('Verwijderen mislukt: '+e.message))));
   $('phaseLabel').textContent=({lobby:'Wachten op teams',avatars:'Avatarselectie',playing:'De tempel is geopend',final:'⚡ Finale',ended:'🏆 Spel afgelopen'})[state.phase];
   $('eventLabel').textContent=state.event||'';
   $('startBtn').disabled=!['lobby','avatars'].includes(state.phase);
@@ -687,7 +704,7 @@ function tokenPuzzle(q,action,progress){
  q.tokens.forEach((word,i)=>{if(progress.includes(i))return;const b=document.createElement('button');b.textContent=word;b.onclick=async()=>{b.disabled=true;try{await sendRequest(action,{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};choices.appendChild(b);});box.appendChild(choices);
 }
 function renderStudent(){
- const t=state.teams?.[teamId];if(!t)return;
+ const t=state.teams?.[teamId];if(!t){$('myTeam').textContent='Team verwijderd';$('studentStatus').textContent='Dit team is door de leerkracht verwijderd.';$('questTitle').textContent='Aanmelding beëindigd';$('questText').textContent='Ga terug naar het startscherm en meld je opnieuw aan.';$('options').innerHTML='';$('numberBox').classList.add('hidden');return;}
  $('myTeam').textContent=t.name+(Number.isInteger(t.avatar)?' · '+avatars[t.avatar][0]:'');
  $('myScore').textContent=t.score+' punten';
  $('myPosition').textContent=state.phase==='final'?'Vak '+t.finalPos+'/16':t.finished?'In de schatkamer':'Doorgang '+(t.step+1);
