@@ -757,371 +757,55 @@ function showNumber(kind) {
 
 /* GETEKENDE SPELWERELD */
 
-function drawWorld(canvas, time) {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  const w = canvas.width;
-  const h = canvas.height;
-  const pos = (x, y) => [x * w, y * h];
-
-  const gradient = ctx.createLinearGradient(0, 0, w, h);
-  gradient.addColorStop(0, '#182d30');
-  gradient.addColorStop(.5, '#172428');
-  gradient.addColorStop(1, '#081218');
-
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, w, h);
-
-  const rand = (x, y) => {
-    const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-    return n - Math.floor(n);
-  };
-
-  // Rotsachtige ondergrond
-  for (let i = 0; i < 105; i++) {
-    const x = rand(i, 7) * w;
-    const y = rand(i, 3) * h;
-    const radius = 18 + rand(i, 11) * 70;
-
-    ctx.beginPath();
-    ctx.ellipse(
-      x, y, radius, radius * .43,
-      rand(i, 13) * Math.PI, 0, Math.PI * 2
-    );
-
-    ctx.fillStyle = `rgba(${
-      18 + Math.floor(rand(i, 17) * 20)
-    },${
-      31 + Math.floor(rand(i, 19) * 21)
-    },${
-      30 + Math.floor(rand(i, 23) * 16)
-    },.46)`;
-
-    ctx.fill();
-    ctx.strokeStyle = '#8b927020';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  }
-
-  // Rivier
-  ctx.save();
-  ctx.shadowBlur = 25;
-  ctx.shadowColor = '#1d8595';
-
-  ctx.beginPath();
-  ctx.moveTo(w * .02, h * .08);
-
-  ctx.bezierCurveTo(
-    w * .28, h * .2,
-    w * .08, h * .44,
-    w * .19, h * .6
-  );
-
-  ctx.bezierCurveTo(
-    w * .25, h * .77,
-    w * .35, h * .77,
-    w * .37, h * .97
-  );
-
-  ctx.strokeStyle = '#214d57';
-  ctx.lineWidth = w * .052;
-  ctx.stroke();
-
-  ctx.strokeStyle = '#4a9aa14a';
-  ctx.lineWidth = w * .025;
-  ctx.stroke();
-
+// Panoramische wereldweergave met tempel, watervallen en avatars.
+// Geen bordspel-lijnen: de routes lopen onzichtbaar door het landschap.
+let worldArtwork=null;
+function loadWorldArtwork(){
+ if(worldArtwork)return;
+ const svg=document.querySelector('.temple-art svg');if(!svg)return;
+ const image=new Image();
+ image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+ worldArtwork=image;
+}
+const scenicRoutes=[
+ [[.11,.84],[.23,.70],[.33,.61],[.43,.54],[.50,.48],[.51,.42],[.52,.37]],
+ [[.89,.84],[.78,.71],[.69,.62],[.64,.53],[.59,.47],[.55,.42],[.52,.37]],
+ [[.18,.88],[.27,.77],[.35,.67],[.41,.58],[.46,.50],[.50,.43],[.52,.37]],
+ [[.82,.88],[.74,.76],[.66,.66],[.61,.56],[.57,.48],[.54,.42],[.52,.37]],
+ [[.06,.76],[.18,.64],[.29,.55],[.39,.49],[.45,.43],[.49,.40],[.52,.37]],
+ [[.94,.76],[.82,.64],[.71,.55],[.62,.49],[.57,.44],[.54,.40],[.52,.37]],
+ [[.13,.94],[.24,.84],[.33,.73],[.41,.63],[.46,.54],[.50,.45],[.52,.37]],
+ [[.87,.94],[.76,.84],[.67,.73],[.60,.63],[.56,.54],[.53,.45],[.52,.37]]
+];
+function drawWorld(canvas,time){
+ const ctx=canvas.getContext('2d');if(!ctx)return;
+ const w=canvas.width,h=canvas.height;
+ loadWorldArtwork();
+ if(worldArtwork?.complete&&worldArtwork.naturalWidth)ctx.drawImage(worldArtwork,0,0,w,h);
+ else{const g=ctx.createLinearGradient(0,0,w,h);g.addColorStop(0,'#193f53');g.addColorStop(1,'#ad8c5a');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
+ if(!state)return;
+ const teams=Object.values(state.teams||{});
+ for(const t of teams){
+  const route=scenicRoutes[t.route]||scenicRoutes[0];
+  let position;
+  if(state.phase==='final'||state.phase==='ended'){
+   const p=Math.min(1,(t.finalPos||0)/16);
+   const from=route[Math.min(5,route.length-1)];
+   position=[from[0]+(.52-from[0])*p,from[1]+(.37-from[1])*p];
+  }else position=route[Math.min(t.step||0,route.length-1)];
+  const x=position[0]*w,y=position[1]*h+Math.sin(time/350+t.route)*3;
+  const scale=Math.max(.75,Math.min(1.2,w/1200));
+  ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
+  ctx.shadowColor=t.color;ctx.shadowBlur=24;
+  ctx.fillStyle='#10232ccc';ctx.beginPath();ctx.ellipse(0,22,22,9,0,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;ctx.fillStyle=t.color;ctx.beginPath();ctx.arc(0,-12,18,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#10212b';ctx.font='bold 21px Inter,Arial';ctx.textAlign='center';ctx.fillText(avatars[t.avatar]?.[1]||'✦',0,-5);
+  ctx.font='bold 15px Inter,Arial';ctx.lineWidth=5;ctx.strokeStyle='#071a20';ctx.strokeText(t.name,0,-40);ctx.fillStyle='#fff7df';ctx.fillText(t.name,0,-40);
   ctx.restore();
-
-  // Paden
-  const drawn = new Set();
-
-  for (const route of routes) {
-    for (let i = 0; i < route.length - 1; i++) {
-      const a = route[i];
-      const b = route[i + 1];
-
-      const key = [a, b].sort().join('-');
-      if (drawn.has(key)) continue;
-      drawn.add(key);
-
-      const p = pos(...POINTS[a]);
-      const q = pos(...POINTS[b]);
-
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(...p);
-      ctx.lineTo(...q);
-
-      ctx.strokeStyle = '#080c0e';
-      ctx.lineWidth = w * .038;
-      ctx.stroke();
-
-      ctx.strokeStyle = '#6e6550';
-      ctx.lineWidth = w * .028;
-      ctx.stroke();
-
-      ctx.strokeStyle = '#958366';
-      ctx.lineWidth = w * .021;
-      ctx.stroke();
-
-      ctx.strokeStyle = '#a99a7655';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-  }
-
-  // Oude muren
-  for (let i = 0; i < 55; i++) {
-    const x = rand(i, 101) * w;
-    const y = rand(i, 103) * h;
-    const dx = rand(i, 105) * 24 + 10;
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rand(i, 107) * 6);
-
-    ctx.fillStyle = '#4e5b51';
-    ctx.fillRect(-dx / 2, -6, dx, 11);
-
-    ctx.fillStyle = '#83908255';
-    ctx.fillRect(-dx / 2, -8, dx, 3);
-
-    ctx.restore();
-  }
-
-  // Kamers
-  for (const [id, p] of Object.entries(POINTS)) {
-    if (id === 'entry' || id === 'vault') continue;
-
-    const [x, y] = pos(...p);
-
-    ctx.beginPath();
-    ctx.ellipse(
-      x, y, w * .025, h * .027,
-      0, 0, Math.PI * 2
-    );
-
-    ctx.fillStyle = '#131b1c';
-    ctx.fill();
-
-    ctx.lineWidth = 7;
-    ctx.strokeStyle = '#74715a';
-    ctx.stroke();
-
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#c9ae6c88';
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#edc178';
-    ctx.fill();
-  }
-
-  // Schatkamer
-  const [vx, vy] = pos(...POINTS.vault);
-
-  ctx.save();
-  ctx.shadowColor = '#ffce6b';
-  ctx.shadowBlur = 32 + 12 * Math.sin(time * .002);
-
-  const glow = ctx.createRadialGradient(
-    vx, vy, 4, vx, vy, w * .17
-  );
-
-  glow.addColorStop(0, '#f8d18e77');
-  glow.addColorStop(.35, '#d89e4e33');
-  glow.addColorStop(1, '#d89e4e00');
-
-  ctx.fillStyle = glow;
-  ctx.fillRect(
-    vx - w * .18,
-    vy - w * .18,
-    w * .36,
-    w * .36
-  );
-
-  ctx.restore();
-
-  ctx.fillStyle = '#151d20';
-  ctx.beginPath();
-  ctx.ellipse(
-    vx, vy + 17, w * .085, h * .10,
-    0, 0, Math.PI * 2
-  );
-  ctx.fill();
-
-  ctx.strokeStyle = '#c1a66e';
-  ctx.lineWidth = 8;
-  ctx.stroke();
-
-  for (let i = 0; i < 8; i++) {
-    const angle = i * Math.PI / 4;
-    const x = vx + Math.cos(angle) * w * .07;
-    const y = vy + Math.sin(angle) * h * .086;
-
-    ctx.fillStyle = '#899082';
-    ctx.fillRect(x - 8, y - 15, 16, 29);
-
-    ctx.fillStyle = '#d7bc7b';
-    ctx.fillRect(x - 10, y - 17, 20, 5);
-  }
-
-  ctx.font = `bold ${Math.floor(w * .022)}px Georgia`;
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#f4d494';
-  ctx.shadowColor = '#000';
-  ctx.shadowBlur = 7;
-  ctx.fillText('SCHATKAMER', vx, vy - 50);
-  ctx.shadowBlur = 0;
-
-  // Fakkels
-  for (const [id, p] of Object.entries(POINTS)) {
-    if (id === 'vault') continue;
-
-    const [x, y] = pos(...p);
-    const flicker = 2 + Math.sin(time * .009 + x) * 2;
-
-    ctx.save();
-    ctx.shadowBlur = 16;
-    ctx.shadowColor = '#ff9d38';
-    ctx.fillStyle = '#e89a45';
-
-    ctx.beginPath();
-    ctx.ellipse(
-      x + 17, y - 19,
-      3 + flicker, 7 + flicker,
-      0, 0, Math.PI * 2
-    );
-
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // Avonturiers
-  const teams = state
-    ? Object.values(state.teams || {})
-    : colors.slice(0, 6).map((color, i) => ({
-        id: 'preview' + i,
-        name: 'Team ' + (i + 1),
-        color,
-        route: i,
-        step: 1 + i % 3
-      }));
-
-  teams.forEach((team, i) => {
-    const route = routes[team.route];
-
-    const node =
-      state?.phase === 'final' ||
-      state?.phase === 'ended'
-        ? 'vault'
-        : route[Math.min(team.step, route.length - 1)];
-
-    const [x0, y0] = pos(...POINTS[node]);
-
-    const siblings = teams.filter(other => {
-      if (
-        state?.phase === 'final' ||
-        state?.phase === 'ended'
-      ) return true;
-
-      const otherRoute = routes[other.route];
-
-      return otherRoute[
-        Math.min(other.step, otherRoute.length - 1)
-      ] === node;
-    });
-
-    const rank = siblings.findIndex(
-      other => other.id === team.id
-    );
-
-    const angle = rank * 2.39996;
-    const x = x0 + Math.cos(angle) * Math.sqrt(rank) * 17;
-    const y = y0 + Math.sin(angle) * Math.sqrt(rank) * 13;
-    const bob = Math.sin(time * .003 + i) * 2;
-
-    ctx.save();
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = team.color;
-
-    ctx.beginPath();
-    ctx.ellipse(x, y + 13, 14, 6, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#000a';
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = '#151d22';
-
-    ctx.beginPath();
-    ctx.moveTo(x - 8, y + 7);
-    ctx.lineTo(x - 12, y - 12 + bob);
-    ctx.lineTo(x, y - 23 + bob);
-    ctx.lineTo(x + 12, y - 12 + bob);
-    ctx.lineTo(x + 8, y + 7);
-    ctx.fill();
-
-    ctx.strokeStyle = team.color;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(x, y - 14 + bob, 7, 0, Math.PI * 2);
-    ctx.fillStyle = '#c4ad8a';
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(x - 11, y - 20 + bob);
-    ctx.lineTo(x, y - 35 + bob);
-    ctx.lineTo(x + 11, y - 20 + bob);
-    ctx.fillStyle = team.color;
-    ctx.fill();
-
-    ctx.textAlign = 'center';
-    ctx.font =
-      `bold ${Math.max(10, Math.floor(w * .011))}px Arial`;
-
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#051015';
-    ctx.strokeText(team.name, x, y - 41 + bob);
-
-    ctx.fillStyle = '#fff7e8';
-    ctx.fillText(team.name, x, y - 41 + bob);
-
-    ctx.restore();
-  });
-
-  // Donkere randen
-  const vignette = ctx.createRadialGradient(
-    w * .5, h * .5, w * .18,
-    w * .5, h * .5, w * .78
-  );
-
-  vignette.addColorStop(0, '#0000');
-  vignette.addColorStop(1, '#000a');
-
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, w, h);
-
-  // Zwevende lichtdeeltjes
-  for (let i = 0; i < 24; i++) {
-    const x = (
-      rand(i, 41) * w +
-      time * (.006 + rand(i, 43) * .007)
-    ) % w;
-
-    const y =
-      rand(i, 47) * h +
-      Math.sin(time * .001 + i) * 6;
-
-    ctx.beginPath();
-    ctx.arc(x, y, 1 + rand(i, 49) * 2, 0, Math.PI * 2);
-    ctx.fillStyle = '#e4d5a655';
-    ctx.fill();
-  }
+ }
+ if(state.phase==='final'||state.phase==='ended'){
+  ctx.save();ctx.textAlign='center';ctx.font='bold '+Math.round(w*.025)+'px Cinzel,Georgia,serif';ctx.shadowBlur=20;ctx.shadowColor='#ffcf65';ctx.fillStyle='#ffedba';ctx.fillText('DE SCHATKAMER',w*.52,h*.28);ctx.restore();
+ }
 }
 
 // Persoonlijke camera: de wereld blijft gesynchroniseerd, het beeld volgt de eigen avatar.
@@ -1134,12 +818,13 @@ function drawStudentCamera(time){
  drawWorld(studentWorldBuffer,time);
  const route=routes[team.route]||routes[0];
  const node=route[Math.min(team.step||0,route.length-1)];
- const target=POINTS[node]||POINTS.entry;
+ const routePoints=scenicRoutes[team.route]||scenicRoutes[0];
+ const target=(state.phase==='final'||state.phase==='ended')?[routePoints[5][0]+(.52-routePoints[5][0])*Math.min(1,(team.finalPos||0)/16),routePoints[5][1]+(.37-routePoints[5][1])*Math.min(1,(team.finalPos||0)/16)]:routePoints[Math.min(team.step||0,routePoints.length-1)];
  cameraX+=(target[0]-cameraX)*.065;
  cameraY+=(target[1]-cameraY)*.065;
  const ctx=canvas.getContext('2d');if(!ctx)return;
  const sw=studentWorldBuffer.width,sh=studentWorldBuffer.height;
- const cropW=sw*.51,cropH=cropW*canvas.height/canvas.width;
+ const cropW=sw*.67,cropH=cropW*canvas.height/canvas.width;
  const x=Math.max(0,Math.min(sw-cropW,cameraX*sw-cropW/2));
  const y=Math.max(0,Math.min(sh-cropH,cameraY*sh-cropH/2));
  ctx.clearRect(0,0,canvas.width,canvas.height);
