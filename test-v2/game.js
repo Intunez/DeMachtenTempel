@@ -531,7 +531,8 @@ async function handleRequest(r){
  }
  if(r.action==='duel'&&state.phase==='playing'){
   const d=getActiveDuel(t);if(!d||d.winner)return;
-  const q=duelQs[d.qIndex],p=d.progress?.[t.id]||[];
+  if(!d.progress||typeof d.progress!=='object')d.progress={};
+  const q=duelQs[d.qIndex],p=d.progress[t.id]||[];
   if(!Number.isInteger(n)||n<0||n>=q.tokens.length||p.includes(n))return;
   p.push(n);d.progress[t.id]=p;
   if(p.length===q.answer.length){
