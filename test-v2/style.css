@@ -23,3 +23,6 @@
 
 /* Beheer teams: kleine verwijderknop uitsluitend op leerkrachtenscherm */
 .teamrow .remove-team{flex:0 0 auto;min-width:30px;width:30px;height:30px;padding:0;border-radius:8px;border:1px solid #b26d6d88;background:#401f29;color:#ffc9c9;font-size:17px;cursor:pointer;line-height:1}.teamrow .remove-team:hover{background:#8e343f;color:white;border-color:#f6a4a4}.teamrow .pts{margin-left:auto}
+
+/* Wiskundige notatie zoals in het handboek */
+.exercise-label{display:block;font-size:14px;letter-spacing:.06em;color:#d9bf86;margin-bottom:16px}.math-exercise{display:block;font-family:Georgia,'Times New Roman',serif;font-size:clamp(30px,4.5vw,54px);line-height:1.6;letter-spacing:.015em;color:#fff7e4;text-align:center}.math-exercise sup{font-size:.57em;line-height:0;vertical-align:super;position:relative;top:-.08em}.quest #questText:has(.math-exercise){overflow-wrap:normal}
