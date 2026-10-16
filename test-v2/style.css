@@ -26,3 +26,6 @@
 
 /* Wiskundige notatie zoals in het handboek */
 .exercise-label{display:block;font-size:14px;letter-spacing:.06em;color:#d9bf86;margin-bottom:16px}.math-exercise{display:block;font-family:Georgia,'Times New Roman',serif;font-size:clamp(30px,4.5vw,54px);line-height:1.6;letter-spacing:.015em;color:#fff7e4;text-align:center}.math-exercise sup{font-size:.57em;line-height:0;vertical-align:super;position:relative;top:-.08em}.quest #questText:has(.math-exercise){overflow-wrap:normal}
+
+/* De oude SVG is verwijderd: op het startscherm draait dezelfde 3D-scène als in het spel. */
+#welcome .fantasy-preview{position:relative;overflow:hidden;min-height:350px;aspect-ratio:1100/720;background:radial-gradient(circle at 55% 35%,#527d83,#0b2734 70%)}#welcome .fantasy-preview canvas{display:block;width:100%;height:100%;aspect-ratio:1100/720;object-fit:cover}#welcome .fantasy-preview .preview-loading{position:absolute;inset:0;display:grid;place-items:center;font:600 16px Georgia,serif;color:#f7db9b;pointer-events:none}#welcome .fantasy-preview:after{pointer-events:none}
