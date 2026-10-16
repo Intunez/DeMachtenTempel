@@ -529,7 +529,23 @@ async function handleRequest(r){
    t.progress=[];
   }await writeState();return;
  }
- if(r.action==='duel'&&state.phase==='playing'){
+ if(r.action==='challenge'&&state.phase==='final'&&!state.winner){
+  const other=Object.values(state.teams).find(v=>v.route===n&&v.id!==t.id);
+  if(!other||t.duel||other.duel||t.challengesStarted>=2||Object.values(state.teams).some(v=>v.pendingFrom===t.id)||t.pendingFrom||other.pendingFrom)return;
+  other.pendingFrom=t.id;flash('⚔ '+t.name+' daagt '+other.name+' uit!');await writeState();return;
+ }
+ if((r.action==='accept'||r.action==='decline')&&state.phase==='final'){
+  const challenger=state.teams[t.pendingFrom];if(!challenger)return;
+  t.pendingFrom='';
+  if(r.action==='accept'&&!t.duel&&!challenger.duel){
+   const id='d'+(++state.duelNumber);
+   state.duels[id]={id,a:challenger.id,b:t.id,qIndex:(state.duelNumber-1)%duelQs.length,done:false,winner:'',progress:{[challenger.id]:[],[t.id]:[]}};
+   t.duel=id;challenger.duel=id;challenger.challengesStarted=(challenger.challengesStarted||0)+1;
+   flash('⚔ Duel: '+challenger.name+' tegen '+t.name);
+  }else flash(t.name+' weigert de uitdaging.');
+  await writeState();return;
+ }
+ if(r.action==='duel'&&state.phase==='final'&&!state.winner){
   const d=getActiveDuel(t);if(!d||d.winner)return;
   if(!d.progress||typeof d.progress!=='object')d.progress={};
   const q=duelQs[d.qIndex],p=d.progress[t.id]||[];
@@ -537,13 +553,14 @@ async function handleRequest(r){
   p.push(n);d.progress[t.id]=p;
   if(p.length===q.answer.length){
    if(p.every((v,i)=>v===q.answer[i])){
-    d.winner=t.id;d.done=true;t.score+=150;t.duel='';
+    d.winner=t.id;d.done=true;t.finalPos=Math.min(16,(t.finalPos||0)+2);t.duel='';
     const other=state.teams[d.a===t.id?d.b:d.a];if(other)other.duel='';
-    flash('⚔ '+t.name+' wint het duel! +150 punten');
-   }else{t.wrong++;t.score=Math.max(0,t.score-10);d.progress[t.id]=[];}
+    if(t.finalPos>=16){state.winner=t.id;state.phase='ended';flash('🏆 '+t.name+' wint de Machtentempel!');}
+    else flash('⚔ '+t.name+' wint het duel en gaat twee vakken vooruit!');
+   }else{t.wrong++;d.progress[t.id]=[];}
   }await writeState();return;
  }
- if(r.action==='final'&&state.phase==='final'&&!state.winner){
+ if(r.action==='final'&&state.phase==='final'&&!state.winner&&!t.duel&&!t.pendingFrom){
   if(n===hash(finaleVraag(t).a)){
    t.finalPos=(t.finalPos||0)+1;
    if(t.finalPos>=16){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');}
@@ -593,7 +610,7 @@ function triggerDuel(moved) {
 async function beginFinal(){
  if(!host||!state||state.phase!=='playing')return;
  state.phase='final';state.finalQuestion=0;
- Object.values(state.teams||{}).sort((a,b)=>b.score-a.score||a.joined-b.joined).forEach((t,i)=>{t.duel='';t.finalPos=Math.max(1,8-i);});
+ Object.values(state.teams||{}).sort((a,b)=>b.score-a.score||a.joined-b.joined).forEach((t,i)=>{t.duel='';t.pendingFrom='';t.challengesStarted=0;t.finalPos=Math.max(1,8-i);});
  Object.values(state.duels||{}).forEach(d=>d.done=true);
  flash('⚡ Finale: de punten bepalen de voorsprong. Race naar vak 16!');await writeState();
 }
@@ -655,7 +672,7 @@ function render(){
    const d=Object.values(state.duels||{}).find(x=>!x.done);
    if(d){const q=duelQs[d.qIndex];stage.classList.remove('hidden');stage.innerHTML='<h2>⚔ LIVE DUEL</h2><p>'+escapeHtml(q.q)+'</p><div class="duelgrid">'+[d.a,d.b].map(id=>'<div class="duelteam"><h3>'+escapeHtml(state.teams[id]?.name||'Team')+'</h3><div class="tokenline">'+(d.progress?.[id]||[]).map(i=>'<span class="placed">'+escapeHtml(q.tokens[i])+'</span>').join('')+'</div></div>').join('')+'</div>';}
   }else if(['final','ended'].includes(state.phase)){
-   stage.classList.remove('hidden');stage.innerHTML='<h2>🏆 RACE NAAR DE SCHATKAMER</h2>'+teams.map(t=>'<div class="raceline"><b>'+escapeHtml(t.name)+'</b><div class="racebar"><div style="width:'+((t.finalPos||0)/16*100)+'%;background:'+t.color+'"></div></div><span>'+t.finalPos+'/16</span></div>').join('')+(state.winner?'<h2>🏆 '+escapeHtml(state.teams[state.winner]?.name||'')+' wint!</h2>':'');
+   stage.classList.remove('hidden');stage.innerHTML='<h2>🏆 RACE NAAR DE SCHATKAMER</h2>'+teams.map(t=>'<div class="raceline"><b>'+escapeHtml(t.name)+'</b><div class="racebar"><div style="width:'+((t.finalPos||0)/16*100)+'%;background:'+t.color+'"></div></div><span>'+t.finalPos+'/16</span></div>').join('')+(Object.values(state.duels||{}).filter(d=>!d.done).map(d=>'<div class="final-duel"><h3>⚔ LIVE DUEL: '+escapeHtml(state.teams[d.a]?.name||'')+' tegen '+escapeHtml(state.teams[d.b]?.name||'')+'</h3><p>'+escapeHtml(duelQs[d.qIndex].q)+'</p>'+[d.a,d.b].map(id=>'<div><b>'+escapeHtml(state.teams[id]?.name||'')+'</b> · '+(d.progress?.[id]||[]).length+' / '+duelQs[d.qIndex].tokens.length+' onderdelen</div>').join('')+'</div>').join(''))+(state.winner?'<h2>🏆 '+escapeHtml(state.teams[state.winner]?.name||'')+' wint!</h2>':'');
   }
  }
  if(view==='student')renderStudent();
@@ -671,7 +688,7 @@ function renderStudent(){
  $('myScore').textContent=t.score+' punten';
  $('myPosition').textContent=state.phase==='final'?'Vak '+t.finalPos+'/16':t.finished?'In de schatkamer':'Doorgang '+(t.step+1);
  const d=getActiveDuel(t),p=d?(d.progress?.[t.id]||[]):(t.progress||[]);
- const sig=[state.phase,t.solved,t.wrong,t.duel,t.avatar,t.finalPos,state.winner,p.join(','),Object.values(state.teams||{}).map(v=>v.avatar).join(',')].join(':');
+ const sig=[state.phase,t.solved,t.wrong,t.duel,t.pendingFrom,t.challengesStarted,t.avatar,t.finalPos,state.winner,p.join(','),Object.values(state.teams||{}).map(v=>[v.avatar,v.pendingFrom,v.duel].join('/')).join(',')].join(':');
  if(currentSignature===sig)return;currentSignature=sig;
  $('feedback').textContent='';$('numberBox').classList.add('hidden');$('options').innerHTML='';
  const title=$('questTitle'),txt=$('questText'),status=$('studentStatus');
@@ -686,9 +703,19 @@ function renderStudent(){
  }
  if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent='Spel afgelopen';title.textContent=w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent='Winnaar: '+(w?.name||'Onbekend');return;}
  if(state.phase==='final'){
-  status.textContent='⚡ Finale · vak '+t.finalPos+'/16';title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);txt.textContent='Werk uit (oefenreeks '+q.set+'): '+q.q;
+  status.textContent='⚡ Finale · vak '+t.finalPos+'/16';
+  if(d){title.textContent='⚔ DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.q;tokenPuzzle(q,'duel',p);return;}
+  if(t.pendingFrom){
+   const challenger=state.teams[t.pendingFrom];title.textContent='⚔ Uitdaging ontvangen';txt.textContent=(challenger?.name||'Een team')+' daagt jullie uit. Aanvaarden jullie het duel?';
+   for(const [label,action] of [['⚔ Aanvaarden','accept'],['Weigeren','decline']]){const b=document.createElement('button');b.textContent=label;b.onclick=()=>sendRequest(action,{answer:1}).catch(e=>$('feedback').textContent=e.message);$('options').appendChild(b);}return;
+  }
+  title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);txt.textContent='Werk uit (oefenreeks '+q.set+'): '+q.q;
   $('numberBox').classList.remove('hidden');$('numberInput').type='text';$('numberInput').placeholder='Bijv. 4a^2b^2';$('numberInput').value='';
-  $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v)});$('feedback').textContent='Antwoord ingestuurd!';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};return;
+  $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v)});$('feedback').textContent='Antwoord ingestuurd!';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};
+  if((t.challengesStarted||0)<2&&!Object.values(state.teams).some(v=>v.pendingFrom===t.id)){
+   const area=document.createElement('div');area.className='challenge-area';area.innerHTML='<h4>⚔ Optioneel: daag een team uit ('+(2-(t.challengesStarted||0))+' over)</h4><p>Win twee vakken. Het andere team mag weigeren.</p>';
+   Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=()=>sendRequest('challenge',{answer:v.route}).catch(e=>$('feedback').textContent=e.message);area.appendChild(b);});$('options').appendChild(area);
+  }return;
  }
  if(d){status.textContent='⚔ Duel';title.textContent='DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.q;tokenPuzzle(q,'duel',p);return;}
  if(t.finished){status.textContent='In de schatkamer';title.textContent='Wacht op de finale';txt.textContent='Jullie hebben '+t.score+' punten verzameld.';return;}
