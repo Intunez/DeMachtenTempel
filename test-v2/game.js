@@ -234,7 +234,7 @@ function createDemo() {
     'De Rekentijgers',
     'De Breukbrekers',
     'De Getallenhelden'
-  ].forEach(addTeam);
+  ].forEach((name,i)=>{const id=addTeam(name);state.teams[id].avatar=i;});
 
   openTeacher();
 
@@ -912,11 +912,8 @@ $('demoAnswer').onclick = async () => {
     Math.floor(Math.random() * pool.length)
   ];
 
-  await handleRequest({
-    action: 'answer',
-    teamId: team.id,
-    answer: getQuestion(team).answer[0]
-  });
+  const sequence=[...getQuestion(team).answer];
+  for(const answer of sequence)await handleRequest({action:'answer',teamId:team.id,answer});
 };
 
 if (configured) {
