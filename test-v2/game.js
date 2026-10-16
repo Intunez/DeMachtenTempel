@@ -883,11 +883,20 @@ function drawStudentCamera(time){
 
 let draw3D=null;
 import('./world3d.js').then(module=>{draw3D=module.draw3D;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
+function drawWelcomeFallback(canvas,time){
+ if(!canvas)return;
+ const ctx=canvas.getContext('2d');if(!ctx)return;
+ const w=canvas.width,h=canvas.height;
+ const grad=ctx.createLinearGradient(0,0,w,h);grad.addColorStop(0,'#0b2735');grad.addColorStop(.65,'#386373');grad.addColorStop(1,'#b0a07d');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
+ ctx.textAlign='center';ctx.fillStyle='#f3dfb6';ctx.font='bold 40px Georgia,serif';ctx.fillText('DE MACHTENTEMPEL',w/2,h*.45);
+ ctx.font='22px Georgia,serif';ctx.fillText('De magische wereld wordt geladen…',w/2,h*.53);
+}
+
 function animate(time) {
   if (view === 'teacher') {
     if(!draw3D||!draw3D($('worldCanvas'),state,'teacher',null,time))drawWorld($('worldCanvas'), time);
   } else if (view === 'welcome') {
-    drawWorld($('previewCanvas'), time);
+    if(!draw3D||!draw3D($('previewCanvas'),null,'welcome',null,time))drawWelcomeFallback($('previewCanvas'),time);
   } else if (view === 'student') {
     if(!draw3D||!draw3D($('studentWorld'),state,'student',teamId,time))drawStudentCamera(time);
   }
