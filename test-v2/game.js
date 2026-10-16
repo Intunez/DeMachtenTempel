@@ -287,6 +287,10 @@ function openTeacher() {
     ) {
       beginFinal();
     }
+    if(host&&state?.phase==='final'&&state.finalStarted&&Date.now()-state.finalStarted>=3*60*1000){
+      const ranking=Object.values(state.teams||{}).sort((a,b)=>(b.finalPos||0)-(a.finalPos||0)||b.score-a.score);
+      if(ranking.length){state.winner=ranking[0].id;state.phase='ended';flash('🏆 De tijd is om! '+ranking[0].name+' wint!');writeState();}
+    }
   }, 500);
 
   listenJoins();
@@ -609,7 +613,7 @@ function triggerDuel(moved) {
 
 async function beginFinal(){
  if(!host||!state||state.phase!=='playing')return;
- state.phase='final';state.finalQuestion=0;
+ state.phase='final';state.finalStarted=Date.now();state.finalQuestion=0;
  Object.values(state.teams||{}).sort((a,b)=>b.score-a.score||a.joined-b.joined).forEach((t,i)=>{t.duel='';t.pendingFrom='';t.challengesStarted=0;t.finalPos=Math.max(1,8-i);});
  Object.values(state.duels||{}).forEach(d=>d.done=true);
  flash('⚡ Finale: de punten bepalen de voorsprong. Race naar vak 16!');await writeState();
@@ -627,7 +631,7 @@ function renderClock() {
               (Date.now() - state.started) / 1000
             )
           )
-        : 0;
+        : state.phase === 'final' ? Math.max(0,180-Math.floor((Date.now()-(state.finalStarted||Date.now()))/1000)) : 0;
 
   $('timer').textContent =
     String(Math.floor(remaining / 60)).padStart(2, '0') +
