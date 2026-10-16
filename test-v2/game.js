@@ -524,7 +524,7 @@ async function handleRequest(r){
    if(p.every((v,i)=>v===q.answer[i])){
     t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
     flash(t.name+' opent een doorgang!');
-    if(t.step===routes[t.route].length-1)t.finished=true;else triggerDuel(t);
+    if(t.step===routes[t.route].length-1)t.finished=true;
    }else{t.wrong++;t.score=Math.max(0,t.score-10);flash('Spreuk mislukt bij '+t.name);}
    t.progress=[];
   }await writeState();return;
@@ -1097,11 +1097,37 @@ function drawWorld(canvas, time) {
   }
 }
 
+// Persoonlijke camera: de wereld blijft gesynchroniseerd, het beeld volgt de eigen avatar.
+const studentWorldBuffer=document.createElement('canvas');
+studentWorldBuffer.width=1200;studentWorldBuffer.height=760;
+let cameraX=.5,cameraY=.5;
+function drawStudentCamera(time){
+ const canvas=$('studentWorld');if(!canvas||!state)return;
+ const team=state.teams?.[teamId];if(!team)return;
+ drawWorld(studentWorldBuffer,time);
+ const route=routes[team.route]||routes[0];
+ const node=route[Math.min(team.step||0,route.length-1)];
+ const target=POINTS[node]||POINTS.entry;
+ cameraX+=(target[0]-cameraX)*.065;
+ cameraY+=(target[1]-cameraY)*.065;
+ const ctx=canvas.getContext('2d');if(!ctx)return;
+ const sw=studentWorldBuffer.width,sh=studentWorldBuffer.height;
+ const cropW=sw*.51,cropH=cropW*canvas.height/canvas.width;
+ const x=Math.max(0,Math.min(sw-cropW,cameraX*sw-cropW/2));
+ const y=Math.max(0,Math.min(sh-cropH,cameraY*sh-cropH/2));
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.drawImage(studentWorldBuffer,x,y,cropW,cropH,0,0,canvas.width,canvas.height);
+ const glow=ctx.createRadialGradient(canvas.width/2,canvas.height/2,30,canvas.width/2,canvas.height/2,canvas.width*.72);
+ glow.addColorStop(0,'#ffffff00');glow.addColorStop(1,'#03101899');ctx.fillStyle=glow;ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
 function animate(time) {
   if (view === 'teacher') {
     drawWorld($('worldCanvas'), time);
   } else if (view === 'welcome') {
     drawWorld($('previewCanvas'), time);
+  } else if (view === 'student') {
+    drawStudentCamera(time);
   }
 
   requestAnimationFrame(animate);
