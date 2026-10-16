@@ -725,7 +725,7 @@ function renderStudent(){
  if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent='Spel afgelopen';title.textContent=w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent='Winnaar: '+(w?.name||'Onbekend');return;}
  if(state.phase==='final'){
   status.textContent='⚡ Finale · vak '+t.finalPos+'/16';
-  if(d){title.textContent='⚔ DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=(q.fullRule?q.fullRule+' — ':'')+q.q;tokenPuzzle(q,'duel',p);return;}
+  if(d){title.textContent='⚔ DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.fullRule||q.q;tokenPuzzle(q,'duel',p);return;}
   if(t.pendingFrom){
    const challenger=state.teams[t.pendingFrom];title.textContent='⚔ Uitdaging ontvangen';txt.textContent=(challenger?.name||'Een team')+' daagt jullie uit. Aanvaarden jullie het duel?';
    for(const [label,action] of [['⚔ Aanvaarden','accept'],['Weigeren','decline']]){const b=document.createElement('button');b.textContent=label;b.onclick=()=>sendRequest(action,{answer:1}).catch(e=>$('feedback').textContent=e.message);$('options').appendChild(b);}return;
@@ -740,7 +740,7 @@ function renderStudent(){
  }
  if(d){status.textContent='⚔ Duel';title.textContent='DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.q;tokenPuzzle(q,'duel',p);return;}
  if(t.finished){status.textContent='In de schatkamer';title.textContent='Wacht op de finale';txt.textContent='Jullie hebben '+t.score+' punten verzameld.';return;}
- status.textContent='+100 punten per juiste spreuk';const q=getQuestion(t);title.textContent=q.t;txt.textContent=(q.fullRule?q.fullRule+' — ':'')+q.q;tokenPuzzle(q,'answer',p);
+ status.textContent='+100 punten per juiste spreuk';const q=getQuestion(t);title.textContent=q.t;txt.textContent=q.fullRule||q.q;tokenPuzzle(q,'answer',p);
 }
 function showNumber(kind) {
   $('numberBox').classList.remove('hidden');
