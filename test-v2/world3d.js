@@ -66,17 +66,17 @@ function position(team,phase){const path=routePoints[team.route%8]||routePoints[
  const p=Math.max(0,Math.min(path.length-1,team.step||0)),i=Math.floor(p);return lerp(path[i],path[Math.min(i+1,6)],p-i);}
 let lastCanvas=null,frame=0;
 export function draw3D(canvas,state,view,teamId,time){
- if(!canvas||!state)return false;
+ if(!canvas)return false;
  try{
  if(lastCanvas!==canvas){const parent=canvas.parentElement;if(!parent)return false;renderer.domElement.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';parent.style.position='relative';parent.insertBefore(renderer.domElement,canvas);canvas.style.visibility='hidden';lastCanvas=canvas;}
  const width=Math.max(1,canvas.clientWidth||canvas.width),height=Math.max(1,canvas.clientHeight||canvas.height);
  renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();
- const teams=Object.values(state.teams||{});const ids=new Set(teams.map(t=>t.id));
+ const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
  for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);avatars.delete(id);}
- for(const t of teams){const g=avatar(t.id,t.route);const p=position(t,state.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
- if(view==='student'&&state.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(8)).add(new THREE.Vector3(0,6,0));camera.position.lerp(desired,.045);camera.lookAt(target.x, target.y+2.3,target.z);}
+ for(const t of teams){const g=avatar(t.id,t.route);const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
+ if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(8)).add(new THREE.Vector3(0,6,0));camera.position.lerp(desired,.045);camera.lookAt(target.x, target.y+2.3,target.z);}
  else{camera.position.lerp(new THREE.Vector3(34,51,57),.035);camera.lookAt(0,2,0);}
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=5.7+Math.sin(time*.0015)*.25;}
- renderer.render(scene,camera);frame++;return true;
+ renderer.render(scene,camera);frame++;const loading=document.getElementById('previewLoading');if(loading&&view==='welcome')loading.style.display='none';return true;
  }catch(err){if(frame<2)console.warn('3D view unavailable',err);return false;}
 }
