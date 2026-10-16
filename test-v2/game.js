@@ -47,15 +47,16 @@ const POINTS = {
   vault: [.50, .46]
 };
 
+// Acht even lange routes: elk team kan exact zes poorten openen.
 const routes = [
-  ['entry', 'a', 'b', 'c', 'd', 'j', 'vault'],
-  ['entry', 'a', 'i', 'h', 'g', 'f', 'k', 'vault'],
-  ['entry', 'a', 'b', 'j', 'e', 'k', 'vault'],
-  ['entry', 'a', 'i', 'j', 'c', 'd', 'vault'],
-  ['entry', 'a', 'b', 'c', 'j', 'k', 'vault'],
-  ['entry', 'a', 'i', 'h', 'k', 'f', 'vault'],
-  ['entry', 'a', 'b', 'j', 'e', 'f', 'vault'],
-  ['entry', 'a', 'i', 'j', 'd', 'e', 'vault']
+ ['entry','a','b','c','d','j','vault'],
+ ['entry','a','i','h','g','k','vault'],
+ ['entry','a','b','j','e','k','vault'],
+ ['entry','a','i','j','c','d','vault'],
+ ['entry','a','b','c','j','k','vault'],
+ ['entry','a','i','h','k','f','vault'],
+ ['entry','a','b','j','e','f','vault'],
+ ['entry','a','i','j','d','e','vault']
 ];
 
 const avatars=[["Xander","×"],["Rex","√"],["Nox","−"],["Vex","ⁿ"],["Axel","x"],["Nova","∞"],["Zero","0"],["Delta","Δ"]];
