@@ -33,6 +33,27 @@ const stoneTex=stoneTexture('#99958a',21),rockTex=stoneTexture('#737c74',31),mos
 rock.map=rockTex;rock.color.set(0xffffff);rock.needsUpdate=true;
 moss.map=mossTex;moss.color.set(0xffffff);moss.needsUpdate=true;
 stone.map=stoneTex;stone.color.set(0xffffff);stone.needsUpdate=true;
+// Photographic terrain assets from the public Three.js example library.
+// All materials retain local procedural textures when the external files cannot load.
+const textureLoader=new THREE.TextureLoader();
+textureLoader.setCrossOrigin('anonymous');
+function photoTexture(path,repeat,apply){
+ textureLoader.load('https://threejs.org/examples/textures/'+path,texture=>{
+  texture.colorSpace=THREE.SRGBColorSpace;
+  texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+  texture.repeat.set(repeat,repeat);texture.anisotropy=8;
+  apply(texture);
+ },undefined,error=>console.warn('Fototextuur niet geladen:',path,error));
+}
+photoTexture('terrain/grasslight-big.jpg',6,texture=>{
+ moss.map=texture;moss.color.set(0xb9c6ac);moss.roughness=1;moss.needsUpdate=true;
+});
+photoTexture('terrain/rock.jpg',4,texture=>{
+ rock.map=texture;rock.color.set(0xd0d3ce);rock.roughness=.95;rock.needsUpdate=true;
+});
+photoTexture('brick_diffuse.jpg',3,texture=>{
+ stone.map=texture;stone.color.set(0xb3aa98);stone.roughness=.96;stone.needsUpdate=true;
+});
 const clouds=[];
 function addAtmosphere(){
  const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
@@ -47,9 +68,9 @@ addAtmosphere();
 
 function build(){
  // Floating mountain archipelago: irregular, layered cliffs instead of a flat disk.
- const cliffMaterials=[mat(0xffffff,{map:rockTex}),mat(0xc7c9be,{map:rockTex}),mat(0x8c9a8e,{map:rockTex}),mat(0xe1d6c0,{map:rockTex})];
- const green=[mat(0x456b4b,{map:mossTex,side:THREE.DoubleSide}),mat(0x628c58,{map:mossTex,side:THREE.DoubleSide}),mat(0x7c9665,{map:mossTex,side:THREE.DoubleSide})];
- const stoneDetail=[mat(0xf5e5c8,{map:stoneTex}),mat(0xffffff,{map:stoneTex}),mat(0xd5d0c5,{map:stoneTex})];
+ const cliffMaterials=[rock,rock,rock,rock];
+ const green=[moss,mat(0x668a5e,{roughness:1}),mat(0x3c674d,{roughness:1})];
+ const stoneDetail=[stone,stone,stone];
  const flame=new THREE.MeshStandardMaterial({color:0xffb14b,emissive:0xff6a10,emissiveIntensity:3,roughness:.3});
  const leaf=new THREE.MeshStandardMaterial({color:0x285a42,roughness:1,side:THREE.DoubleSide});
  const groupMesh=(geo,m,x,y,z,parent=world)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;};
@@ -70,7 +91,7 @@ function build(){
   const radial=Math.hypot(x,z),r=(radial>20?1:0);
   tp.setXYZ(k,x+(x/(radial||1))*jag*r,y+(y>0?.32*Math.sin(x*.42)*Math.cos(z*.35):0),z+(z/(radial||1))*jag*r);
  }
- terrainGeo.computeVertexNormals();groupMesh(terrainGeo,mat(0xf0f2ed,{map:mossTex}),0,-.5,0);
+ terrainGeo.computeVertexNormals();groupMesh(terrainGeo,moss,0,-.5,0);
  for(let i=0;i<80;i++){const a=i*2.399963,r=24+rand(i+21)*7,x=Math.cos(a)*r,z=Math.sin(a)*r;
   boulder(x,-3.2-rand(i+5)*5,z,2.2+rand(i+18)*3,cliffMaterials[i%4]);
   if(i%4===0)boulder(x*.93,-1.2,z*.93,1.8,green[i%3]);
@@ -161,7 +182,7 @@ function build(){
    pos.setXYZ(k,px*(12+height*.19)*ridge,py*height*.57,pz*(12+height*.19)*ridge);
   }
   geo.computeVertexNormals();
-  const peak=groupMesh(geo,mat(mountainPalette[i%4],{roughness:1}),x,-11,z);
+  const peak=groupMesh(geo,mat(mountainPalette[i%4],{map:rockTex,roughness:1}),x,-11,z);
   peak.rotation.y=rand(i+13)*Math.PI*2;
  }
 
@@ -193,7 +214,7 @@ finalCourse.visible=false;
 
 const camera=new THREE.PerspectiveCamera(39,1,.1,400);camera.position.set(65,65,105);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;renderer.setClearColor(0xa4c4c7);
 // Actual textured glTF assets (not primitives): licensed Khronos sample assets.
 // They load asynchronously; the procedural scene remains playable if an asset fails.
 const gltfLoader=new GLTFLoader();
