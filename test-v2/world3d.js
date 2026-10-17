@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const THREE_COLORS=['#ffb563','#8cd9ff','#e4a5ff','#9ff2bf','#ffd68b','#f4a2cb','#d0ed87','#b3aaff'];
-const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*3.55;return new THREE.Vector3(Math.cos(angle)*radius,1.5+j*.32,Math.sin(angle)*radius);});});
+const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*2.72;return new THREE.Vector3(Math.cos(angle)*radius,3.0,Math.sin(angle)*radius);});});
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x92b3bb);scene.fog=new THREE.FogExp2(0x91b1b6,.006);
 const world=new THREE.Group();scene.add(world);
 scene.add(new THREE.HemisphereLight(0xeaf8ff,0x29423a,2.7));
@@ -53,9 +53,24 @@ function build(){
  const flame=new THREE.MeshStandardMaterial({color:0xffb14b,emissive:0xff6a10,emissiveIntensity:3,roughness:.3});
  const leaf=new THREE.MeshStandardMaterial({color:0x285a42,roughness:1,side:THREE.DoubleSide});
  const groupMesh=(geo,m,x,y,z,parent=world)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;};
- const boulder=(x,y,z,scale,material=rock)=>{const o=groupMesh(new THREE.DodecahedronGeometry(1,1),material,x,y,z);o.scale.set(scale*(.75+rand(x)*.6),scale*(.65+rand(z)*.6),scale*(.75+rand(x+z)*.5));o.rotation.set(rand(x+1),rand(z+2),rand(y+3));return o;};
+ const boulder=(x,y,z,scale,material=rock)=>{
+ const geo=new THREE.IcosahedronGeometry(1,3),pos=geo.attributes.position;
+ for(let j=0;j<pos.count;j++){const px=pos.getX(j),py=pos.getY(j),pz=pos.getZ(j);
+  const noise=.83+.18*Math.sin(px*8+py*5+pz*9)+.11*Math.sin(px*17-pz*13)+.06*Math.cos(py*31+px*19);
+  pos.setXYZ(j,px*noise,py*noise,pz*noise);
+ }
+ geo.computeVertexNormals();
+ const o=groupMesh(geo,material,x,y,z);o.scale.set(scale*(.75+rand(x)*.6),scale*(.65+rand(z)*.6),scale*(.75+rand(x+z)*.5));o.rotation.set(rand(x+1),rand(z+2),rand(y+3));return o;
+};
  // Rugged plateau and protruding rock ledges.
- cylinder(30,27,2.4,moss,0,-.9,0,32);
+ const terrainGeo=new THREE.CylinderGeometry(29.5,31,4.8,96,10);
+ const tp=terrainGeo.attributes.position;
+ for(let k=0;k<tp.count;k++){const x=tp.getX(k),y=tp.getY(k),z=tp.getZ(k),a=Math.atan2(z,x);
+  const jag=.55*Math.sin(a*17)+.4*Math.sin(a*37+1)+.2*Math.cos(a*71);
+  const radial=Math.hypot(x,z),r=(radial>20?1:0);
+  tp.setXYZ(k,x+(x/(radial||1))*jag*r,y+(y>0?.32*Math.sin(x*.42)*Math.cos(z*.35):0),z+(z/(radial||1))*jag*r);
+ }
+ terrainGeo.computeVertexNormals();groupMesh(terrainGeo,mat(0xf0f2ed,{map:mossTex}),0,-.5,0);
  for(let i=0;i<115;i++){const a=i*2.399963,r=24+rand(i+21)*7,x=Math.cos(a)*r,z=Math.sin(a)*r;
   boulder(x,-3.2-rand(i+5)*5,z,2.2+rand(i+18)*3,cliffMaterials[i%4]);
   if(i%4===0)boulder(x*.93,-1.2,z*.93,1.8,green[i%3]);
@@ -68,7 +83,9 @@ function build(){
  for(let i=0;i<9;i++){const a=i*Math.PI*2/9+.21,x=Math.cos(a)*28.8,z=Math.sin(a)*28.8;
   const fall=groupMesh(new THREE.PlaneGeometry(2.2+rand(i)*1.7,12+rand(i+3)*7,8,14),
     new THREE.MeshStandardMaterial({color:0x91d8d8,emissive:0x2b6678,emissiveIntensity:.25,transparent:true,opacity:.73,side:THREE.DoubleSide,roughness:.17}),x,-7.8,z);
-  fall.rotation.y=-a;falls.push(fall);
+  fall.rotation.y=Math.PI/2-a;
+  const p=fall.geometry.attributes.position;for(let k=0;k<p.count;k++){const xx=p.getX(k),yy=p.getY(k);p.setZ(k,.18*Math.sin(yy*2.4+xx*3.8)+.07*Math.sin(yy*8+xx*5));}fall.geometry.computeVertexNormals();
+  falls.push(fall);
   for(let k=0;k<6;k++){const spray=groupMesh(new THREE.SphereGeometry(.16+rand(k+i)*.24,7,5),mat(0xd4f7ef,{transparent:true,opacity:.6}),x+Math.cos(a)*(k*.2),-14+rand(k+i+8)*2,z+Math.sin(a)*(k*.2));spray.scale.y=.35;}
  }
  world.userData.falls=falls;
@@ -77,7 +94,7 @@ function build(){
   if(i%11===0)continue;
   const height=2.5+rand(i+55)*4.6;
   cylinder(.13,.27,height*.6,mat(0x554637),x,height*.3,z,7);
-  for(let layer=0;layer<3;layer++){const crown=cone(.85+rand(i+70)*.7+(2-layer)*.18,height*.48,green[(i+layer)%3],x,height*.48+layer*height*.19,z,9);crown.rotation.y=rand(i+layer)*3;}
+  for(let layer=0;layer<3;layer++){const crown=groupMesh(new THREE.IcosahedronGeometry(1,2),green[(i+layer)%3],x,height*.48+layer*height*.19,z);crown.scale.set(.8+rand(i+70)*.6+(2-layer)*.2,height*.22,.8+rand(i+70)*.6+(2-layer)*.2);crown.rotation.y=rand(i+layer)*3;}
   if(i%4===0){for(let k=0;k<4;k++)boulder(x+(rand(i+k)*2-1)*1.3,.35,z+(rand(i+k+4)*2-1)*1.3,.3,green[(i+k)%3]);}
  }
  // Eight raised stone bridges with individually weathered flagstones, carved balustrades and glowing rune gateways.
@@ -85,7 +102,7 @@ function build(){
   const a=i*Math.PI/4,radial=new THREE.Vector3(Math.cos(a),0,Math.sin(a));
   const tangent=new THREE.Vector3(-Math.sin(a),0,Math.cos(a));
   for(let j=0;j<38;j++){const r=7.8+j*.49,p=radial.clone().multiplyScalar(r),y=2.4+(25-r)*.012;
-   const slab=box(2.8,.4,.53,stoneDetail[(i+j)%3],p.x,y,p.z);slab.rotation.y=a+Math.PI/2;slab.rotation.z=(rand(i*44+j)-.5)*.025;
+   const slab=box(2.8,.4,.53,stoneDetail[(i+j)%3],p.x,y,p.z);slab.rotation.y=a;slab.rotation.z=(rand(i*44+j)-.5)*.025;
    if(j%4===0){for(const side of [-1,1]){const edge=p.clone().addScaledVector(tangent,side*1.62);
     const pedestal=box(.55,.9,.55,stoneDetail[(i+j+1)%3],edge.x,y+.5,edge.z);pedestal.rotation.y=a;
     if(j%8===0){const brazier=groupMesh(new THREE.SphereGeometry(.24,9,7),flame,edge.x,y+1.15,edge.z);const light=new THREE.PointLight(0xffa54d,4,5);light.position.copy(brazier.position);scene.add(light);}
@@ -183,10 +200,12 @@ function avatar(id,index){let o=avatars.get(id);if(o)return o;const g=new THREE.
  const face=new THREE.Mesh(new THREE.SphereGeometry(.5,12,10),mat(0xffd9af));face.position.y=1.9;primitive.add(face);
  const hood=new THREE.Mesh(new THREE.ConeGeometry(.66,.9,7),c);hood.position.y=2.65;primitive.add(hood);
  for(const x of [-.18,.18]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.065,7,6),mat(0x1c2734));eye.position.set(x,1.95,.46);primitive.add(eye);}
+ const cloak=new THREE.Mesh(new THREE.ConeGeometry(.78,1.75,12),mat(THREE_COLORS[index%8],{metalness:.2,roughness:.67}));cloak.position.y=.8;cloak.rotation.z=Math.PI;g.add(cloak);g.userData.cloak=cloak;
+ const badge=new THREE.Mesh(new THREE.TorusGeometry(.33,.09,8,24),mat(0xe7c583,{metalness:.75,roughness:.2}));badge.position.set(0,1.45,.5);g.add(badge);
  g.userData.label=nameLabel('Team');g.add(g.userData.label);scene.add(g);avatars.set(id,g);replaceAvatarModel(g);return g;}
 const lerp=(a,b,t)=>a.clone().lerp(b,Math.max(0,Math.min(1,t)));
 function position(team,phase){const path=routePoints[team.route%8]||routePoints[0];
- if(phase==='final'||phase==='ended'){const p=Math.min(1,(team.finalPos||0)/16);return lerp(new THREE.Vector3(0,3.5,26),new THREE.Vector3(0,3.5,8.5),p);}
+ if(phase==='final'||phase==='ended'){const p=Math.min(1,(team.finalPos||0)/16);return lerp(new THREE.Vector3(0,3.4,26),new THREE.Vector3(0,3.4,8.5),p);}
  const p=Math.max(0,Math.min(path.length-1,team.step||0)),i=Math.floor(p);return lerp(path[i],path[Math.min(i+1,6)],p-i);}
 let lastCanvas=null,frame=0;
 export function draw3D(canvas,state,view,teamId,time){
