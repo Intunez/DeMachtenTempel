@@ -4,9 +4,9 @@ const THREE_COLORS=['#ffb563','#8cd9ff','#e4a5ff','#9ff2bf','#ffd68b','#f4a2cb',
 const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*2.72;return new THREE.Vector3(Math.cos(angle)*radius,3.0,Math.sin(angle)*radius);});});
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x92b3bb);scene.fog=new THREE.FogExp2(0x91b1b6,.006);
 const world=new THREE.Group();scene.add(world);
-scene.add(new THREE.HemisphereLight(0xeaf8ff,0x29423a,2.7));
-const sun=new THREE.DirectionalLight(0xffe9c3,3.1);sun.position.set(-22,40,24);scene.add(sun);
-const accent=new THREE.PointLight(0x64f9ef,85,35);accent.position.set(0,11,0);scene.add(accent);
+scene.add(new THREE.HemisphereLight(0xd5e8ff,0x273e32,1.45));
+const sun=new THREE.DirectionalLight(0xffe5b5,3.9);sun.position.set(-22,40,24);scene.add(sun);
+const accent=new THREE.PointLight(0x64f9ef,32,35);accent.position.set(0,11,0);scene.add(accent);
 const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.88,...extra});
 const rock=mat(0x58645f),moss=mat(0x496b4e),stone=mat(0x9c9582),gold=mat(0xc9a76e),dark=mat(0x334744),water=mat(0x55d6e9,{metalness:.1,roughness:.3,transparent:true,opacity:.76}),crystal=mat(0x77eaff,{emissive:0x2dbbc5,emissiveIntensity:1.5,metalness:.25,roughness:.15});
 const cylinder=(r1,r2,h,m,x,y,z,n=8)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,n),m);o.position.set(x,y,z);o.castShadow=true;world.add(o);return o;};
@@ -71,7 +71,7 @@ function build(){
   tp.setXYZ(k,x+(x/(radial||1))*jag*r,y+(y>0?.32*Math.sin(x*.42)*Math.cos(z*.35):0),z+(z/(radial||1))*jag*r);
  }
  terrainGeo.computeVertexNormals();groupMesh(terrainGeo,mat(0xf0f2ed,{map:mossTex}),0,-.5,0);
- for(let i=0;i<115;i++){const a=i*2.399963,r=24+rand(i+21)*7,x=Math.cos(a)*r,z=Math.sin(a)*r;
+ for(let i=0;i<80;i++){const a=i*2.399963,r=24+rand(i+21)*7,x=Math.cos(a)*r,z=Math.sin(a)*r;
   boulder(x,-3.2-rand(i+5)*5,z,2.2+rand(i+18)*3,cliffMaterials[i%4]);
   if(i%4===0)boulder(x*.93,-1.2,z*.93,1.8,green[i%3]);
  }
@@ -90,7 +90,7 @@ function build(){
  }
  world.userData.falls=falls;
  // Forest: trunks, layered organic crowns, ferns and undergrowth.
- for(let i=0;i<175;i++){const a=rand(i+24)*Math.PI*2,r=11+rand(i+47)*17.3,x=Math.cos(a)*r,z=Math.sin(a)*r;
+ for(let i=0;i<115;i++){const a=rand(i+24)*Math.PI*2,r=11+rand(i+47)*17.3,x=Math.cos(a)*r,z=Math.sin(a)*r;
   if(i%11===0)continue;
   const height=2.5+rand(i+55)*4.6;
   cylinder(.13,.27,height*.6,mat(0x554637),x,height*.3,z,7);
@@ -105,7 +105,7 @@ function build(){
    const slab=box(2.8,.4,.53,stoneDetail[(i+j)%3],p.x,y,p.z);slab.rotation.y=a;slab.rotation.z=(rand(i*44+j)-.5)*.025;
    if(j%4===0){for(const side of [-1,1]){const edge=p.clone().addScaledVector(tangent,side*1.62);
     const pedestal=box(.55,.9,.55,stoneDetail[(i+j+1)%3],edge.x,y+.5,edge.z);pedestal.rotation.y=a;
-    if(j%8===0){const brazier=groupMesh(new THREE.SphereGeometry(.24,9,7),flame,edge.x,y+1.15,edge.z);const light=new THREE.PointLight(0xffa54d,4,5);light.position.copy(brazier.position);scene.add(light);}
+    if(j%8===0){const brazier=groupMesh(new THREE.SphereGeometry(.24,9,7),flame,edge.x,y+1.15,edge.z);if(j===0){const light=new THREE.PointLight(0xffa54d,5,8);light.position.copy(brazier.position);scene.add(light);}}
    }}
   }
   const gateR=26.8,gx=Math.cos(a)*gateR,gz=Math.sin(a)*gateR;
@@ -153,7 +153,7 @@ function build(){
 build();
 const camera=new THREE.PerspectiveCamera(43,1,.1,350);camera.position.set(42,43,66);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
 // Actual textured glTF assets (not primitives): licensed Khronos sample assets.
 // They load asynchronously; the procedural scene remains playable if an asset fails.
 const gltfLoader=new GLTFLoader();
