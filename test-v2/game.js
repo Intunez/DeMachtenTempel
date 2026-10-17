@@ -67,6 +67,31 @@ function avatarFace(n){if(!Number.isInteger(n))return '◈';const symbols=['⚔'
 function norm(v){return String(v).replace(/\s/g,'').replace(/[·×*]/g,'').replace(/−/g,'-').replace(/[{}]/g,'').replace(/:/g,'/').replace(/\^\(([^()]+)\)/g,'^$1');}
 function hash(v){let x=2166136261;for(const ch of norm(v)){x^=ch.charCodeAt(0);x=Math.imul(x,16777619);}return x>>>0;}
 function finaleVraag(t){return finalQs[((t.finalPos||0)+t.route*3)%finalQs.length];}
+function finaleChoices(q){
+ // Stable, reproducible alternatives; the host checks the chosen index.
+ const correct=q.a;
+ const variants=[];
+ const add=v=>{if(v!==correct&&!variants.includes(v))variants.push(v);};
+ // Frequent student mistakes: incorrect sign, coefficient or exponent.
+ if(correct.startsWith('-'))add(correct.slice(1));else add('-'+correct);
+ const firstDigit=correct.match(/[0-9]+/);
+ if(firstDigit){
+  const n=Number(firstDigit[0]);
+  add(correct.slice(0,firstDigit.index)+String(n+1)+correct.slice(firstDigit.index+firstDigit[0].length));
+ }
+ const exp=correct.match(/\^(-?\d+)/);
+ if(exp){
+  const n=Number(exp[1]);add(correct.replace(exp[0],'^'+(n+1)));
+  add(correct.replace(exp[0],'^'+Math.max(1,Math.abs(n)-1)));
+ }
+ add('2'+correct);add(correct+'^2');
+ const idx=finalQs.indexOf(q);
+ const options=[correct,variants[0],variants[1]];
+ const shift=((idx*7+3)%3);
+ const rotated=options.map((_,i)=>options[(i+shift)%3]);
+ return {options:rotated,correct:rotated.indexOf(correct)};
+}
+
 
 const randomId = () =>
   Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -585,12 +610,12 @@ async function handleRequest(r){
   if(!Number.isInteger(t.finalPos)||t.finalPos<1||t.finalPos>16)return;
   // Oude of dubbel ingestuurde antwoorden mogen geen extra vak opleveren.
   if(!Number.isInteger(Number(r.atPosition))||Number(r.atPosition)!==t.finalPos)return;
-  if(n===hash(finaleVraag(t).a)){
+  if(Number(r.choice)===finaleChoices(finaleVraag(t)).correct){
    const previous=t.finalPos;
    t.finalPos=previous+1;
    t.finalAnswers=(t.finalAnswers||0)+1;
    if(t.finalPos!==previous+1)return;
-   if(t.finalPos===16&&t.finalAnswers>=8){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');}
+   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');}
    else flash('⚡ '+t.name+' bereikt vak '+t.finalPos);
   }else{t.wrong++;flash('Fout finaleantwoord bij '+t.name);}
   await writeState();
@@ -766,9 +791,21 @@ function renderStudent(){
    const challenger=state.teams[t.pendingFrom];title.textContent='⚔ Uitdaging ontvangen';txt.textContent=(challenger?.name||'Een team')+' daagt jullie uit. Aanvaarden jullie het duel?';
    for(const [label,action] of [['⚔ Aanvaarden','accept'],['Weigeren','decline']]){const b=document.createElement('button');b.textContent=label;b.onclick=()=>sendRequest(action,{answer:1}).catch(e=>$('feedback').textContent=e.message);$('options').appendChild(b);}return;
   }
-  title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);txt.innerHTML='<span class="exercise-label">Werk uit · oefenreeks '+q.set+'</span><span class="math-exercise">'+mathExpressionHtml(q.q)+'</span>';
-  $('numberBox').classList.remove('hidden');$('numberInput').type='text';$('numberInput').placeholder='Bijv. 4a^2b^2';$('numberInput').value='';
-  $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v),atPosition:t.finalPos});$('feedback').textContent='Antwoord ontvangen. Controle wordt uitgevoerd…';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};
+  title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);
+  txt.innerHTML='<span class="exercise-label">Werk uit · oefenreeks '+q.set+'</span><span class="math-exercise">'+mathExpressionHtml(q.q)+'</span>';
+  const choices=finaleChoices(q);
+  const grid=document.createElement('div');grid.className='finale-choices';
+  choices.options.forEach((answer,index)=>{
+   const button=document.createElement('button');button.type='button';button.className='finale-choice';
+   button.innerHTML='<span class="finale-choice-letter">'+String.fromCharCode(65+index)+'</span><span class="math-exercise">'+mathExpressionHtml(answer)+'</span>';
+   button.onclick=async()=>{
+    grid.querySelectorAll('button').forEach(b=>b.disabled=true);
+    try{await sendRequest('final',{choice:index,atPosition:t.finalPos});$('feedback').textContent='Antwoord ontvangen…';}
+    catch(e){$('feedback').textContent=e.message;grid.querySelectorAll('button').forEach(b=>b.disabled=false);}
+   };
+   grid.appendChild(button);
+  });
+  $('options').appendChild(grid);
   if((t.challengesStarted||0)<2&&!Object.values(state.teams).some(v=>v.pendingFrom===t.id)){
    const area=document.createElement('div');area.className='challenge-area';area.innerHTML='<h4>⚔ Optioneel: daag een team uit ('+(2-(t.challengesStarted||0))+' over)</h4><p>Win twee vakken. Het andere team mag weigeren.</p>';
    Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=()=>sendRequest('challenge',{answer:v.route}).catch(e=>$('feedback').textContent=e.message);area.appendChild(b);});$('options').appendChild(area);
