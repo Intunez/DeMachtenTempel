@@ -63,7 +63,7 @@ const avatars=[["Xander","×"],["Rex","√"],["Nox","−"],["Vex","ⁿ"],["Axel"
 const questions=[{"t":"De productspreuk","q":"Zet de woordgroepen in de juiste volgorde.","tokens":["elke factor","tot die macht.","Om een product","verheffen we","tot een macht te verheffen,"],"answer":[2,4,3,0,1]},{"t":"De quotiëntspreuk","q":"Zet de woordgroepen in de juiste volgorde.","tokens":["het deeltal en de deler","tot die macht.","Om een quotiënt","verheffen we","tot een macht te verheffen,"],"answer":[2,4,3,0,1]},{"t":"Het productzegel","q":"Zet de symbolen in de juiste volgorde.","tokens":["bⁿ","=","·","(a · b)ⁿ","aⁿ"],"answer":[3,1,4,2,0]},{"t":"Het quotiëntzegel","q":"Zet de symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=",":","(a : b)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De productpoort","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a : b)ⁿ = aⁿ : bⁿ","(a · b)ⁿ = aⁿ · bⁿ"],"answer":[1],"fullRule":"Om een product tot een macht te verheffen, verheffen we elke factor tot die macht."},{"t":"De quotiëntpoort","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a : b)ⁿ = aⁿ : bⁿ","(a · b)ⁿ = aⁿ · bⁿ"],"answer":[0],"fullRule":"Om een quotiënt tot een macht te verheffen, verheffen we het deeltal en de deler tot die macht."},{"t":"De x-y-inscriptie","q":"Zet de symbolen in de juiste volgorde.","tokens":["yⁿ","=","·","(x · y)ⁿ","xⁿ"],"answer":[3,1,4,2,0]},{"t":"De x-y-breuk","q":"Zet de symbolen in de juiste volgorde.","tokens":["xⁿ","yⁿ","=",":","(x : y)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De gouden spreuk","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a · b)ⁿ = aⁿ · bⁿ","(a : b)ⁿ = aⁿ : bⁿ"],"answer":[0],"fullRule":"Om een product tot een macht te verheffen, verheffen we elke factor tot die macht."},{"t":"De blauwe spreuk","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a · b)ⁿ = aⁿ · bⁿ","(a : b)ⁿ = aⁿ : bⁿ"],"answer":[1],"fullRule":"Om een quotiënt tot een macht te verheffen, verheffen we het deeltal en de deler tot die macht."},{"t":"De drie factoren","q":"Zet de symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=","cⁿ","·","(a · b · c)ⁿ","·"],"answer":[5,2,0,4,1,6,3]},{"t":"De laatste inscriptie","q":"Zet de symbolen in de juiste volgorde.","tokens":["(p : q)ᵐ","pᵐ","qᵐ","=",":"],"answer":[0,3,1,4,2]}];
 const duelQs=questions.slice(0,10);
 const finalQs=[{"q":"(2a)^2","a":"4a^2","set":16},{"q":"(4c)^3","a":"64c^3","set":16},{"q":"(-ab)^2","a":"a^2b^2","set":16},{"q":"(-3c)^2","a":"9c^2","set":16},{"q":"(-2c)^3","a":"-8c^3","set":16},{"q":"(-2ab)^2","a":"4a^2b^2","set":16},{"q":"(2ac)^3","a":"8a^3c^3","set":16},{"q":"(a^2b)^2","a":"a^4b^2","set":16},{"q":"(-ab)^3","a":"-a^3b^3","set":16},{"q":"(-1/4 ac)^2","a":"1/16a^2c^2","set":16},{"q":"(2a^2b)^2","a":"4a^4b^2","set":17},{"q":"(4ac^4)^2","a":"16a^2c^8","set":17},{"q":"(10xy^2z^3)^2","a":"100x^2y^4z^6","set":17},{"q":"(-4/5 a^3b^4)^2","a":"16/25a^6b^8","set":17},{"q":"(-3x^2y^4)^3","a":"-27x^6y^12","set":17},{"q":"(2/3)^2","a":"4/9","set":19},{"q":"(-1/2)^3","a":"-1/8","set":19},{"q":"(4/5)^2","a":"16/25","set":19},{"q":"(-1/10)^3","a":"-1/1000","set":19},{"q":"(3/5)^(-2)","a":"25/9","set":19},{"q":"(1/3)^(-2)","a":"9","set":19},{"q":"(-3/5)^(-2)","a":"25/9","set":19},{"q":"(-1/3)^2","a":"1/9","set":19},{"q":"(4/5)^(-2)","a":"25/16","set":19},{"q":"(1/10)^(-3)","a":"1000","set":19},{"q":"(a/b)^2","a":"a^2/b^2","set":20},{"q":"(-x/2)^3","a":"-x^3/8","set":20},{"q":"(3/z^2)^2","a":"9/z^4","set":20},{"q":"(1/a)^4","a":"1/a^4","set":20},{"q":"(-c/2)^(-2)","a":"4/c^2","set":20},{"q":"(-x/y)^2","a":"x^2/y^2","set":20},{"q":"(a^2/b^3)^(-2)","a":"b^6/a^4","set":20},{"q":"(-3/y^3)^3","a":"-27/y^9","set":20},{"q":"(-1/ab)^2","a":"1/a^2b^2","set":20},{"q":"(x^2/y)^(-1)","a":"y/x^2","set":20},{"q":"(a/b)^m","a":"a^m/b^m","set":21},{"q":"(x/y)^(p+1)","a":"x^(p+1)/y^(p+1)","set":21},{"q":"(x/2)^(2+a)","a":"x^(2+a)/2^(2+a)","set":21},{"q":"(-3/2)^(2a)","a":"3^(2a)/2^(2a)","set":21},{"q":"(x^2/y)^(-m)","a":"y^m/x^(2m)","set":21}];
-function avatarFace(n){if(!Number.isInteger(n))return '◈';return '<span class="mathavatar" style="--av:'+colors[n]+'"><span class="hair">▰</span><span class="eyes">• •</span><span class="mouth">⌣</span><span class="mathsymbol">'+avatars[n][1]+'</span></span>';}
+function avatarFace(n){if(!Number.isInteger(n))return '◈';const symbols=['⚔','✦','♜','☽','♞','✧','❖','⚜'];return '<span class="mathavatar hero-avatar" style="--av:'+colors[n]+'"><span class="hero-icon">'+symbols[n]+'</span></span>';}
 function norm(v){return String(v).replace(/\s/g,'').replace(/[·×*]/g,'').replace(/−/g,'-').replace(/[{}]/g,'').replace(/:/g,'/').replace(/\^\(([^()]+)\)/g,'^$1');}
 function hash(v){let x=2166136261;for(const ch of norm(v)){x^=ch.charCodeAt(0);x=Math.imul(x,16777619);}return x>>>0;}
 function finaleVraag(t){return finalQs[((t.finalPos||0)+t.route*3)%finalQs.length];}
@@ -535,7 +535,7 @@ async function handleRequest(r){
  const n=Number(r.answer);
  if(r.action==='answer'&&state.phase==='avatars'){
   if(!Number.isInteger(n)||n<0||n>=8||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
-  t.avatar=n;flash(t.name+' kiest '+avatars[n][0]);await writeState();return;
+  t.avatar=n;flash(t.name+' heeft een figuur gekozen.');await writeState();return;
  }
  if(r.action==='answer'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
   const q=getQuestion(t),p=t.progress||[];
@@ -546,7 +546,7 @@ async function handleRequest(r){
     t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
     flash(t.name+' opent een doorgang!');
     if(t.step===routes[t.route].length-1)t.finished=true;
-   }else{t.wrong++;t.score=Math.max(0,t.score-10);flash('Spreuk mislukt bij '+t.name);}
+   }else{t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback='❌ FOUT ANTWOORD! Probeer opnieuw.';flash('❌ Fout antwoord van '+t.name);}
    t.progress=[];
   }await writeState();return;
  }
@@ -574,9 +574,9 @@ async function handleRequest(r){
   p.push(n);d.progress[t.id]=p;
   if(p.length===q.answer.length){
    if(p.every((v,i)=>v===q.answer[i])){
-    d.winner=t.id;d.done=true;t.finalPos=Math.min(16,(t.finalPos||0)+2);t.duel='';
+    d.winner=t.id;d.done=true;t.finalPos=Math.min(16,(t.finalPos||0)+2);t.finalAnswers=(t.finalAnswers||0)+2;t.duel='';
     const other=state.teams[d.a===t.id?d.b:d.a];if(other)other.duel='';
-    if(t.finalPos>=16){state.winner=t.id;state.phase='ended';flash('🏆 '+t.name+' wint de Machtentempel!');}
+    if(t.finalPos===16&&(t.finalAnswers||0)>=8){state.winner=t.id;state.phase='ended';flash('🏆 '+t.name+' wint de Machtentempel!');}
     else flash('⚔ '+t.name+' wint het duel en gaat twee vakken vooruit!');
    }else{t.wrong++;d.progress[t.id]=[];}
   }await writeState();return;
@@ -723,10 +723,11 @@ function render(){
   if(state.phase==='avatars'){
    stage.classList.remove('hidden');stage.innerHTML='<h2>🎭 KIES JULLIE AVATAR</h2><div class="avatargrid">'+teams.map(t=>'<div class="avatarcard">'+avatarFace(t.avatar)+'<b>'+escapeHtml(t.name)+'</b><small>'+(Number.isInteger(t.avatar)?avatars[t.avatar][0]:'Kiest nog...')+'</small></div>').join('')+'</div>';
   }else if(state.phase==='playing'){
+   if(teams.length>0&&teams.every(t=>t.finished)){$('eventLabel').textContent='🏁 ALLE TEAMS HEBBEN DE TEMPEL BEREIKT — START DE FINALE!';}
    const d=Object.values(state.duels||{}).find(x=>!x.done);
    if(d){const q=duelQs[d.qIndex];stage.classList.remove('hidden');stage.innerHTML='<h2>⚔ LIVE DUEL</h2><p>'+escapeHtml(q.q)+'</p><div class="duelgrid">'+[d.a,d.b].map(id=>'<div class="duelteam"><h3>'+escapeHtml(state.teams[id]?.name||'Team')+'</h3><div class="tokenline">'+(d.progress?.[id]||[]).map(i=>'<span class="placed">'+escapeHtml(q.tokens[i])+'</span>').join('')+'</div></div>').join('')+'</div>';}
   }else if(['final','ended'].includes(state.phase)){
-   stage.classList.remove('hidden');stage.innerHTML='<h2>🏆 RACE NAAR DE SCHATKAMER</h2>'+teams.map(t=>'<div class="raceline"><b>'+escapeHtml(t.name)+'</b><div class="racebar"><div style="width:'+((t.finalPos||0)/16*100)+'%;background:'+t.color+'"></div></div><span>'+t.finalPos+'/16</span></div>').join('')+(Object.values(state.duels||{}).filter(d=>!d.done).map(d=>'<div class="final-duel"><h3>⚔ LIVE DUEL: '+escapeHtml(state.teams[d.a]?.name||'')+' tegen '+escapeHtml(state.teams[d.b]?.name||'')+'</h3><p>'+escapeHtml(duelQs[d.qIndex].q)+'</p>'+[d.a,d.b].map(id=>'<div><b>'+escapeHtml(state.teams[id]?.name||'')+'</b> · '+(d.progress?.[id]||[]).length+' / '+duelQs[d.qIndex].tokens.length+' onderdelen</div>').join('')+'</div>').join(''))+(state.winner?'<h2>🏆 '+escapeHtml(state.teams[state.winner]?.name||'')+' wint!</h2>':'');
+   stage.classList.remove('hidden');stage.innerHTML='<h2>🏆 RACE NAAR DE SCHATKAMER</h2><div class="race-track">'+teams.map(t=>'<div class="race-team"><b>'+escapeHtml(t.name)+'</b><div class="race-cells">'+Array.from({length:16},(_,i)=>'<span class="race-cell '+(i+1===(t.finalPos||0)?'occupied':'')+'" style="--teamcolor:'+t.color+'">'+(i+1===(t.finalPos||0)?'♟':i+1)+'</span>').join('')+'</div><strong>Vak '+t.finalPos+'/16</strong></div>').join('')+'</div>'+(Object.values(state.duels||{}).filter(d=>!d.done).map(d=>'<div class="final-duel"><h3>⚔ LIVE DUEL: '+escapeHtml(state.teams[d.a]?.name||'')+' tegen '+escapeHtml(state.teams[d.b]?.name||'')+'</h3><p>'+escapeHtml(duelQs[d.qIndex].q)+'</p>'+[d.a,d.b].map(id=>'<div><b>'+escapeHtml(state.teams[id]?.name||'')+'</b> · '+(d.progress?.[id]||[]).length+' / '+duelQs[d.qIndex].tokens.length+' onderdelen</div>').join('')+'</div>').join(''))+(state.winner?'<h2>🏆 '+escapeHtml(state.teams[state.winner]?.name||'')+' wint!</h2>':'');
   }
  }
  if(view==='student')renderStudent();
@@ -738,21 +739,21 @@ function tokenPuzzle(q,action,progress){
 }
 function renderStudent(){
  const t=state.teams?.[teamId];if(!t){$('myTeam').textContent='Team verwijderd';$('studentStatus').textContent='Dit team is door de leerkracht verwijderd.';$('questTitle').textContent='Aanmelding beëindigd';$('questText').textContent='Ga terug naar het startscherm en meld je opnieuw aan.';$('options').innerHTML='';$('numberBox').classList.add('hidden');return;}
- $('myTeam').textContent=t.name+(Number.isInteger(t.avatar)?' · '+avatars[t.avatar][0]:'');
+ $('myTeam').textContent=t.name;
  $('myScore').textContent=t.score+' punten';
  $('myPosition').textContent=state.phase==='final'?'Vak '+t.finalPos+'/16':t.finished?'In de schatkamer':'Doorgang '+(t.step+1);
  const d=getActiveDuel(t),p=d?(d.progress?.[t.id]||[]):(t.progress||[]);
  const sig=[state.phase,t.solved,t.wrong,t.duel,t.pendingFrom,t.challengesStarted,t.avatar,t.finalPos,state.winner,p.join(','),Object.values(state.teams||{}).map(v=>[v.avatar,v.pendingFrom,v.duel].join('/')).join(',')].join(':');
- if(currentSignature===sig)return;currentSignature=sig;
- $('feedback').textContent='';$('numberBox').classList.add('hidden');$('options').innerHTML='';
+ if(currentSignature===sig)return;const previousSignature=currentSignature;currentSignature=sig;
+ $('feedback').textContent=t.wrong>0&&previousSignature&&previousSignature!==sig&&state.phase==='playing'?'❌ FOUT ANTWOORD! Probeer opnieuw.':'';$('numberBox').classList.add('hidden');$('options').innerHTML='';
  const title=$('questTitle'),txt=$('questText'),status=$('studentStatus');
  if(state.phase==='lobby'){status.textContent='Wachten op de leerkracht';title.textContent='Je team is aangemeld';txt.textContent='De avatarselectie start zodra alle teams er zijn.';return;}
  if(state.phase==='avatars'){
-  status.textContent='Alle teams kiezen tegelijk';title.textContent=Number.isInteger(t.avatar)?'Jullie zijn '+avatars[t.avatar][0]:'Kies je avatar';txt.textContent='Wie het eerst kiest, krijgt de avatar.';
+  status.textContent='Alle teams kiezen tegelijk';title.textContent=Number.isInteger(t.avatar)?'Jullie figuur is gekozen':'Kies je figuur';txt.textContent='Wie het eerst kiest, krijgt de avatar.';
   if(!Number.isInteger(t.avatar)){
    const taken=new Set(Object.values(state.teams||{}).map(v=>v.avatar));
    const grid=document.createElement('div');grid.className='avatargrid';
-   avatars.forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i)+'<b>'+a[0]+'</b>';b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
+   avatars.forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i);b.setAttribute('aria-label','Figuur '+(i+1));b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
   }return;
  }
  if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent='Spel afgelopen';title.textContent=w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent='Winnaar: '+(w?.name||'Onbekend');return;}
@@ -765,7 +766,7 @@ function renderStudent(){
   }
   title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);txt.innerHTML='<span class="exercise-label">Werk uit · oefenreeks '+q.set+'</span><span class="math-exercise">'+mathExpressionHtml(q.q)+'</span>';
   $('numberBox').classList.remove('hidden');$('numberInput').type='text';$('numberInput').placeholder='Bijv. 4a^2b^2';$('numberInput').value='';
-  $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v),atPosition:t.finalPos});$('feedback').textContent='Antwoord ingestuurd!';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};
+  $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v),atPosition:t.finalPos});$('feedback').textContent='Antwoord ontvangen. Controle wordt uitgevoerd…';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};
   if((t.challengesStarted||0)<2&&!Object.values(state.teams).some(v=>v.pendingFrom===t.id)){
    const area=document.createElement('div');area.className='challenge-area';area.innerHTML='<h4>⚔ Optioneel: daag een team uit ('+(2-(t.challengesStarted||0))+' over)</h4><p>Win twee vakken. Het andere team mag weigeren.</p>';
    Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=()=>sendRequest('challenge',{answer:v.route}).catch(e=>$('feedback').textContent=e.message);area.appendChild(b);});$('options').appendChild(area);
@@ -888,7 +889,7 @@ function drawStudentCamera(time){
 }
 
 let draw3D=null;
-import('./world3d.js?v=temple20261017').then(module=>{draw3D=module.draw3D;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
+import('./world3d.js?v=temple20261017b').then(module=>{draw3D=module.draw3D;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
