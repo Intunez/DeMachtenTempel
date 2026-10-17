@@ -67,3 +67,14 @@
 .welcome .preview canvas{width:100%;height:100%;object-fit:cover}
 @media(max-width:1100px){.welcome{grid-template-columns:1fr;gap:24px}.welcome .hero h1{font-size:clamp(36px,6vw,64px)}.welcome .hero h1 em{font-size:clamp(31px,5.8vw,60px)}.welcome .preview{max-height:none;aspect-ratio:1.55}}
 @media(max-width:480px){.welcome .hero h1 em{font-size:clamp(24px,7vw,35px)}.welcome .preview{aspect-ratio:1.15}}
+
+/* Bewerkbare formule vóór Nakijken */
+.token-instruction{font-size:.85rem;color:#d8c9a7;line-height:1.5}
+.token-dropzone{min-height:64px;padding:12px;border:2px dashed #cba969;border-radius:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#101e26}
+.token-empty{opacity:.7;font-style:italic}
+.token-placed{cursor:grab!important;border:1px solid #f0c775!important;background:#394d53!important;color:#fff!important;padding:9px 12px!important;touch-action:manipulation}
+.token-placed:active{cursor:grabbing!important}
+.token-source{min-height:60px;padding:10px;border-radius:12px;border:1px solid #556b67;display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.token-source button{cursor:grab}
+.token-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}
+.token-actions button{flex:1 1 150px}
