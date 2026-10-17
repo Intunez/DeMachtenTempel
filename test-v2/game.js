@@ -379,10 +379,27 @@ async function removeTeamFromTeacher(id){
  flash('Team '+name+' is verwijderd.');await writeState();
 }
 
+function showRoomCode(){
+ const teacher=document.getElementById('teacher');
+ if(!teacher)return;
+ let panel=document.getElementById('persistentRoomCode');
+ if(!panel){
+  panel=document.createElement('div');panel.id='persistentRoomCode';
+  const title=document.createElement('span');title.textContent='SPELCODE VOOR LEERLINGEN';
+  const code=document.createElement('strong');code.id='persistentRoomCodeValue';
+  const copy=document.createElement('button');copy.type='button';copy.textContent='Kopieer code';
+  copy.onclick=async()=>{const value=document.getElementById('persistentRoomCodeValue')?.textContent||'';try{await navigator.clipboard.writeText(value);copy.textContent='Gekopieerd!';}catch(e){window.prompt('Kopieer de spelcode:',value);}};
+  panel.append(title,code,copy);teacher.insertBefore(panel,teacher.firstChild);
+ }
+ const value=room||'GEEN CODE';
+ document.getElementById('persistentRoomCodeValue').textContent=value;
+ const original=document.getElementById('roomCode');if(original)original.textContent=value;
+ panel.hidden=false;
+}
 function openTeacher() {
   show('teacher');
 
-  $('roomCode').textContent = room;
+  showRoomCode();
   $('demoControls').classList.toggle('hidden', !demo);
 
   render();
