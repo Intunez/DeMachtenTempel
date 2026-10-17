@@ -1,4 +1,5 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const THREE_COLORS=['#ffb563','#8cd9ff','#e4a5ff','#9ff2bf','#ffd68b','#f4a2cb','#d0ed87','#b3aaff'];
 const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*3.55;return new THREE.Vector3(Math.cos(angle)*radius,1.5+j*.32,Math.sin(angle)*radius);});});
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x92b3bb);scene.fog=new THREE.FogExp2(0x91b1b6,.006);
@@ -105,6 +106,36 @@ build();
 const camera=new THREE.PerspectiveCamera(43,1,.1,350);camera.position.set(42,43,66);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+// Actual textured glTF assets (not primitives): licensed Khronos sample assets.
+// They load asynchronously; the procedural scene remains playable if an asset fails.
+const gltfLoader=new GLTFLoader();
+const assetBase='https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/';
+let humanModel=null,lanternModel=null;
+const assetClones=new Set();
+const loadModel=(name)=>gltfLoader.loadAsync(assetBase+name+'/glTF-Binary/'+name+'.glb');
+loadModel('CesiumMan').then(gltf=>{
+ humanModel=gltf.scene;
+ humanModel.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+ for(const g of avatars.values())replaceAvatarModel(g);
+}).catch(e=>console.warn('3D-personage niet geladen',e));
+loadModel('Lantern').then(gltf=>{
+ lanternModel=gltf.scene;
+ const positions=[[9,4,10],[-9,4,10],[10,4,-9],[-10,4,-9],[0,4,28],[0,4,-28]];
+ positions.forEach(([x,y,z],i)=>{
+  const model=lanternModel.clone(true);model.position.set(x,y,z);model.scale.setScalar(2.1);
+  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  world.add(model);
+ });
+}).catch(e=>console.warn('3D-lantaarn niet geladen',e));
+function replaceAvatarModel(g){
+ if(!humanModel||g.userData.realModel)return;
+ if(g.userData.primitive)g.userData.primitive.visible=false;
+ const model=humanModel.clone(true);
+ model.scale.setScalar(1.55);
+ model.rotation.y=Math.PI;
+ model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+ g.add(model);g.userData.realModel=model;
+}
 const avatars=new Map();
 function nameLabel(name){
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
@@ -116,11 +147,12 @@ function nameLabel(name){
 }
 
 function avatar(id,index){let o=avatars.get(id);if(o)return o;const g=new THREE.Group();const c=mat(THREE_COLORS[index%8]);
- const body=new THREE.Mesh(new THREE.CapsuleGeometry(.52,.8,4,8),c);body.position.y=.8;g.add(body);
- const face=new THREE.Mesh(new THREE.SphereGeometry(.5,12,10),mat(0xffd9af));face.position.y=1.9;g.add(face);
- const hood=new THREE.Mesh(new THREE.ConeGeometry(.66,.9,7),c);hood.position.y=2.65;g.add(hood);
- for(const x of [-.18,.18]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.065,7,6),mat(0x1c2734));eye.position.set(x,1.95,.46);g.add(eye);}
- g.userData.label=nameLabel('Team');g.add(g.userData.label);scene.add(g);avatars.set(id,g);return g;}
+ const primitive=new THREE.Group();g.add(primitive);g.userData.primitive=primitive;
+ const body=new THREE.Mesh(new THREE.CapsuleGeometry(.52,.8,4,8),c);body.position.y=.8;primitive.add(body);
+ const face=new THREE.Mesh(new THREE.SphereGeometry(.5,12,10),mat(0xffd9af));face.position.y=1.9;primitive.add(face);
+ const hood=new THREE.Mesh(new THREE.ConeGeometry(.66,.9,7),c);hood.position.y=2.65;primitive.add(hood);
+ for(const x of [-.18,.18]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.065,7,6),mat(0x1c2734));eye.position.set(x,1.95,.46);primitive.add(eye);}
+ g.userData.label=nameLabel('Team');g.add(g.userData.label);scene.add(g);avatars.set(id,g);replaceAvatarModel(g);return g;}
 const lerp=(a,b,t)=>a.clone().lerp(b,Math.max(0,Math.min(1,t)));
 function position(team,phase){const path=routePoints[team.route%8]||routePoints[0];
  if(phase==='final'||phase==='ended'){const p=Math.min(1,(team.finalPos||0)/16);return lerp(new THREE.Vector3(0,3.5,26),new THREE.Vector3(0,3.5,8.5),p);}
