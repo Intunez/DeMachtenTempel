@@ -913,6 +913,8 @@ function animate(time) {
 
 requestAnimationFrame(animate);
 
+$('exponentBtn').onclick=()=>{const input=$('numberInput');const start=input.selectionStart??input.value.length,end=input.selectionEnd??start;input.value=input.value.slice(0,start)+'^'+input.value.slice(end);input.focus();input.setSelectionRange(start+1,start+1);};
+
 /* KNOPPEN */
 
 $('teacherBtn').onclick = () => show('setup');
