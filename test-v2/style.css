@@ -42,3 +42,9 @@
 .race-cell.occupied{background:var(--teamcolor);color:#101b2b;font-size:24px;font-weight:900;box-shadow:0 0 14px var(--teamcolor)}
 #exponentBtn{margin-left:8px;min-width:52px}
 @media(max-width:700px){.race-team{grid-template-columns:1fr;gap:4px}.race-cells{gap:1px}.race-cell{font-size:9px}.race-cell.occupied{font-size:15px}}
+
+/* Finale: echte wiskundige breuknotatie */
+.math-exercise .math-fraction{display:inline-flex;flex-direction:column;vertical-align:middle;align-items:stretch;text-align:center;line-height:1.22;margin:0 .14em;font-size:.96em;white-space:nowrap}
+.math-exercise .math-num{display:block;padding:.02em .22em .12em;border-bottom:2px solid currentColor}
+.math-exercise .math-den{display:block;padding:.12em .22em .02em}
+.math-exercise sup{font-size:.66em;vertical-align:super;line-height:0}
