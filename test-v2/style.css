@@ -48,3 +48,12 @@
 .math-exercise .math-num{display:block;padding:.02em .22em .12em;border-bottom:2px solid currentColor}
 .math-exercise .math-den{display:block;padding:.12em .22em .02em}
 .math-exercise sup{font-size:.66em;vertical-align:super;line-height:0}
+
+/* Finale: drie grote aanklikbare antwoordkaarten, geen toetsenbord nodig */
+.finale-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.finale-choice{min-height:98px;display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 10px;border:2px solid rgba(225,196,129,.5);border-radius:15px;background:rgba(16,32,44,.94);color:#fff6e2;cursor:pointer;font-size:1.3rem;transition:background .15s,border-color .15s}
+.finale-choice:hover:not(:disabled),.finale-choice:focus-visible{border-color:#ffd478;background:#344456}
+.finale-choice:disabled{opacity:.55;cursor:wait}
+.finale-choice-letter{display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;border-radius:50%;background:#a98438;color:#101820;font-size:1rem;font-weight:800}
+.finale-choice .math-exercise{display:inline-block;white-space:nowrap}
+@media(max-width:700px){.finale-choices{grid-template-columns:1fr}.finale-choice{min-height:76px;font-size:1.15rem}}
