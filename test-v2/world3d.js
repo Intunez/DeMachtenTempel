@@ -140,9 +140,9 @@ renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;s
 // Actual textured glTF assets (not primitives): licensed Khronos sample assets.
 // They load asynchronously; the procedural scene remains playable if an asset fails.
 const gltfLoader=new GLTFLoader();
-const assetBase='https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/';
+const assetBase='https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/';
 let humanModel=null,lanternModel=null;
-const assetClones=new Set();
+
 const loadModel=(name)=>gltfLoader.loadAsync(assetBase+name+'/glTF-Binary/'+name+'.glb');
 loadModel('CesiumMan').then(gltf=>{
  humanModel=gltf.scene;
@@ -162,7 +162,7 @@ function replaceAvatarModel(g){
  if(!humanModel||g.userData.realModel)return;
  if(g.userData.primitive)g.userData.primitive.visible=false;
  const model=humanModel.clone(true);
- model.scale.setScalar(1.55);
+ model.scale.setScalar(1.65);
  model.rotation.y=Math.PI;
  model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
  g.add(model);g.userData.realModel=model;
@@ -196,7 +196,7 @@ export function draw3D(canvas,state,view,teamId,time){
  const width=Math.max(1,canvas.clientWidth||canvas.width),height=Math.max(1,canvas.clientHeight||canvas.height);
  renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
- for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);avatars.delete(id);}
+ for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);}
  for(const t of teams){const g=avatar(t.id,t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
  if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(8)).add(new THREE.Vector3(0,6,0));camera.position.lerp(desired,.045);camera.lookAt(target.x, target.y+2.3,target.z);}
  else{camera.position.lerp(new THREE.Vector3(42,43,66),.035);camera.lookAt(0,2,0);}
