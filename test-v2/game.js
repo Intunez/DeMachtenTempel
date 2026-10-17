@@ -33,7 +33,7 @@ let requestQueue = Promise.resolve();
 
 /* Originele procedurele fantasy-soundtrack: geen externe audiobestanden of auteursrechten. */
 const templeAudio=(()=>{
- let context=null,master=null,enabled=false,volume=.32,nextBeat=0,beat=0,lastScene='',timer=null;
+ let context=null,master=null,enabled=false,volume=.75,nextBeat=0,beat=0,lastScene='',timer=null;
  const chords={welcome:[[48,55,60,63],[46,53,58,62],[44,51,56,60],[43,50,55,59]],
   playing:[[48,55,60,64],[45,52,57,60],[41,48,53,57],[43,50,55,59]],
   final:[[50,57,62,65],[46,53,58,62],[48,55,60,64],[43,50,55,59]],
@@ -84,11 +84,11 @@ const templeAudio=(()=>{
  }
  async function toggle(){
   try{
-   if(!context){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)throw Error('Audio niet ondersteund');context=new AudioContext();master=context.createGain();master.gain.value=volume;master.connect(context.destination);}
+   if(!context){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)throw Error('Audio niet ondersteund');context=new AudioContext();master=context.createGain();master.gain.value=0;master.connect(context.destination);}
    if(enabled){enabled=false;master.gain.setTargetAtTime(0,context.currentTime,.06);clearInterval(timer);timer=null;}
-   else{await context.resume();enabled=true;master.gain.setTargetAtTime(volume,context.currentTime,.06);lastScene='';timer=setInterval(tick,180);tick();}
+   else{await context.resume();if(context.state!=='running')throw Error('Browser heeft audio geblokkeerd');enabled=true;master.gain.setTargetAtTime(volume,context.currentTime,.03);lastScene='';nextBeat=0;beat=0;cue('correct');timer=setInterval(tick,180);tick();}
    updateButton();
-  }catch(e){console.warn('Muziek niet beschikbaar',e);const b=document.getElementById('templeMusicToggle');if(b)b.textContent='Audio niet beschikbaar';}
+  }catch(e){console.warn('Muziek niet beschikbaar',e);const b=document.getElementById('templeMusicToggle');if(b)b.textContent='Audio geblokkeerd – probeer opnieuw';alert('De browser kon de muziek niet afspelen: '+e.message);}
  }
  function setVolume(v){volume=Math.max(0,Math.min(1,Number(v)/100));if(master&&context)master.gain.setTargetAtTime(enabled?volume:0,context.currentTime,.05);}
  function mount(){
@@ -96,7 +96,7 @@ const templeAudio=(()=>{
   const wrap=document.createElement('div');wrap.className='temple-audio-controls';
   const button=document.createElement('button');button.id='templeMusicToggle';button.className='ghost';button.type='button';button.onclick=toggle;
   const label=document.createElement('label');label.textContent='Volume ';label.title='Volume van de spelmuziek';
-  const slider=document.createElement('input');slider.id='templeMusicVolume';slider.type='range';slider.min='0';slider.max='100';slider.value='32';slider.setAttribute('aria-label','Muziekvolume');slider.oninput=()=>setVolume(slider.value);
+  const slider=document.createElement('input');slider.id='templeMusicVolume';slider.type='range';slider.min='0';slider.max='100';slider.value='75';slider.setAttribute('aria-label','Muziekvolume');slider.oninput=()=>setVolume(slider.value);
   label.appendChild(slider);wrap.append(button,label);document.body.appendChild(wrap);updateButton();
  }
  return {mount,cue};
