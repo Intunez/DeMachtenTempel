@@ -582,9 +582,15 @@ async function handleRequest(r){
   }await writeState();return;
  }
  if(r.action==='final'&&state.phase==='final'&&!state.winner&&!t.duel&&!t.pendingFrom){
+  if(!Number.isInteger(t.finalPos)||t.finalPos<1||t.finalPos>16)return;
+  // Oude of dubbel ingestuurde antwoorden mogen geen extra vak opleveren.
+  if(!Number.isInteger(Number(r.atPosition))||Number(r.atPosition)!==t.finalPos)return;
   if(n===hash(finaleVraag(t).a)){
-   t.finalPos=(t.finalPos||0)+1;
-   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');}
+   const previous=t.finalPos;
+   t.finalPos=previous+1;
+   t.finalAnswers=(t.finalAnswers||0)+1;
+   if(t.finalPos!==previous+1)return;
+   if(t.finalPos===16&&t.finalAnswers>=8){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');}
    else flash('⚡ '+t.name+' bereikt vak '+t.finalPos);
   }else{t.wrong++;flash('Fout finaleantwoord bij '+t.name);}
   await writeState();
@@ -631,7 +637,7 @@ function triggerDuel(moved) {
 async function beginFinal(){
  if(!host||!state||state.phase!=='playing')return;
  state.phase='final';state.finalStarted=Date.now();state.finalQuestion=0;
- Object.values(state.teams||{}).sort((a,b)=>b.score-a.score||a.joined-b.joined).forEach((t,i)=>{t.duel='';t.pendingFrom='';t.challengesStarted=0;t.finalPos=Math.max(1,8-i);});
+ Object.values(state.teams||{}).sort((a,b)=>b.score-a.score||a.joined-b.joined).forEach((t,i)=>{t.duel='';t.pendingFrom='';t.challengesStarted=0;t.finalPos=Math.max(1,8-i);t.finalAnswers=0;});
  Object.values(state.duels||{}).forEach(d=>d.done=true);
  flash('⚡ Finale: de punten bepalen de voorsprong. Race naar vak 16!');await writeState();
 }
@@ -759,7 +765,7 @@ function renderStudent(){
   }
   title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);txt.innerHTML='<span class="exercise-label">Werk uit · oefenreeks '+q.set+'</span><span class="math-exercise">'+mathExpressionHtml(q.q)+'</span>';
   $('numberBox').classList.remove('hidden');$('numberInput').type='text';$('numberInput').placeholder='Bijv. 4a^2b^2';$('numberInput').value='';
-  $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v)});$('feedback').textContent='Antwoord ingestuurd!';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};
+  $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v),atPosition:t.finalPos});$('feedback').textContent='Antwoord ingestuurd!';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};
   if((t.challengesStarted||0)<2&&!Object.values(state.teams).some(v=>v.pendingFrom===t.id)){
    const area=document.createElement('div');area.className='challenge-area';area.innerHTML='<h4>⚔ Optioneel: daag een team uit ('+(2-(t.challengesStarted||0))+' over)</h4><p>Win twee vakken. Het andere team mag weigeren.</p>';
    Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=()=>sendRequest('challenge',{answer:v.route}).catch(e=>$('feedback').textContent=e.message);area.appendChild(b);});$('options').appendChild(area);
