@@ -91,3 +91,10 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 #teacher .session{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 #teacher #roomCode{display:inline-block;white-space:nowrap;font-size:1.3em;letter-spacing:.13em;color:#ffdb87;user-select:all}
 @media(max-width:700px){body>.temple-audio-controls{right:8px;bottom:8px}#teacher .topbar{flex-wrap:wrap}#teacher .session{width:100%;justify-content:flex-start}}
+
+/* Altijd zichtbaar spelcodepaneel, onafhankelijk van topbar */
+#persistentRoomCode{display:flex!important;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;position:relative;z-index:30;margin:14px auto;padding:16px 20px;width:calc(100% - 32px);max-width:1000px;background:#1b302f!important;border:3px solid #f3cb74!important;border-radius:16px;box-shadow:0 10px 35px #0009;color:#fff4d5!important}
+#persistentRoomCode span{font-weight:800;font-size:14px;letter-spacing:.08em}
+#persistentRoomCode strong{font-size:clamp(27px,4vw,46px);letter-spacing:.2em;color:#ffe08b!important;white-space:nowrap;font-family:monospace}
+#persistentRoomCode button{background:#f3cb74;color:#17231e}
+#teacher:not(.hidden) #persistentRoomCode{visibility:visible!important;opacity:1!important}
