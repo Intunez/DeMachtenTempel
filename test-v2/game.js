@@ -568,6 +568,31 @@ async function handleRequest(r){
  if(r.action==='resetTokens'&&state.phase==='final'&&getActiveDuel(t)){
   const duel=getActiveDuel(t);duel.progress[t.id]=[];await writeState();return;
  }
+ if(r.action==='submitTokens'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
+  const q=getQuestion(t),selected=r.sequence;
+  if(!Array.isArray(selected)||selected.length!==q.answer.length||selected.some(i=>!Number.isInteger(i)||i<0||i>=q.tokens.length)||new Set(selected).size!==selected.length)return;
+  if(selected.every((v,i)=>v===q.answer[i])){
+   t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
+   if(t.step===routes[t.route].length-1)t.finished=true;
+   flash(t.name+' opent een doorgang!');
+  }else{
+   t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback='❌ FOUT ANTWOORD! Probeer opnieuw.';
+   flash('❌ Fout antwoord van '+t.name);
+  }
+  t.progress=[];await writeState();return;
+ }
+ if(r.action==='submitDuelTokens'&&state.phase==='final'&&!state.winner){
+  const d=getActiveDuel(t);if(!d||d.winner)return;
+  const q=duelQs[d.qIndex],selected=r.sequence;
+  if(!Array.isArray(selected)||selected.length!==q.answer.length||selected.some(i=>!Number.isInteger(i)||i<0||i>=q.tokens.length)||new Set(selected).size!==selected.length)return;
+  if(selected.every((v,i)=>v===q.answer[i])){
+   d.winner=t.id;d.done=true;t.finalPos=Math.min(16,(t.finalPos||0)+2);t.finalAnswers=(t.finalAnswers||0)+2;t.duel='';
+   const other=state.teams[d.a===t.id?d.b:d.a];if(other)other.duel='';
+   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';flash('🏆 '+t.name+' wint de Machtentempel!');}
+   else flash('⚔ '+t.name+' wint het duel en gaat twee vakken vooruit!');
+  }else{t.wrong++;d.progress[t.id]=[];flash('❌ Fout duelantwoord van '+t.name);}
+  await writeState();return;
+ }
  if(r.action==='answer'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
   const q=getQuestion(t),p=t.progress||[];
   if(!Number.isInteger(n)||n<0||n>=q.tokens.length||p.includes(n))return;
@@ -765,33 +790,52 @@ function render(){
  }
  if(view==='student')renderStudent();
 }
+let tokenDraft=null;
 function tokenPuzzle(q,action,progress){
- const box=$('options');
- const selected=Array.isArray(progress)?progress:[];
- box.innerHTML=(q.fullRule?'<div class="full-rule">'+escapeHtml(q.fullRule)+'</div>':'')+
- '<div class="tokenline">'+selected.map(i=>'<span class="placed">'+escapeHtml(q.tokens[i])+'</span>').join('')+'</div>';
- if(selected.length){
-  const reset=document.createElement('button');reset.type='button';reset.className='token-reset';
-  reset.textContent='↺ Opnieuw beginnen / gemaakte keuze wissen';
-  reset.onclick=async()=>{
-   reset.disabled=true;
-   try{await sendRequest('resetTokens');}
-   catch(e){$('feedback').textContent=e.message;reset.disabled=false;}
+ const box=$('options'),kind=action==='duel'?'duel':'adventure';
+ const key=kind+':'+(kind==='duel'?(getActiveDuel(state.teams[teamId])?.id||''):((state.teams[teamId]?.solved||0)+':'+(state.teams[teamId]?.route||0)))+':'+(state.teams[teamId]?.wrong||0);
+ if(!tokenDraft||tokenDraft.key!==key)tokenDraft={key,sequence:[]};
+ const selected=tokenDraft.sequence;
+ const paint=()=>{
+  box.innerHTML=(q.fullRule?'<div class="full-rule">'+escapeHtml(q.fullRule)+'</div>':'')+
+   '<p class="token-instruction">Tik of sleep de stukken naar de antwoordbalk. Tik op een geplaatst stuk om het weer weg te halen.</p>';
+  const line=document.createElement('div');line.className='tokenline token-dropzone';
+  line.setAttribute('aria-label','Samengestelde formule; sleep een stuk hierheen');
+  line.ondragover=e=>e.preventDefault();
+  line.ondrop=e=>{e.preventDefault();const raw=e.dataTransfer.getData('text/plain');const i=Number(raw);if(!Number.isInteger(i))return;if(raw.startsWith('placed:'))return;if(!selected.includes(i)){selected.push(i);paint();}};
+  selected.forEach((index,at)=>{
+   const b=document.createElement('button');b.type='button';b.className='placed token-placed';
+   b.textContent=q.tokens[index]+' ×';b.title='Verwijder dit stuk';b.draggable=true;
+   b.ondragstart=e=>e.dataTransfer.setData('text/plain','placed:'+at);
+   b.onclick=()=>{selected.splice(at,1);paint();};line.appendChild(b);
+  });
+  if(!selected.length){const hint=document.createElement('span');hint.className='token-empty';hint.textContent='Sleep of klik hier de formule samen';line.appendChild(hint);}
+  box.appendChild(line);
+  const choices=document.createElement('div');choices.className='tokenchoices token-source';
+  choices.ondragover=e=>e.preventDefault();
+  choices.ondrop=e=>{e.preventDefault();const raw=e.dataTransfer.getData('text/plain');if(!raw.startsWith('placed:'))return;const at=Number(raw.slice(7));if(Number.isInteger(at)&&at>=0&&at<selected.length){selected.splice(at,1);paint();}};
+  q.tokens.forEach((word,i)=>{
+   if(selected.includes(i))return;
+   const b=document.createElement('button');b.type='button';b.textContent=word;b.draggable=true;
+   b.ondragstart=e=>e.dataTransfer.setData('text/plain',String(i));
+   b.onclick=()=>{selected.push(i);paint();};choices.appendChild(b);
+  });
+  box.appendChild(choices);
+  const actions=document.createElement('div');actions.className='token-actions';
+  const undo=document.createElement('button');undo.type='button';undo.textContent='↶ Laatste stap terug';undo.disabled=!selected.length;
+  undo.onclick=()=>{selected.pop();paint();};actions.appendChild(undo);
+  const reset=document.createElement('button');reset.type='button';reset.textContent='↺ Alles wissen';reset.disabled=!selected.length;
+  reset.onclick=()=>{selected.length=0;paint();};actions.appendChild(reset);
+  const check=document.createElement('button');check.type='button';check.className='primary';check.textContent='✓ Nakijken';
+  check.disabled=selected.length!==q.answer.length;
+  check.onclick=async()=>{
+   check.disabled=true;
+   try{await sendRequest(kind==='duel'?'submitDuelTokens':'submitTokens',{sequence:[...selected]});if(!demo)$('feedback').textContent='Antwoord ingediend…';}
+   catch(e){$('feedback').textContent=e.message;check.disabled=false;}
   };
-  box.appendChild(reset);
- }
- const choices=document.createElement('div');choices.className='tokenchoices';
- q.tokens.forEach((word,i)=>{
-  if(selected.includes(i))return;
-  const b=document.createElement('button');b.textContent=word;
-  b.onclick=async()=>{
-   choices.querySelectorAll('button').forEach(button=>button.disabled=true);
-   try{await sendRequest(action,{answer:i});}
-   catch(e){$('feedback').textContent=e.message;choices.querySelectorAll('button').forEach(button=>button.disabled=false);}
-  };
-  choices.appendChild(b);
- });
- box.appendChild(choices);
+  actions.appendChild(check);box.appendChild(actions);
+ };
+ paint();
 }
 
 function renderStudent(){
