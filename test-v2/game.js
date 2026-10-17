@@ -562,6 +562,12 @@ async function handleRequest(r){
   if(!Number.isInteger(n)||n<0||n>=8||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
   t.avatar=n;flash(t.name+' heeft een figuur gekozen.');await writeState();return;
  }
+ if(r.action==='resetTokens'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
+  t.progress=[];await writeState();return;
+ }
+ if(r.action==='resetTokens'&&state.phase==='final'&&getActiveDuel(t)){
+  const duel=getActiveDuel(t);duel.progress[t.id]=[];await writeState();return;
+ }
  if(r.action==='answer'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
   const q=getQuestion(t),p=t.progress||[];
   if(!Number.isInteger(n)||n<0||n>=q.tokens.length||p.includes(n))return;
@@ -760,10 +766,34 @@ function render(){
  if(view==='student')renderStudent();
 }
 function tokenPuzzle(q,action,progress){
- const box=$('options');box.innerHTML=(q.fullRule?'<div class="full-rule">'+escapeHtml(q.fullRule)+'</div>':'')+'<div class="tokenline">'+progress.map(i=>'<span class="placed">'+escapeHtml(q.tokens[i])+'</span>').join('')+'</div>';
+ const box=$('options');
+ const selected=Array.isArray(progress)?progress:[];
+ box.innerHTML=(q.fullRule?'<div class="full-rule">'+escapeHtml(q.fullRule)+'</div>':'')+
+ '<div class="tokenline">'+selected.map(i=>'<span class="placed">'+escapeHtml(q.tokens[i])+'</span>').join('')+'</div>';
+ if(selected.length){
+  const reset=document.createElement('button');reset.type='button';reset.className='token-reset';
+  reset.textContent='↺ Opnieuw beginnen / gemaakte keuze wissen';
+  reset.onclick=async()=>{
+   reset.disabled=true;
+   try{await sendRequest('resetTokens');}
+   catch(e){$('feedback').textContent=e.message;reset.disabled=false;}
+  };
+  box.appendChild(reset);
+ }
  const choices=document.createElement('div');choices.className='tokenchoices';
- q.tokens.forEach((word,i)=>{if(progress.includes(i))return;const b=document.createElement('button');b.textContent=word;b.onclick=async()=>{b.disabled=true;try{await sendRequest(action,{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};choices.appendChild(b);});box.appendChild(choices);
+ q.tokens.forEach((word,i)=>{
+  if(selected.includes(i))return;
+  const b=document.createElement('button');b.textContent=word;
+  b.onclick=async()=>{
+   choices.querySelectorAll('button').forEach(button=>button.disabled=true);
+   try{await sendRequest(action,{answer:i});}
+   catch(e){$('feedback').textContent=e.message;choices.querySelectorAll('button').forEach(button=>button.disabled=false);}
+  };
+  choices.appendChild(b);
+ });
+ box.appendChild(choices);
 }
+
 function renderStudent(){
  const t=state.teams?.[teamId];if(!t){$('myTeam').textContent='Team verwijderd';$('studentStatus').textContent='Dit team is door de leerkracht verwijderd.';$('questTitle').textContent='Aanmelding beëindigd';$('questText').textContent='Ga terug naar het startscherm en meld je opnieuw aan.';$('options').innerHTML='';$('numberBox').classList.add('hidden');return;}
  $('myTeam').textContent=t.name;
@@ -771,8 +801,8 @@ function renderStudent(){
  $('myPosition').textContent=state.phase==='final'?'Vak '+t.finalPos+'/16':t.finished?'In de schatkamer':'Doorgang '+(t.step+1);
  const d=getActiveDuel(t),p=d?(d.progress?.[t.id]||[]):(t.progress||[]);
  const sig=[state.phase,t.solved,t.wrong,t.duel,t.pendingFrom,t.challengesStarted,t.avatar,t.finalPos,state.winner,p.join(','),Object.values(state.teams||{}).map(v=>[v.avatar,v.pendingFrom,v.duel].join('/')).join(',')].join(':');
- if(currentSignature===sig)return;const previousSignature=currentSignature;currentSignature=sig;
- $('feedback').textContent=t.wrong>0&&previousSignature&&previousSignature!==sig&&state.phase==='playing'?'❌ FOUT ANTWOORD! Probeer opnieuw.':'';$('numberBox').classList.add('hidden');$('options').innerHTML='';
+ if(currentSignature===sig)return;const previousSignature=currentSignature;const previousWrong=Number(renderStudent.lastWrong??0);renderStudent.lastWrong=t.wrong||0;currentSignature=sig;
+ $('feedback').textContent=t.wrong>previousWrong&&previousSignature&&state.phase==='playing'?'❌ FOUT ANTWOORD! Probeer opnieuw.':'';$('numberBox').classList.add('hidden');$('options').innerHTML='';
  const title=$('questTitle'),txt=$('questText'),status=$('studentStatus');
  if(state.phase==='lobby'){status.textContent='Wachten op de leerkracht';title.textContent='Je team is aangemeld';txt.textContent='De avatarselectie start zodra alle teams er zijn.';return;}
  if(state.phase==='avatars'){
