@@ -78,3 +78,10 @@
 .token-source button{cursor:grab}
 .token-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}
 .token-actions button{flex:1 1 150px}
+
+/* Soundtrack controls */
+.temple-audio-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:4px 9px;border:1px solid #72827677;border-radius:12px;background:#122b3299}
+.temple-audio-controls button{white-space:nowrap;font-size:.82rem;padding:8px 12px}
+.temple-audio-controls label{display:flex;align-items:center;gap:6px;font-size:.72rem;color:#f2dfb5}
+.temple-audio-controls input[type=range]{width:90px;accent-color:#e6c16c;cursor:pointer}
+@media(max-width:650px){.temple-audio-controls{gap:5px;padding:4px}.temple-audio-controls label{font-size:0}.temple-audio-controls input[type=range]{width:65px}}
