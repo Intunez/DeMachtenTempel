@@ -97,7 +97,7 @@ const templeAudio=(()=>{
   const button=document.createElement('button');button.id='templeMusicToggle';button.className='ghost';button.type='button';button.onclick=toggle;
   const label=document.createElement('label');label.textContent='Volume ';label.title='Volume van de spelmuziek';
   const slider=document.createElement('input');slider.id='templeMusicVolume';slider.type='range';slider.min='0';slider.max='100';slider.value='32';slider.setAttribute('aria-label','Muziekvolume');slider.oninput=()=>setVolume(slider.value);
-  label.appendChild(slider);wrap.append(button,label);header.insertBefore(wrap,header.firstChild);updateButton();
+  label.appendChild(slider);wrap.append(button,label);document.body.appendChild(wrap);updateButton();
  }
  return {mount,cue};
 })();
@@ -1092,10 +1092,10 @@ function animate(time) {
   }
 
   requestAnimationFrame(animate);
-templeAudio.mount();
 }
 
 requestAnimationFrame(animate);
+templeAudio.mount();
 
 // The finale now uses three clickable answers; no exponent keyboard button is needed.
 
