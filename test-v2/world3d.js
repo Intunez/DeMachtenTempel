@@ -106,15 +106,24 @@ const camera=new THREE.PerspectiveCamera(43,1,.1,350);camera.position.set(42,43,
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
 const avatars=new Map();
+function nameLabel(name){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
+ const ctx=canvas.getContext('2d');ctx.fillStyle='rgba(8,19,30,.85)';ctx.fillRect(0,4,512,88);
+ ctx.font='bold 38px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffffff';ctx.fillText(String(name||'Team').slice(0,22),256,49,475);
+ const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+ const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false,transparent:true}));
+ sprite.position.y=4.2;sprite.scale.set(5.6,1.05,1);return sprite;
+}
+
 function avatar(id,index){let o=avatars.get(id);if(o)return o;const g=new THREE.Group();const c=mat(THREE_COLORS[index%8]);
  const body=new THREE.Mesh(new THREE.CapsuleGeometry(.52,.8,4,8),c);body.position.y=.8;g.add(body);
  const face=new THREE.Mesh(new THREE.SphereGeometry(.5,12,10),mat(0xffd9af));face.position.y=1.9;g.add(face);
  const hood=new THREE.Mesh(new THREE.ConeGeometry(.66,.9,7),c);hood.position.y=2.65;g.add(hood);
  for(const x of [-.18,.18]){const eye=new THREE.Mesh(new THREE.SphereGeometry(.065,7,6),mat(0x1c2734));eye.position.set(x,1.95,.46);g.add(eye);}
- scene.add(g);avatars.set(id,g);return g;}
+ g.userData.label=nameLabel('Team');g.add(g.userData.label);scene.add(g);avatars.set(id,g);return g;}
 const lerp=(a,b,t)=>a.clone().lerp(b,Math.max(0,Math.min(1,t)));
 function position(team,phase){const path=routePoints[team.route%8]||routePoints[0];
- if(phase==='final'||phase==='ended'){const p=Math.min(1,(team.finalPos||0)/16);return lerp(path[5],new THREE.Vector3(0,3.5,7),p);}
+ if(phase==='final'||phase==='ended'){const p=Math.min(1,(team.finalPos||0)/16);return lerp(new THREE.Vector3(0,3.5,26),new THREE.Vector3(0,3.5,8.5),p);}
  const p=Math.max(0,Math.min(path.length-1,team.step||0)),i=Math.floor(p);return lerp(path[i],path[Math.min(i+1,6)],p-i);}
 let lastCanvas=null,frame=0;
 export function draw3D(canvas,state,view,teamId,time){
@@ -125,7 +134,7 @@ export function draw3D(canvas,state,view,teamId,time){
  renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
  for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);avatars.delete(id);}
- for(const t of teams){const g=avatar(t.id,t.route);const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
+ for(const t of teams){const g=avatar(t.id,t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
  if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(8)).add(new THREE.Vector3(0,6,0));camera.position.lerp(desired,.045);camera.lookAt(target.x, target.y+2.3,target.z);}
  else{camera.position.lerp(new THREE.Vector3(42,43,66),.035);camera.lookAt(0,2,0);}
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=3.7+Math.sin(time*.0015)*.25;}
