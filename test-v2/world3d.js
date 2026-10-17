@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const THREE_COLORS=['#ffb563','#8cd9ff','#e4a5ff','#9ff2bf','#ffd68b','#f4a2cb','#d0ed87','#b3aaff'];
 const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*2.72;return new THREE.Vector3(Math.cos(angle)*radius,3.0,Math.sin(angle)*radius);});});
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x92b3bb);scene.fog=new THREE.FogExp2(0x91b1b6,.006);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xa4c4c7);scene.fog=new THREE.FogExp2(0xa4c4c7,.0038);
 const world=new THREE.Group();scene.add(world);
 scene.add(new THREE.HemisphereLight(0xd5e8ff,0x273e32,1.45));
 const sun=new THREE.DirectionalLight(0xffe5b5,3.9);sun.position.set(-22,40,24);scene.add(sun);
@@ -117,6 +117,7 @@ function build(){
   glow.scale.y=1.5;world.add(gate);
  }
  // Monumental multi-tiered sanctuary with colonnades, carved stonework and a luminous doorway.
+ const templeStart=world.children.length;
  for(let tier=0;tier<5;tier++)cylinder(9.7-tier*.45,10.2-tier*.45,.44,stoneDetail[tier%3],0,1.2+tier*.44,0,24);
  cylinder(7.6,8,7.8,stoneDetail[1],0,7.5,0,20);
  for(let i=0;i<16;i++){const a=i*Math.PI*2/16,x=Math.cos(a)*8.1,z=Math.sin(a)*8.1;
@@ -139,15 +140,31 @@ function build(){
  // Hanging ivy on the temple.
  for(let i=0;i<35;i++){const a=rand(i+350)*Math.PI*2,x=Math.cos(a)*8.3,z=Math.sin(a)*8.3;
   const ivy=groupMesh(new THREE.ConeGeometry(.23,1.5+rand(i)*2.5,6),leaf,x,10-rand(i+2)*3,z);ivy.rotation.z=Math.sin(a)*.22;}
- const guardian=new THREE.Group();guardian.position.set(0,20,-3);
+ // Scale the whole sanctuary as one coherent landmark so it no longer obscures the island.
+ const sanctuary=new THREE.Group();
+ const templeParts=world.children.slice(templeStart);
+ for(const part of templeParts){world.remove(part);sanctuary.add(part);}
+ sanctuary.scale.setScalar(.68);sanctuary.position.y=1.1;world.add(sanctuary);
+ const guardian=new THREE.Group();guardian.position.set(0,17,-3);
  const cloak=new THREE.Mesh(new THREE.ConeGeometry(1.1,3.3,12),mat(0x263947));guardian.add(cloak);
  const head=new THREE.Mesh(new THREE.IcosahedronGeometry(.85,2),mat(0x738b91,{metalness:.45}));head.position.y=2;guardian.add(head);
  const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.62),crystal);gem.position.set(0,3.7,0);guardian.add(gem);guardian.userData.gem=gem;world.add(guardian);world.userData.guardian=guardian;
- // Atmospheric distant mountain peaks.
- for(let i=0;i<22;i++){const a=i*2.399,r=65+rand(i+220)*45,x=Math.cos(a)*r,z=Math.sin(a)*r;
-  const peak=cone(9+rand(i+50)*11,28+rand(i+60)*37,cliffMaterials[i%4],x,-9,z,7);peak.rotation.z=(rand(i+13)-.5)*.24;
-  cone(4+rand(i+50)*3,8,mat(0xc9d0c8),x,12+rand(i+60)*10,z,7);
+ // Layered, irregular mountain silhouettes; no triangular cone mountains.
+ const mountainPalette=[0x738a87,0x819895,0x6c8583,0x9da9a3];
+ for(let i=0;i<18;i++){
+  const a=i*2.399,r=83+rand(i+220)*47,x=Math.cos(a)*r,z=Math.sin(a)*r;
+  const height=24+rand(i+60)*28;
+  const geo=new THREE.IcosahedronGeometry(1,3),pos=geo.attributes.position;
+  for(let k=0;k<pos.count;k++){
+   const px=pos.getX(k),py=pos.getY(k),pz=pos.getZ(k);
+   const ridge=1+.22*Math.sin(px*13+pz*7)+.13*Math.cos(px*21-pz*17);
+   pos.setXYZ(k,px*(12+height*.19)*ridge,py*height*.57,pz*(12+height*.19)*ridge);
+  }
+  geo.computeVertexNormals();
+  const peak=groupMesh(geo,mat(mountainPalette[i%4],{roughness:1}),x,-11,z);
+  peak.rotation.y=rand(i+13)*Math.PI*2;
  }
+
 }
 
 build();
@@ -174,9 +191,9 @@ for(let i=0;i<16;i++){
 }
 finalCourse.visible=false;
 
-const camera=new THREE.PerspectiveCamera(43,1,.1,350);camera.position.set(42,43,66);
+const camera=new THREE.PerspectiveCamera(39,1,.1,400);camera.position.set(65,65,105);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
 // Actual textured glTF assets (not primitives): licensed Khronos sample assets.
 // They load asynchronously; the procedural scene remains playable if an asset fails.
 const gltfLoader=new GLTFLoader();
@@ -242,7 +259,7 @@ export function draw3D(canvas,state,view,teamId,time){
  for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);}
  for(const t of teams){const g=avatar(t.id,t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
  if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(8)).add(new THREE.Vector3(0,6,0));camera.position.lerp(desired,.045);camera.lookAt(target.x, target.y+2.3,target.z);}
- else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(20,30,48),.035);camera.lookAt(0,3,17);}else{camera.position.lerp(new THREE.Vector3(42,43,66),.035);camera.lookAt(0,2,0);}
+ else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(20,30,48),.035);camera.lookAt(0,3,17);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(64*distance,65*distance,104*distance),.055);camera.lookAt(0,0,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
  if(world.userData.falls)for(let i=0;i<world.userData.falls.length;i++){const f=world.userData.falls[i];f.material.opacity=.63+.12*Math.sin(time*.002+i);}
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=3.7+Math.sin(time*.0015)*.25;}
