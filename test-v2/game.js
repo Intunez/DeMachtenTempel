@@ -676,29 +676,31 @@ function escapeHtml(value) {
 }
 
 function mathExpressionHtml(expression){
- const input=String(expression);
- let html='';
- for(let i=0;i<input.length;i++){
-  if(input[i]==='^'){
-   let exponent='';
-   if(input[i+1]==='('){
-    let depth=1,j=i+2;
-    for(;j<input.length&&depth>0;j++){
-     if(input[j]==='(')depth++;
-     else if(input[j]===')')depth--;
-     if(depth>0)exponent+=input[j];
-    }
-    i=j-1;
-   }else{
-    let j=i+1;
-    if(input[j]==='-'||input[j]==='+')exponent+=input[j++];
-    while(j<input.length&&/[0-9a-zA-Z]/.test(input[j]))exponent+=input[j++];
-    i=j-1;
-   }
-   html+='<sup>'+escapeHtml(exponent)+'</sup>';
-  }else html+=escapeHtml(input[i]==='/'?':':input[i]);
+ // Render powers and true horizontal fraction bars without changing the stored answers.
+ const src=String(expression);
+ const escape=escapeHtml;
+ const atom=(text)=>{
+  let out='';
+  for(let i=0;i<text.length;i++){
+   if(text[i]!=='^'){out+=escape(text[i]);continue;}
+   let exp='',j=i+1;
+   if(text[j]==='('){let depth=1;j++;while(j<text.length&&depth){if(text[j]==='(')depth++;else if(text[j]===')')depth--;if(depth)exp+=text[j];j++;}}
+   else{if(text[j]==='-'||text[j]==='+')exp+=text[j++];while(j<text.length&&/[a-zA-Z0-9]/.test(text[j]))exp+=text[j++];}
+   out+='<sup>'+escape(exp)+'</sup>';i=j-1;
+  }
+  return out;
+ };
+ // Each slash binds its adjacent numerator and denominator, including powers.
+ const token='(?:\\([^()]*\\)|[+-]?(?:\\d+|[a-zA-Z]+))(?:\\^(?:\\([^()]*\\)|[+-]?[a-zA-Z0-9]+))?';
+ const fraction=new RegExp('('+token+')\\s*\\/\\s*('+token+')','g');
+ let output='',last=0,match;
+ while((match=fraction.exec(src))!==null){
+  output+=atom(src.slice(last,match.index));
+  output+='<span class="math-fraction"><span class="math-num">'+atom(match[1])+'</span><span class="math-den">'+atom(match[2])+'</span></span>';
+  last=match.index+match[0].length;
  }
- return html;
+ output+=atom(src.slice(last));
+ return output;
 }
 
 function showOverlay(message) {
