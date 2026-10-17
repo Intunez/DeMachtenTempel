@@ -57,3 +57,13 @@
 .finale-choice-letter{display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;border-radius:50%;background:#a98438;color:#101820;font-size:1rem;font-weight:800}
 .finale-choice .math-exercise{display:inline-block;white-space:nowrap}
 @media(max-width:700px){.finale-choices{grid-template-columns:1fr}.finale-choice{min-height:76px;font-size:1.15rem}}
+
+/* Landing-page composition: keep the complete title and the island visible. */
+.welcome{max-width:1660px;grid-template-columns:minmax(330px,.82fr) minmax(0,1.48fr);gap:clamp(22px,3vw,48px);padding:clamp(20px,3vw,44px)}
+.welcome .hero{min-width:0;padding:clamp(8px,1.2vw,20px)}
+.welcome .hero h1{font-size:clamp(31px,3.05vw,56px);line-height:1.14;letter-spacing:-.035em;overflow-wrap:normal;word-break:normal;hyphens:none}
+.welcome .hero h1 em{display:block;font-size:clamp(30px,2.85vw,54px);letter-spacing:-.045em;white-space:nowrap}
+.welcome .preview{width:100%;min-width:0;aspect-ratio:1.55;max-height:74vh;border-radius:22px;border-color:#6b7f77;box-shadow:0 28px 95px #000b}
+.welcome .preview canvas{width:100%;height:100%;object-fit:cover}
+@media(max-width:1100px){.welcome{grid-template-columns:1fr;gap:24px}.welcome .hero h1{font-size:clamp(36px,6vw,64px)}.welcome .hero h1 em{font-size:clamp(31px,5.8vw,60px)}.welcome .preview{max-height:none;aspect-ratio:1.55}}
+@media(max-width:480px){.welcome .hero h1 em{font-size:clamp(24px,7vw,35px)}.welcome .preview{aspect-ratio:1.15}}
