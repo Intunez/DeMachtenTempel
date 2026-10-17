@@ -31,6 +31,76 @@ let view = 'welcome';
 let currentSignature = '';
 let requestQueue = Promise.resolve();
 
+/* Originele procedurele fantasy-soundtrack: geen externe audiobestanden of auteursrechten. */
+const templeAudio=(()=>{
+ let context=null,master=null,enabled=false,volume=.32,nextBeat=0,beat=0,lastScene='',timer=null;
+ const chords={welcome:[[48,55,60,63],[46,53,58,62],[44,51,56,60],[43,50,55,59]],
+  playing:[[48,55,60,64],[45,52,57,60],[41,48,53,57],[43,50,55,59]],
+  final:[[50,57,62,65],[46,53,58,62],[48,55,60,64],[43,50,55,59]],
+  duel:[[45,52,57,60],[43,50,55,58],[41,48,53,57],[43,50,55,59]],
+  ended:[[48,55,60,64],[53,60,65,69],[55,62,67,71],[48,55,60,72]]};
+ const hz=n=>440*Math.pow(2,(n-69)/12);
+ const sceneName=()=>state?.phase==='ended'?'ended':state?.phase==='final'?(view==='student'&&state?.teams?.[teamId]?.duel?'duel':'final'):state?.phase==='playing'?'playing':'welcome';
+ function note(n,when,duration,level=.08,type='sine',pan=0){
+  if(!context||!master)return;
+  const osc=context.createOscillator(),gain=context.createGain(),stereo=context.createStereoPanner();
+  osc.type=type;osc.frequency.setValueAtTime(hz(n),when);
+  stereo.pan.value=pan;
+  const end=when+duration;
+  gain.gain.setValueAtTime(.0001,when);
+  gain.gain.exponentialRampToValueAtTime(Math.max(.0002,level),when+.06);
+  gain.gain.exponentialRampToValueAtTime(.0001,end);
+  osc.connect(gain).connect(stereo).connect(master);
+  osc.start(when);osc.stop(end+.02);
+ }
+ function cue(kind){
+  if(!enabled||!context||context.state!=='running')return;
+  const t=context.currentTime+.025;
+  if(kind==='correct'){note(72,t,.22,.11,'sine',-.3);note(76,t+.13,.3,.11,'sine',.2);note(79,t+.26,.6,.12,'triangle');}
+  if(kind==='wrong'){note(53,t,.24,.07,'triangle');note(49,t+.18,.42,.07,'sine');}
+  if(kind==='duel'){note(45,t,.4,.15,'sawtooth');note(52,t+.19,.55,.09,'triangle');}
+  if(kind==='win'){[60,64,67,72,76].forEach((n,i)=>note(n,t+i*.14,1.6,.10,'triangle',(i-2)*.18));}
+ }
+ function tick(){
+  if(!enabled||!context||context.state!=='running')return;
+  const scene=sceneName();
+  if(scene!==lastScene){lastScene=scene;nextBeat=context.currentTime+.05;beat=0;}
+  const tempo=scene==='final'||scene==='duel'?.34:scene==='ended'?.56:.67;
+  while(nextBeat<context.currentTime+1.1){
+   const chord=chords[scene][Math.floor(beat/8)%4],step=beat%8;
+   if(step===0){note(chord[0]-12,nextBeat,tempo*7,.08,'sine');note(chord[0],nextBeat,tempo*6,.045,'triangle',-.5);}
+   if(step%2===0){note(chord[step/2],nextBeat,tempo*1.8,.046,'sine',step%4===0?-.55:.55);}
+   if(scene==='final'||scene==='duel'){
+    if(step%2===0)note(chord[0]-24,nextBeat,.16,.065,'triangle');
+    note(chord[(step+1)%4]+12,nextBeat,tempo*.8,.028,'triangle');
+   }else if(step===3||step===7){note(chord[2]+12,nextBeat,tempo*2,.036,'sine',.4);}
+   nextBeat+=tempo;beat++;
+  }
+ }
+ function updateButton(){
+  const b=document.getElementById('templeMusicToggle'),v=document.getElementById('templeMusicVolume');
+  if(b){b.textContent=enabled?'♫ Muziek aan':'♪ Muziek uit';b.setAttribute('aria-pressed',String(enabled));}
+  if(v)v.value=String(Math.round(volume*100));
+ }
+ async function toggle(){
+  try{
+   if(!context){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)throw Error('Audio niet ondersteund');context=new AudioContext();master=context.createGain();master.gain.value=volume;master.connect(context.destination);}
+   if(enabled){enabled=false;master.gain.setTargetAtTime(0,context.currentTime,.06);clearInterval(timer);timer=null;}
+   else{await context.resume();enabled=true;master.gain.setTargetAtTime(volume,context.currentTime,.06);lastScene='';timer=setInterval(tick,180);tick();}
+   updateButton();
+  }catch(e){console.warn('Muziek niet beschikbaar',e);const b=document.getElementById('templeMusicToggle');if(b)b.textContent='Audio niet beschikbaar';}
+ }
+ function setVolume(v){volume=Math.max(0,Math.min(1,Number(v)/100));if(master&&context)master.gain.setTargetAtTime(enabled?volume:0,context.currentTime,.05);}
+ function mount(){
+  const header=document.querySelector('header .headright');if(!header||document.getElementById('templeMusicToggle'))return;
+  const wrap=document.createElement('div');wrap.className='temple-audio-controls';
+  const button=document.createElement('button');button.id='templeMusicToggle';button.className='ghost';button.type='button';button.onclick=toggle;
+  const label=document.createElement('label');label.textContent='Volume ';label.title='Volume van de spelmuziek';
+  const slider=document.createElement('input');slider.id='templeMusicVolume';slider.type='range';slider.min='0';slider.max='100';slider.value='32';slider.setAttribute('aria-label','Muziekvolume');slider.oninput=()=>setVolume(slider.value);
+  label.appendChild(slider);wrap.append(button,label);header.insertBefore(wrap,header.firstChild);updateButton();
+ }
+ return {mount,cue};
+})();
 const POINTS = {
   entry: [.10, .84],
   a: [.23, .71],
@@ -574,10 +644,10 @@ async function handleRequest(r){
   if(selected.every((v,i)=>v===q.answer[i])){
    t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
    if(t.step===routes[t.route].length-1)t.finished=true;
-   flash(t.name+' opent een doorgang!');
+   flash(t.name+' opent een doorgang!');templeAudio.cue('correct');
   }else{
    t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback='❌ FOUT ANTWOORD! Probeer opnieuw.';
-   flash('❌ Fout antwoord van '+t.name);
+   flash('❌ Fout antwoord van '+t.name);templeAudio.cue('wrong');
   }
   t.progress=[];await writeState();return;
  }
@@ -588,7 +658,7 @@ async function handleRequest(r){
   if(selected.every((v,i)=>v===q.answer[i])){
    d.winner=t.id;d.done=true;t.finalPos=Math.min(16,(t.finalPos||0)+2);t.finalAnswers=(t.finalAnswers||0)+2;t.duel='';
    const other=state.teams[d.a===t.id?d.b:d.a];if(other)other.duel='';
-   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';flash('🏆 '+t.name+' wint de Machtentempel!');}
+   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';flash('🏆 '+t.name+' wint de Machtentempel!');templeAudio.cue('win');}
    else flash('⚔ '+t.name+' wint het duel en gaat twee vakken vooruit!');
   }else{t.wrong++;d.progress[t.id]=[];flash('❌ Fout duelantwoord van '+t.name);}
   await writeState();return;
@@ -618,7 +688,7 @@ async function handleRequest(r){
    const id='d'+(++state.duelNumber);
    state.duels[id]={id,a:challenger.id,b:t.id,qIndex:(state.duelNumber-1)%duelQs.length,done:false,winner:'',progress:{[challenger.id]:[],[t.id]:[]}};
    t.duel=id;challenger.duel=id;challenger.challengesStarted=(challenger.challengesStarted||0)+1;
-   flash('⚔ Duel: '+challenger.name+' tegen '+t.name);
+   flash('⚔ Duel: '+challenger.name+' tegen '+t.name);templeAudio.cue('duel');
   }else flash(t.name+' weigert de uitdaging.');
   await writeState();return;
  }
@@ -646,7 +716,7 @@ async function handleRequest(r){
    t.finalPos=previous+1;
    t.finalAnswers=(t.finalAnswers||0)+1;
    if(t.finalPos!==previous+1)return;
-   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');}
+   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');templeAudio.cue('win');}
    else flash('⚡ '+t.name+' bereikt vak '+t.finalPos);
   }else{t.wrong++;flash('Fout finaleantwoord bij '+t.name);}
   await writeState();
@@ -1022,6 +1092,7 @@ function animate(time) {
   }
 
   requestAnimationFrame(animate);
+templeAudio.mount();
 }
 
 requestAnimationFrame(animate);
