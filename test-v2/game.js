@@ -957,7 +957,7 @@ function renderStudent(){
    button.innerHTML='<span class="finale-choice-letter">'+String.fromCharCode(65+index)+'</span><span class="math-exercise">'+mathExpressionHtml(answer)+'</span>';
    button.onclick=async()=>{
     grid.querySelectorAll('button').forEach(b=>b.disabled=true);
-    try{if(online)await sendRequest('finalPreview',{choice:index});await sendRequest('final',{answer:index,atPosition:t.finalPos});if(!demo)$('feedback').textContent='Antwoord ontvangen…';}
+    try{await sendRequest('final',{answer:index,atPosition:t.finalPos});if(!demo)$('feedback').textContent='Antwoord ontvangen…';}
     catch(e){$('feedback').textContent=e.message;grid.querySelectorAll('button').forEach(b=>b.disabled=false);}
    };
    grid.appendChild(button);
