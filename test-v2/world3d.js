@@ -534,13 +534,13 @@ function installDetailedCharacter(group,index,id){
   if(o.material){
    o.material=o.material.clone();
    if(o.material.color){
-    const tint=new THREE.Color([0x9ec4ff,0x9edbb3,0xe5c99c,0xf2a48e,0x83d6f0,0xc7a7e8,0xe7cb85,0xe8a2ca][index%8]);
-    o.material.color.lerp(tint,.16);
+    const tint=new THREE.Color().setHSL((index*.173)%1,.55,.42);
+    o.material.color.lerp(tint,.48);
    }
   }
  });
  // Sample Soldier is human-scale (roughly 1.8m); scale up for the island.
- model.scale.setScalar(1.55);
+ model.scale.set(1.35+(index%4)*.13,1.40+(index%5)*.11,1.25+(index%3)*.16);
  model.position.set(0,.03,0);
  group.add(model);
  const fallback=group.userData.fallback;
@@ -549,6 +549,7 @@ function installDetailedCharacter(group,index,id){
  const accentColor=[0xffd88c,0x7fffd0,0xffe2ae,0xffa77d,0x7eeaff,0xc7a4ff,0xffdc7d,0xff98b8][index%8];
  // Thirty distinctive silhouettes: real 3D fantasy accessories attached to the skinned body.
  const role=index%10;
+ const archetype=Math.floor(index/10);
  const armorColor=new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL((index*.137)%1,.52,.34),metalness:.65,roughness:.34});
  const metal=new THREE.MeshStandardMaterial({color:0xd4b77c,metalness:.83,roughness:.24});
  const addGear=(geo,m,x,y,z)=>{const part=new THREE.Mesh(geo,m);part.position.set(x,y,z);part.castShadow=true;group.add(part);return part;};
@@ -578,6 +579,19 @@ function installDetailedCharacter(group,index,id){
   const shieldGear=addGear(new THREE.IcosahedronGeometry(.47,1),armorColor,-.68,1.52,.27);
   shieldGear.scale.set(.82,1.22,.35);
   addGear(new THREE.OctahedronGeometry(.14,1),metal,-.68,1.52,.46);
+ }
+ // Distinct fantasy silhouettes beyond a single uniform: robes, wings or heavy armor.
+ if(archetype===1){
+  const robe=addGear(new THREE.CylinderGeometry(.48,.82,1.25,12),armorColor,0,.75,-.06);
+  robe.scale.z=.85;
+  for(const side of [-1,1]){const fin=addGear(new THREE.ConeGeometry(.26,1.05,8),metal,side*.68,2.13,-.15);fin.rotation.z=side*.65;}
+ }else if(archetype===2){
+  for(const side of [-1,1]){
+   const wing=addGear(new THREE.ConeGeometry(.48,2.2,5),armorColor,side*.88,2.06,-.62);
+   wing.rotation.z=side*.58;wing.rotation.x=-.27;
+  }
+  const chest=addGear(new THREE.IcosahedronGeometry(.54,1),metal,0,1.72,.36);
+  chest.scale.set(1.1,1.05,.32);
  }
  // Wearable fantasy details: glowing mathematical crest, belt, cape and head ornament.
 
@@ -619,12 +633,12 @@ export function getFantasyPortraits(){
  const portraits=[];
  for(let i=0;i<30;i++){
   const figure=new THREE.Group();portraitScene.add(figure);
-  if(soldierAsset){installDetailedCharacter(figure,i,'portrait-'+i);}
+  if(soldierAsset){installDetailedCharacter(figure,i,'portrait-'+i);soldierMixers.get('portrait-'+i)?.update(.18);}
   else {character(figure,i);}
   portraitRenderer.render(portraitScene,cam);
   portraits.push(portraitRenderer.domElement.toDataURL('image/png'));
   portraitScene.remove(figure);
-  soldierMixers.delete('portrait-'+i);
+  soldierMixers.get('portrait-'+i)?.stopAllAction();soldierMixers.delete('portrait-'+i);
  }
  portraitRenderer.dispose();portraitRenderer.forceContextLoss();
  portraitCache=portraits;return portraits;
