@@ -363,10 +363,38 @@ function showRoomCode(){
  const original=document.getElementById('roomCode');if(original)original.textContent=value;
  panel.hidden=false;
 }
+// Wissel automatisch tussen wereld, live antwoorden en gecombineerde weergave.
+let teacherCycleMode=0;
+function mountTeacherCycle(){
+ const frame=document.querySelector('#teacher .worldframe');if(!frame||document.getElementById('teacherCycleBar'))return;
+ const bar=document.createElement('div');bar.id='teacherCycleBar';
+ bar.innerHTML='<button type="button" id="teacherCycleButton">↻ Automatisch: wereld / antwoorden / samen</button><span id="teacherCycleName"></span>';
+ const panel=document.createElement('div');panel.id='teacherAnswersPanel';panel.hidden=true;
+ frame.append(bar,panel);
+ document.getElementById('teacherCycleButton').onclick=()=>{teacherCycleMode=(teacherCycleMode+1)%4;paintTeacherCycle();};
+ setInterval(()=>{if(view!=='teacher'||teacherCycleMode===3)return;teacherCycleMode=(teacherCycleMode+1)%3;paintTeacherCycle();},8500);
+ paintTeacherCycle();
+}
+function paintTeacherCycle(){
+ const panel=document.getElementById('teacherAnswersPanel'),name=document.getElementById('teacherCycleName');
+ if(!panel||!state)return;
+ const labels=['3D-wereld','Live antwoorden','Wereld + antwoorden','Antwoorden vast'];
+ const mode=teacherCycleMode;name.textContent=labels[mode];
+ panel.hidden=mode===0;
+ panel.className='teacher-answer-panel '+(mode===2?'teacher-answer-compact':'');
+ if(panel.hidden)return;
+ const teams=Object.values(state.teams||{}).sort((a,b)=>(a.slot||0)-(b.slot||0));
+ panel.innerHTML='<h3>LIVE MEEKIJKEN · '+teams.length+' teams</h3><div class="teacher-answer-grid">'+teams.map(t=>{
+  const q=state.phase==='playing'&&!t.finished?getQuestion(t):state.phase==='final'?finaleVraag(t):null;
+  const progress=(t.progress||[]).map(i=>q?.tokens?.[i]).filter(Boolean);
+  const title=q?(q.q||q.question||q.fullRule||'Oefening'):'Wachten op oefening';
+  return '<div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(progress.length?progress.map(x=>escapeHtml(String(x))).join(' · '):'Nog geen antwoord ingediend')+'</div><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.solved+' opgelost')+'</small></div>';
+ }).join('')+'</div>';
+}
 function openTeacher() {
   show('teacher');
 
-  showRoomCode();
+  showRoomCode();mountTeacherCycle();
   $('demoControls').classList.toggle('hidden', !demo);
 
   render();
