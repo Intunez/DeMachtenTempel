@@ -85,18 +85,29 @@ function build(){
  const o=groupMesh(geo,material,x,y,z);o.scale.set(scale*(.75+rand(x)*.6),scale*(.65+rand(z)*.6),scale*(.75+rand(x+z)*.5));o.rotation.set(rand(x+1),rand(z+2),rand(y+3));return o;
 };
  // Rugged plateau and protruding rock ledges.
- const terrainGeo=new THREE.CylinderGeometry(29.5,31,4.8,96,10);
- const tp=terrainGeo.attributes.position;
- for(let k=0;k<tp.count;k++){const x=tp.getX(k),y=tp.getY(k),z=tp.getZ(k),a=Math.atan2(z,x);
-  const jag=.55*Math.sin(a*17)+.4*Math.sin(a*37+1)+.2*Math.cos(a*71);
-  const radial=Math.hypot(x,z),r=(radial>20?1:0);
-  const az=Math.atan2(z,x),slice=Math.round(az/(Math.PI/4));
-  const offset=Math.atan2(Math.sin(az-slice*Math.PI/4),Math.cos(az-slice*Math.PI/4));
-  const inRavine=radial>17.4&&radial<27.3&&Math.abs(offset)<.083;
-  const cut=inRavine?Math.min(1,(radial-17.4)/1.3,(27.3-radial)/1.3,(Math.abs(.083-offset))/.018,(Math.abs(.083+offset))/.018):0;
-  tp.setXYZ(k,x+(x/(radial||1))*jag*r,y+(y>0?.32*Math.sin(x*.42)*Math.cos(z*.35):0)-Math.max(0,cut)*24,z+(z/(radial||1))*jag*r);
+ // Rebuilt ground mesh with eight REAL OPEN CUTOUTS. The bridge crosses empty space,
+ // not a dark decal on top of solid ground.
+ const islandOutline=new THREE.Shape();
+ for(let j=0;j<=128;j++){
+  const theta=j*Math.PI*2/128;
+  const radius=30.1+.38*Math.sin(theta*17)+.27*Math.cos(theta*31);
+  const px=Math.cos(theta)*radius,pz=Math.sin(theta)*radius;
+  if(j===0)islandOutline.moveTo(px,pz);else islandOutline.lineTo(px,pz);
  }
- terrainGeo.computeVertexNormals();groupMesh(terrainGeo,moss,0,-.5,0);
+ for(let route=0;route<8;route++){
+  const theta=route*Math.PI/4,dx=Math.cos(theta),dz=Math.sin(theta),nx=-dz,nz=dx;
+  const inner=16.8,outer=28.9,halfWidth=2.65;
+  const hole=new THREE.Path();
+  hole.moveTo(dx*inner+nx*halfWidth,dz*inner+nz*halfWidth);
+  hole.lineTo(dx*outer+nx*halfWidth,dz*outer+nz*halfWidth);
+  hole.lineTo(dx*outer-nx*halfWidth,dz*outer-nz*halfWidth);
+  hole.lineTo(dx*inner-nx*halfWidth,dz*inner-nz*halfWidth);
+  hole.closePath();islandOutline.holes.push(hole);
+ }
+ const islandGeometry=new THREE.ExtrudeGeometry(islandOutline,{depth:5.2,bevelEnabled:false,curveSegments:128,steps:1});
+ const islandMesh=new THREE.Mesh(islandGeometry,[moss,rock]);
+ islandMesh.rotation.x=Math.PI/2;islandMesh.position.y=2.85;
+ islandMesh.castShadow=true;islandMesh.receiveShadow=true;world.add(islandMesh);
  for(let i=0;i<80;i++){const a=i*2.399963,r=24+rand(i+21)*7,x=Math.cos(a)*r,z=Math.sin(a)*r;
   boulder(x,-3.2-rand(i+5)*5,z,2.2+rand(i+18)*3,cliffMaterials[i%4]);
   if(i%4===0)boulder(x*.93,-1.2,z*.93,1.8,green[i%3]);
