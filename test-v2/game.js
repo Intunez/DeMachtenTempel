@@ -442,21 +442,8 @@ function openTeacher() {
 
   if (timerHandle) clearInterval(timerHandle);
 
-  timerHandle = setInterval(() => {
-    renderClock();
-
-    if (
-      host &&
-      state?.phase === 'playing' &&
-      Date.now() - state.started >= 12 * 60 * 1000
-    ) {
-      beginFinal();
-    }
-    if(host&&state?.phase==='final'&&state.finalStarted&&Date.now()-state.finalStarted>=3*60*1000){
-      const ranking=Object.values(state.teams||{}).sort((a,b)=>(b.finalPos||0)-(a.finalPos||0)||b.score-a.score);
-      if(ranking.length){state.winner=ranking[0].id;state.phase='ended';flash('🏆 De tijd is om! '+ranking[0].name+' wint!');writeState();}
-    }
-  }, 500);
+  // Alleen de leerkracht bestuurt de fases; geen automatische tijdslimieten.
+  timerHandle = setInterval(renderClock, 500);
 
   listenJoins();
 }
@@ -820,24 +807,20 @@ async function beginFinal(){
  flash('⚡ Finale: de punten bepalen de voorsprong. Race naar vak 16!');await writeState();
 }
 function renderClock() {
-  if (!state || view !== 'teacher') return;
-
-  const remaining =
-    state.phase === 'lobby'
-      ? 720
-      : state.phase === 'playing'
-        ? Math.max(
-            0,
-            720 - Math.floor(
-              (Date.now() - state.started) / 1000
-            )
-          )
-        : state.phase === 'final' ? Math.max(0,180-Math.floor((Date.now()-(state.finalStarted||Date.now()))/1000)) : 0;
-
-  $('timer').textContent =
-    String(Math.floor(remaining / 60)).padStart(2, '0') +
-    ':' +
-    String(remaining % 60).padStart(2, '0');
+ if(!state||view!=='teacher')return;
+ const since=state.phase==='playing'?state.started:state.phase==='final'?state.finalStarted:0;
+ const elapsed=since?Math.max(0,Math.floor((Date.now()-since)/1000)):0;
+ $('timer').textContent=String(Math.floor(elapsed/60)).padStart(2,'0')+':'+String(elapsed%60).padStart(2,'0');
+}
+async function finishGame(){
+ if(!host||!state||state.phase!=='final')return;
+ const teams=Object.values(state.teams||{});
+ if(!teams.length)return;
+ if(!confirm('Finale beëindigen en de winnaar bepalen op basis van de huidige stand?'))return;
+ const ranking=teams.sort((a,b)=>(b.finalPos||0)-(a.finalPos||0)||b.score-a.score);
+ state.winner=ranking[0].id;state.phase='ended';
+ flash('🏆 '+ranking[0].name+' wint de Machtentempel!');
+ templeAudio.cue('win');await writeState();
 }
 
 function escapeHtml(value) {
@@ -1184,6 +1167,7 @@ $('onlineBtn').onclick = () => {
 $('joinBtn').onclick = joinRoom;
 $('startBtn').onclick = startGame;
 $('finalBtn').onclick = beginFinal;
+$('finishBtn').onclick = finishGame;
 
 $('demoAdd').onclick = async () => {
   if (
