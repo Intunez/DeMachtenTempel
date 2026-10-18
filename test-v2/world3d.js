@@ -739,7 +739,7 @@ function nameLabel(name){
  sprite.position.y=3.75;sprite.scale.set(3.2,.6,1);return sprite;
 }
 
-function avatar(id,index){let g=avatars.get(id);if(g)return g;g=new THREE.Group();const fallback=new THREE.Group();character(fallback,index);g.add(fallback);g.userData.fallback=fallback;g.userData.avatarIndex=index;g.userData.label=nameLabel('Team');g.add(g.userData.label);scene.add(g);avatars.set(id,g);installDetailedCharacter(g,index,id);return g;}
+function avatar(id,index){let g=avatars.get(id);if(g)return g;g=new THREE.Group();const fallback=new THREE.Group();character(fallback,index);g.add(fallback);g.userData.fallback=fallback;g.userData.avatarIndex=index;g.userData.label=null;scene.add(g);avatars.set(id,g);installDetailedCharacter(g,index,id);return g;}
 // Render the actual textured 3D character models as selectable portraits.
 // No static cartoon SVGs once the GLB has loaded.
 let portraitCache=null;
@@ -777,8 +777,8 @@ export function draw3D(canvas,state,view,teamId,time){
  finalCourse.visible=state?.phase==='final'||state?.phase==='ended';world.visible=!finalCourse.visible;scene.fog.density=finalCourse.visible?.002:.006;
  sun.position.z=24+(finalCourse.visible?RACE.originZ:0);sun.target.position.z=finalCourse.visible?RACE.originZ:0;
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
- for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);soldierMixers.delete(id);}
- for(const t of teams){const selected=Number.isInteger(t.avatar)?t.avatar:t.route;let g=avatars.get(t.id);if(g&&g.userData.avatarIndex!==selected){scene.remove(g);avatars.delete(t.id);soldierMixers.delete(t.id);g=null;}g=avatar(t.id,selected);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);
+ for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);avatars.delete(id);soldierMixers.delete(id);}
+ for(const t of teams){const selected=Number.isInteger(t.avatar)?t.avatar:t.route;let g=avatars.get(t.id);if(g&&g.userData.avatarIndex!==selected){scene.remove(g);avatars.delete(t.id);soldierMixers.delete(t.id);g=null;}g=avatar(t.id,selected);const p=position(t,state?.phase);
  if(g.userData.previousWrong===undefined)g.userData.previousWrong=t.wrong||0;
  if((t.wrong||0)>g.userData.previousWrong&&state?.phase==='playing'){
   g.userData.fallStarted=time;g.userData.fallStage=Math.min(5,t.step||0);
@@ -823,8 +823,8 @@ export function draw3D(canvas,state,view,teamId,time){
   g.position.y+=Math.sin(time*.002+t.route)*.004;
  }
  if(finalCourse.visible)g.rotation.y=Math.PI;
- if(state?.winner===t.id){g.position.y+=Math.abs(Math.sin(time*.006))*.8;g.rotation.y=time*.001;}
- g.userData.label.visible=view!=='student'||t.id===teamId;}
+ if(state?.winner===t.id){const entrance=new THREE.Vector3(0,3.25,RACE.originZ+RACE.startZ-16*RACE.stride-6);g.position.lerp(entrance,.035);g.position.y+=Math.abs(Math.sin(time*.006))*.25;g.rotation.y=time*.001;}
+ }
  if(view==='student'&&state?.teams?.[teamId]){
  const own=state.teams[teamId],target=position(own,state.phase),figure=avatars.get(teamId);
  const failing=time-(figure?.userData.fallStarted||-10000);
