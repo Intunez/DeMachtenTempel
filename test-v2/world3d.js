@@ -55,6 +55,26 @@ photoTexture('terrain/rock.jpg',4,texture=>{
 photoTexture('brick_diffuse.jpg',3,texture=>{
  stone.map=texture;stone.color.set(0xb3aa98);stone.roughness=.96;stone.needsUpdate=true;
 });
+
+function cinematicBackdrop(){
+ const c=document.createElement('canvas');c.width=1024;c.height=512;const x=c.getContext('2d');
+ const gradient=x.createLinearGradient(0,0,0,512);
+ gradient.addColorStop(0,'#14273c');gradient.addColorStop(.4,'#657f9a');gradient.addColorStop(.72,'#d7a883');gradient.addColorStop(1,'#a6a8a5');
+ x.fillStyle=gradient;x.fillRect(0,0,1024,512);
+ const glow=x.createRadialGradient(750,310,3,750,310,230);
+ glow.addColorStop(0,'rgba(255,246,212,.85)');glow.addColorStop(.4,'rgba(255,203,145,.26)');glow.addColorStop(1,'rgba(255,180,110,0)');
+ x.fillStyle=glow;x.fillRect(0,0,1024,512);
+ for(let layer=0;layer<4;layer++){
+  const base=345+layer*43;x.beginPath();x.moveTo(0,512);
+  for(let px=0;px<=1024;px+=8)x.lineTo(px,base+Math.sin(px*.012+layer*1.8)*27+Math.sin(px*.037+layer*2)*13+Math.sin(px*.083+layer)*7);
+  x.lineTo(1024,512);x.closePath();x.fillStyle=['#758590','#607482','#475e6c','#334d5b'][layer];x.fill();
+ }
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
+ const sky=new THREE.Mesh(new THREE.SphereGeometry(230,48,24),new THREE.MeshBasicMaterial({map:tex,side:THREE.BackSide,depthWrite:false,fog:false}));
+ sky.rotation.y=.5;scene.add(sky);scene.background=new THREE.Color(0x667c8e);scene.fog=new THREE.FogExp2(0x92a6b0,.006);
+}
+cinematicBackdrop();
+
 const clouds=[];
 function addAtmosphere(){
  const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
@@ -116,23 +136,51 @@ function build(){
   boulder(x,-9-rand(i)*3,z,4+rand(i+9)*2,cliffMaterials[i%4]);
  }
  // Natural terraces, waterfalls with spray and plunge pools.
+
+ const waterCanvas=document.createElement('canvas');waterCanvas.width=128;waterCanvas.height=512;
+ const waterCtx=waterCanvas.getContext('2d');waterCtx.fillStyle='#7ebecb';waterCtx.fillRect(0,0,128,512);
+ for(let streak=0;streak<360;streak++){
+  const xx=rand(streak+122)*128,yy=rand(streak+221)*512;
+  waterCtx.fillStyle=streak%4===0?'rgba(255,255,255,.70)':'rgba(218,250,255,.25)';
+  waterCtx.fillRect(xx,yy,1+rand(streak+13)*4,22+rand(streak+33)*110);
+ }
+ const waterTexture=new THREE.CanvasTexture(waterCanvas);waterTexture.colorSpace=THREE.SRGBColorSpace;
+ waterTexture.wrapS=waterTexture.wrapT=THREE.RepeatWrapping;waterTexture.repeat.set(1,2);
+ const waterfallMaterial=new THREE.MeshStandardMaterial({map:waterTexture,color:0xc5f4ff,emissive:0x2a6c81,emissiveIntensity:.24,transparent:true,opacity:.85,side:THREE.DoubleSide,roughness:.17,depthWrite:false});
+ world.userData.waterTexture=waterTexture;
  const falls=[];
  for(let i=0;i<9;i++){const a=i*Math.PI*2/9+.21,x=Math.cos(a)*28.8,z=Math.sin(a)*28.8;
   const fall=groupMesh(new THREE.PlaneGeometry(2.2+rand(i)*1.7,12+rand(i+3)*7,8,14),
-    new THREE.MeshStandardMaterial({color:0x91d8d8,emissive:0x2b6678,emissiveIntensity:.25,transparent:true,opacity:.73,side:THREE.DoubleSide,roughness:.17}),x,-7.8,z);
+    waterfallMaterial,x,-7.8,z);
   fall.rotation.y=Math.PI/2-a;
   const p=fall.geometry.attributes.position;for(let k=0;k<p.count;k++){const xx=p.getX(k),yy=p.getY(k);p.setZ(k,.18*Math.sin(yy*2.4+xx*3.8)+.07*Math.sin(yy*8+xx*5));}fall.geometry.computeVertexNormals();
   falls.push(fall);
   for(let k=0;k<6;k++){const spray=groupMesh(new THREE.SphereGeometry(.16+rand(k+i)*.24,7,5),mat(0xd4f7ef,{transparent:true,opacity:.6}),x+Math.cos(a)*(k*.2),-14+rand(k+i+8)*2,z+Math.sin(a)*(k*.2));spray.scale.y=.35;}
  }
  world.userData.falls=falls;
- // Forest: trunks, layered organic crowns, ferns and undergrowth.
- for(let i=0;i<115;i++){const a=rand(i+24)*Math.PI*2,r=11+rand(i+47)*17.3,x=Math.cos(a)*r,z=Math.sin(a)*r;
-  if(i%11===0)continue;
-  const height=2.5+rand(i+55)*4.6;
-  cylinder(.13,.27,height*.6,mat(0x554637),x,height*.3,z,7);
-  for(let layer=0;layer<3;layer++){const crown=groupMesh(new THREE.IcosahedronGeometry(1,2),green[(i+layer)%3],x,height*.48+layer*height*.19,z);crown.scale.set(.8+rand(i+70)*.6+(2-layer)*.2,height*.22,.8+rand(i+70)*.6+(2-layer)*.2);crown.rotation.y=rand(i+layer)*3;}
-  if(i%4===0){for(let k=0;k<4;k++)boulder(x+(rand(i+k)*2-1)*1.3,.35,z+(rand(i+k+4)*2-1)*1.3,.3,green[(i+k)%3]);}
+
+ // Pine forest with organic crowns, visible gaps around the eight challenge routes.
+ const bark=mat(0x493b31,{roughness:1});
+ const needles=[mat(0x183d33),mat(0x295746),mat(0x3b6248)];
+ const canopy=[mat(0x395b3e),mat(0x527344),mat(0x65784a)];
+ for(let i=0;i<104;i++){
+  const a=rand(i+24)*Math.PI*2,r=11+rand(i+47)*17.3,x=Math.cos(a)*r,z=Math.sin(a)*r;
+  const nearest=Math.abs(Math.atan2(Math.sin(a*4),Math.cos(a*4)))/4;
+  if(nearest<.14||i%13===0)continue;
+  const height=3.8+rand(i+55)*5.2,pine=i%3!==0;
+  cylinder(.10,.22,height*.72,bark,x,height*.36+2.8,z,9);
+  if(pine){
+   for(let layer=0;layer<4;layer++){
+    const crown=groupMesh(new THREE.ConeGeometry((1.3-layer*.21)*(.8+rand(i+3)*.3),height*.42,11),needles[(i+layer)%3],x,2.8+height*.32+layer*height*.19,z);
+    crown.rotation.y=rand(i+layer)*6;
+   }
+  }else{
+   for(let layer=0;layer<5;layer++){
+    const angle=layer*2.4;
+    const crown=groupMesh(new THREE.IcosahedronGeometry(1,3),canopy[(i+layer)%3],x+Math.sin(angle)*.5,2.8+height*.65+Math.sin(layer)*.5,z+Math.cos(angle)*.5);
+    crown.scale.set(.85+rand(i+layer)*.6,1+rand(i+layer+4)*.55,.9+rand(i+layer+6)*.6);
+   }
+  }
  }
  // Eight raised stone bridges with individually weathered flagstones, carved balustrades and glowing rune gateways.
  for(let i=0;i<8;i++){
@@ -699,7 +747,7 @@ export function draw3D(canvas,state,view,teamId,time){
  if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const onBridge=state.phase==='playing'&&(state.teams[teamId].step||0)===0;const desired=target.clone().add(direction.multiplyScalar(onBridge?15.5:13.2)).add(new THREE.Vector3(0,onBridge?12.2:10.2,0));camera.position.lerp(desired,.055);const aim=target.clone().multiplyScalar(onBridge?.93:.85);aim.y=onBridge?2.0:4.3;camera.lookAt(aim);}
  else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
- if(world.userData.falls)for(let i=0;i<world.userData.falls.length;i++){const f=world.userData.falls[i];f.material.opacity=.63+.12*Math.sin(time*.002+i);}
+ if(world.userData.waterTexture)world.userData.waterTexture.offset.y=-(time*.00023%1);
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=3.7+Math.sin(time*.0015)*.25;}
  for(const t of teams){
   if(state?.phase!=='playing')continue;
