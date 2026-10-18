@@ -159,29 +159,70 @@ function build(){
  }
  world.userData.falls=falls;
 
- // Pine forest with organic crowns, visible gaps around the eight challenge routes.
- const bark=mat(0x493b31,{roughness:1});
- const needles=[mat(0x183d33),mat(0x295746),mat(0x3b6248)];
- const canopy=[mat(0x395b3e),mat(0x527344),mat(0x65784a)];
+ // Load licensed CC0 GLB vegetation from Kenney via the published asset repository.
+ // Procedural vegetation is a fallback ONLY when the actual files fail to load.
+ const forestAssetBase='https://cdn.jsdelivr.net/gh/syuhei176/ai-game-assets@v1/models/environment/';
+ const forestLoader=new GLTFLoader();
+ const treePlacements=[];
  for(let i=0;i<104;i++){
-  const a=rand(i+24)*Math.PI*2,r=11+rand(i+47)*17.3,x=Math.cos(a)*r,z=Math.sin(a)*r;
-  const nearest=Math.abs(Math.atan2(Math.sin(a*4),Math.cos(a*4)))/4;
+  const angle=rand(i+24)*Math.PI*2,radius=11+rand(i+47)*17.3;
+  const nearest=Math.abs(Math.atan2(Math.sin(angle*4),Math.cos(angle*4)))/4;
   if(nearest<.14||i%13===0)continue;
-  const height=3.8+rand(i+55)*5.2,pine=i%3!==0;
-  cylinder(.10,.22,height*.72,bark,x,height*.36+2.8,z,9);
-  if(pine){
-   for(let layer=0;layer<4;layer++){
-    const crown=groupMesh(new THREE.ConeGeometry((1.3-layer*.21)*(.8+rand(i+3)*.3),height*.42,11),needles[(i+layer)%3],x,2.8+height*.32+layer*height*.19,z);
-    crown.rotation.y=rand(i+layer)*6;
-   }
-  }else{
-   for(let layer=0;layer<5;layer++){
-    const angle=layer*2.4;
-    const crown=groupMesh(new THREE.IcosahedronGeometry(1,3),canopy[(i+layer)%3],x+Math.sin(angle)*.5,2.8+height*.65+Math.sin(layer)*.5,z+Math.cos(angle)*.5);
-    crown.scale.set(.85+rand(i+layer)*.6,1+rand(i+layer+4)*.55,.9+rand(i+layer+6)*.6);
-   }
-  }
+  treePlacements.push({x:Math.cos(angle)*radius,z:Math.sin(angle)*radius,
+    pine:i%3!==0,scale:.85+rand(i+55)*.45,angle:rand(i+41)*Math.PI*2});
  }
+ const forestFallback=()=>{
+   // Pine forest with organic crowns, visible gaps around the eight challenge routes.
+   const bark=mat(0x493b31,{roughness:1});
+   const needles=[mat(0x183d33),mat(0x295746),mat(0x3b6248)];
+   const canopy=[mat(0x395b3e),mat(0x527344),mat(0x65784a)];
+   for(let i=0;i<104;i++){
+    const a=rand(i+24)*Math.PI*2,r=11+rand(i+47)*17.3,x=Math.cos(a)*r,z=Math.sin(a)*r;
+    const nearest=Math.abs(Math.atan2(Math.sin(a*4),Math.cos(a*4)))/4;
+    if(nearest<.14||i%13===0)continue;
+    const height=3.8+rand(i+55)*5.2,pine=i%3!==0;
+    cylinder(.10,.22,height*.72,bark,x,height*.36+2.8,z,9);
+    if(pine){
+     for(let layer=0;layer<4;layer++){
+      const crown=groupMesh(new THREE.ConeGeometry((1.3-layer*.21)*(.8+rand(i+3)*.3),height*.42,11),needles[(i+layer)%3],x,2.8+height*.32+layer*height*.19,z);
+      crown.rotation.y=rand(i+layer)*6;
+     }
+    }else{
+     for(let layer=0;layer<5;layer++){
+      const angle=layer*2.4;
+      const crown=groupMesh(new THREE.IcosahedronGeometry(1,3),canopy[(i+layer)%3],x+Math.sin(angle)*.5,2.8+height*.65+Math.sin(layer)*.5,z+Math.cos(angle)*.5);
+      crown.scale.set(.85+rand(i+layer)*.6,1+rand(i+layer+4)*.55,.9+rand(i+layer+6)*.6);
+     }
+    }
+   }
+  
+ };
+ Promise.all([
+  forestLoader.loadAsync(forestAssetBase+'tree_pine.glb'),
+  forestLoader.loadAsync(forestAssetBase+'tree_oak.glb'),
+  forestLoader.loadAsync(forestAssetBase+'rock_large.glb')
+ ]).then(([pine,oak,rockAsset])=>{
+  const sources=[pine.scene,oak.scene,rockAsset.scene];
+  const bounds=sources.map(source=>{const box=new THREE.Box3().setFromObject(source);return Math.max(.01,box.max.y-box.min.y);});
+  const bases=sources.map(source=>new THREE.Box3().setFromObject(source).min.y);
+  for(const item of treePlacements){
+   const kind=item.pine?0:1,tree=sources[kind].clone(true);
+   const size=(item.pine?6.4:5.2)*item.scale/bounds[kind];
+   tree.scale.setScalar(size);tree.rotation.y=item.angle;
+   tree.position.set(item.x,2.88-bases[kind]*size,item.z);
+   tree.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;}});
+   world.add(tree);
+  }
+  for(let i=0;i<35;i++){
+   const angle=rand(i+777)*Math.PI*2,radius=10+rand(i+909)*17;
+   if(Math.abs(Math.atan2(Math.sin(angle*4),Math.cos(angle*4)))/4<.16)continue;
+   const stoneModel=sources[2].clone(true),size=(.65+rand(i+330)*1.2)/bounds[2];
+   stoneModel.scale.setScalar(size);stoneModel.position.set(Math.cos(angle)*radius,2.85-bases[2]*size,Math.sin(angle)*radius);
+   stoneModel.rotation.y=rand(i+55)*6.28;stoneModel.traverse(obj=>{if(obj.isMesh)obj.receiveShadow=true;});
+   world.add(stoneModel);
+  }
+  console.info('De Machtentempel: CC0 GLB-bomen en rotsen geladen.');
+ }).catch(err=>{console.warn('CC0 GLB-bos niet beschikbaar; reservevegetatie ingeschakeld',err);forestFallback();});
  // Eight raised stone bridges with individually weathered flagstones, carved balustrades and glowing rune gateways.
  for(let i=0;i<8;i++){
   const a=i*Math.PI/4,radial=new THREE.Vector3(Math.cos(a),0,Math.sin(a));
