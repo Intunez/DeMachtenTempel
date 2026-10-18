@@ -1199,6 +1199,4 @@ function mountDemoControls(){
  $('demoCorrect').onclick=()=>answer(true);$('demoWrong').onclick=()=>answer(false);
  let back=$('demoTeacher');if(!back){back=document.createElement('button');back.id='demoTeacher';back.textContent='Terug naar leerkracht';document.querySelector('header .headright').appendChild(back);}back.onclick=()=>{show('teacher');render();};
 }
-const demoLink=document.createElement('button');demoLink.className='ghost';demoLink.textContent='Test zonder spelcode';demoLink.id='localTestBtn';
-demoLink.onclick=()=>{let options=$('localTestOptions');if(options){options.remove();return;}options=document.createElement('div');options.id='localTestOptions';[3,8,13].forEach(count=>{const b=document.createElement('button');b.textContent=count+' teams';b.onclick=()=>createDemo(count);options.appendChild(b);});demoLink.after(options);};
-$('firebaseHelp').before(demoLink);
+
