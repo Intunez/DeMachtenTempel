@@ -37,7 +37,7 @@ const templeAudio=(()=>{
  player.loop=true;player.preload='auto';player.volume=.75;
  let enabled=false;
  function update(){const wrap=document.querySelector('.temple-audio-controls');if(wrap){const allowed=view==='teacher'||(view==='student'&&room==='SOLO');wrap.hidden=!allowed;if(!allowed&&enabled){player.pause();enabled=false;}}const b=document.getElementById('templeMusicToggle');if(b){b.textContent=enabled?'♫ Muziek aan':'♪ Muziek uit';b.setAttribute('aria-pressed',String(enabled));}}
- async function toggle(){if(enabled){player.pause();enabled=false;update();return;}try{await player.play();enabled=true;update();}catch(e){console.warn('MP3 kan niet afspelen',e);alert('Eigen MP3 ontbreekt of kan niet afspelen. Controleer test-v2/muziek spel.mp3.');}}
+ async function toggle(){if(enabled){player.pause();enabled=false;update();return;}try{await player.play();enabled=true;update();}catch(e){console.warn('MP3 kan niet afspelen',e);const b=document.getElementById('templeMusicToggle');if(b){b.title='MP3 nog niet beschikbaar op de website';b.textContent='♫ Muziek niet beschikbaar';}}}
  function setVolume(v){player.volume=Math.max(0,Math.min(1,Number(v)/100));}
  function mount(){if(document.getElementById('templeMusicToggle'))return;
   const wrap=document.createElement('div');wrap.className='temple-audio-controls';
@@ -660,7 +660,7 @@ async function handleRequest(r){
   if(!Array.isArray(selected)||selected.length!==q.answer.length||selected.some(i=>!Number.isInteger(i)||i<0||i>=q.tokens.length)||new Set(selected).size!==selected.length)return;
   if(selected.every((v,i)=>v===q.answer[i])){
    t.score+=100;t.solved++;t.step=Math.min(routes[t.route%8].length-1,t.step+1);
-   if(t.step===routes[t.route%8].length-1){t.finished=true;if(room==='SOLO'){t.finished=false;t.step=0;t.route=(t.route+1)%8;flash('Nieuwe oefenronde!');}}
+   if(t.step===routes[t.route%8].length-1){t.finished=true;if(room==='SOLO'){state.phase='ended';state.winner=t.id;state.finish=Date.now();flash('🏆 Gefeliciteerd! Je hebt alle zes avonturen voltooid en de schatkamer geopend!');}}
    flash(adventureStages[Math.max(0,t.step-1)]?.success||'Doorgang geopend!');templeAudio.cue('correct');
   }else{
    t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;if(t.step===0)t.step=0;
@@ -940,7 +940,7 @@ function renderStudent(){
    avatars.slice(0,13).forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i);b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
   }return;
  }
- if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent='Spel afgelopen';title.textContent=w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent='Winnaar: '+(w?.name||'Onbekend');return;}
+ if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent=room==='SOLO'?'🏆 Avontuur voltooid!':'Spel afgelopen';title.textContent=room==='SOLO'?'🏆 GELUKT! DE SCHATKAMER IS OPEN!':w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent=room==='SOLO'?'Fantastisch! Je hebt alle zes avonturen succesvol afgelegd, de machtenspreuken opgelost en de schatkamer geopend. Je eindscore: '+t.score+' punten. Klik op Menu om opnieuw te spelen.':'Winnaar: '+(w?.name||'Onbekend');return;}
  if(state.phase==='final'){
   status.textContent='⚡ Finale · vak '+t.finalPos+'/16';
   if(d){title.textContent='⚔ DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.fullRule||q.q;tokenPuzzle(q,'duel',p);return;}
