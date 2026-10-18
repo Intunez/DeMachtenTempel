@@ -924,14 +924,14 @@ function tokenPuzzle(q,action,progress){
  const selected=tokenDraft.sequence;
  const paint=()=>{
   box.innerHTML=(q.fullRule?'<div class="full-rule">'+escapeHtml(q.fullRule)+'</div>':'')+
-   '<p class="token-instruction">Tik of sleep de stukken naar de antwoordbalk. Tik op een geplaatst stuk om het weer weg te halen.</p>';
+   '<p class="token-instruction">Tik of sleep de stukken naar de antwoordbalk. Klik op een geplaatst stuk om het terug te leggen.</p>';
   const line=document.createElement('div');line.className='tokenline token-dropzone';
   line.setAttribute('aria-label','Samengestelde formule; sleep een stuk hierheen');
   line.ondragover=e=>e.preventDefault();
   line.ondrop=e=>{e.preventDefault();const raw=e.dataTransfer.getData('text/plain');const i=Number(raw);if(!Number.isInteger(i))return;if(raw.startsWith('placed:'))return;if(!selected.includes(i)){selected.push(i);paint();}};
   selected.forEach((index,at)=>{
    const b=document.createElement('button');b.type='button';b.className='placed token-placed';
-   b.textContent=q.tokens[index]+' ×';b.title='Verwijder dit stuk';b.draggable=true;
+   b.textContent=q.tokens[index];b.title='Klik om dit stuk terug te leggen';b.draggable=true;
    b.ondragstart=e=>e.dataTransfer.setData('text/plain','placed:'+at);
    b.onclick=()=>{selected.splice(at,1);paint();};line.appendChild(b);
   });
