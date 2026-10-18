@@ -131,9 +131,9 @@ const routes = [
 
 // Zes verhaalhoofdstukken. Elke route volgt dezelfde avonturen in een andere volgorde.
 const adventureStages=[
- {name:'🌉 De oversteek van het ravijn',intro:'De stenen brug brokkelt af boven een bodemloze kloof. Herstel de machtenspreuk om veilig over te steken!',fail:'💥 De brug stort in! Je held valt in het ravijn, maar wordt door een magisch vangnet gered. Probeer opnieuw.',success:'✨ De brug licht op. Je bereikt veilig de overkant!'},
+ {name:'🌉 De breukbrug van de machten',intro:'De stenen brug brokkelt af boven een bodemloze kloof. Herstel de machtenspreuk om veilig over te steken!',fail:'💥 FOUT! De brug breekt en je held stort in het ravijn. Je begint de oversteek opnieuw vanaf het begin.',success:'✨ De brug licht op. Je bereikt veilig de overkant!'},
  {name:'🌊 De waterval van vergeten machten',intro:'Achter het donderende water ligt een geheime doorgang. Ontcijfer de spreuk om de waterval te splijten.',fail:'🌊 De waterval sleurt je terug naar de oever. Herstel de spreuk!',success:'💧 Het water wijkt uiteen en onthult een verborgen trap!'},
- {name:'🔥 De vuurproef van de drakenpoort',intro:'Een stenen draak blaast vuur over het pad. De juiste formule activeert het beschermschild.',fail:'🔥 Het schild breekt en de vlammen dwingen je achteruit!',success:'🛡️ Een gouden schild dooft de drakenvlammen!'},
+ {name:'🔥 De drakenproef van de exponenten',intro:'De exponentendraak bewaakt de doorgang. Pas de machtregels juist toe om het beschermschild tegen zijn vuur te activeren.',fail:'🔥 Het schild breekt en de vlammen dwingen je achteruit!',success:'🛡️ Een gouden schild dooft de drakenvlammen!'},
  {name:'🌀 Het portaal van de oneindigheid',intro:'Een draaiende magische poort verspert je weg. Alleen de juiste macht opent de doorgang.',fail:'🌀 Het portaal slingert je terug naar het begin van de poort!',success:'✨ Het portaal opent en je stapt een nieuwe wereld binnen!'},
  {name:'🪨 De instortende kristalgrot',intro:'De grot trilt en kristallen vallen uit het plafond. Ontgrendel de juiste formule voordat het pad instort.',fail:'🪨 Een rotsblok verspert je weg. De kristallen herstellen zich voor een nieuwe poging.',success:'💎 De kristallen vormen een veilige doorgang!'},
  {name:'🏰 De poort van de schatkamer',intro:'De laatste wachters bewaken de tempel. Ontcijfer de spreuk en open de gouden poort!',fail:'⚡ De tempelwachters sluiten de poort. Probeer de formule opnieuw.',success:'🏆 De gouden poort zwaait open!'}
@@ -699,7 +699,7 @@ async function handleRequest(r){
    if(t.step===routes[t.route].length-1){t.finished=true;if(room==='SOLO'){t.finished=false;t.step=0;t.route=(t.route+1)%8;flash('Nieuwe oefenronde!');}}
    flash(adventureStages[Math.max(0,t.step-1)]?.success||'Doorgang geopend!');templeAudio.cue('correct');
   }else{
-   t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;
+   t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;if(t.step===0)t.step=0;
    flash('❌ Fout antwoord van '+t.name);templeAudio.cue('wrong');
   }
   t.progress=[];await writeState();return;
@@ -725,7 +725,7 @@ async function handleRequest(r){
     t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
     flash(t.name+' opent een doorgang!');
     if(t.step===routes[t.route].length-1)t.finished=true;
-   }else{t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback='❌ FOUT ANTWOORD! Probeer opnieuw.';flash('❌ Fout antwoord van '+t.name);}
+   }else{t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;flash(t.lastFeedback);}
    t.progress=[];
   }await writeState();return;
  }
