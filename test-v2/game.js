@@ -131,15 +131,15 @@ const routes = [
 
 // Zes verhaalhoofdstukken. Elke route volgt dezelfde avonturen in een andere volgorde.
 const adventureStages=[
- {name:'🌉 De wankele brug der machten',intro:'De stenen brug brokkelt af boven een bodemloze kloof. Herstel de machtenspreuk om veilig over te steken!',fail:'💥 FOUT! De brug breekt en je held stort in het ravijn. Je begint de oversteek opnieuw vanaf het begin.',success:'✨ De brug licht op. Je bereikt veilig de overkant!'},
- {name:'🌊 De waterval van vergeten machten',intro:'Achter het donderende water ligt een geheime doorgang. Ontcijfer de spreuk om de waterval te splijten.',fail:'🌊 De waterval sleurt je terug naar de oever. Herstel de spreuk!',success:'💧 Het water wijkt uiteen en onthult een verborgen trap!'},
- {name:'🔥 De drakenproef van de exponenten',intro:'De exponentendraak bewaakt de doorgang. Pas de machtregels juist toe om het beschermschild tegen zijn vuur te activeren.',fail:'🔥 Het schild breekt en de vlammen dwingen je achteruit!',success:'🛡️ Een gouden schild dooft de drakenvlammen!'},
- {name:'🌀 Het portaal van de oneindigheid',intro:'Een draaiende magische poort verspert je weg. Alleen de juiste macht opent de doorgang.',fail:'🌀 Het portaal slingert je terug naar het begin van de poort!',success:'✨ Het portaal opent en je stapt een nieuwe wereld binnen!'},
- {name:'🪨 De instortende kristalgrot',intro:'De grot trilt en kristallen vallen uit het plafond. Ontgrendel de juiste formule voordat het pad instort.',fail:'🪨 Een rotsblok verspert je weg. De kristallen herstellen zich voor een nieuwe poging.',success:'💎 De kristallen vormen een veilige doorgang!'},
- {name:'🏰 De poort van de schatkamer',intro:'De laatste wachters bewaken de tempel. Ontcijfer de spreuk en open de gouden poort!',fail:'⚡ De tempelwachters sluiten de poort. Probeer de formule opnieuw.',success:'🏆 De gouden poort zwaait open!'}
+ {name:'🌉 De wankele brug der machten',intro:'Steek de brug over. Maak de machtenspreuk juist!',fail:'💥 FOUT! De brug breekt en je held stort in het ravijn. Je begint de oversteek opnieuw vanaf het begin.',success:'✨ De brug licht op. Je bereikt veilig de overkant!'},
+ {name:'🌊 De waterval van vergeten machten',intro:'Splijt de waterval met de juiste machtenspreuk!',fail:'🌊 De waterval sleurt je terug naar de oever. Herstel de spreuk!',success:'💧 Het water wijkt uiteen en onthult een verborgen trap!'},
+ {name:'🔥 De drakenproef van de exponenten',intro:'Activeer je schild met de juiste machtregel!',fail:'🔥 Het schild breekt en de vlammen dwingen je achteruit!',success:'🛡️ Een gouden schild dooft de drakenvlammen!'},
+ {name:'🌀 Het portaal van de oneindigheid',intro:'Open het portaal met de juiste macht!',fail:'🌀 Het portaal slingert je terug naar het begin van de poort!',success:'✨ Het portaal opent en je stapt een nieuwe wereld binnen!'},
+ {name:'🪨 De instortende kristalgrot',intro:'Ontgrendel de kristalgrot!',fail:'🪨 Een rotsblok verspert je weg. De kristallen herstellen zich voor een nieuwe poging.',success:'💎 De kristallen vormen een veilige doorgang!'},
+ {name:'🏰 De poort van de schatkamer',intro:'Open de schatkamer!',fail:'⚡ De tempelwachters sluiten de poort. Probeer de formule opnieuw.',success:'🏆 De gouden poort zwaait open!'}
 ];
 function adventureStage(t){return adventureStages[Math.min(5,Math.max(0,t.step||0))];}
-const avatars=[["Vermenigvuldiging","×"],["Wortel","√"],["Verschil","−"],["Macht","ⁿ"],["Onbekende","x"],["Oneindigheid","∞"],["Nul","0"],["Verandering","Δ"]];
+const avatars=[["Runenridder","∞"],["Sterrenmagiër","ⁿ"],["Boswachter","×"],["Drakenridder","÷"],["Kristalheks","√"],["Schaduwjager","Δ"],["Stormkrijger","∑"],["Vuurmagiër","π"],["Maanelf","α"],["IJsguardiaan","β"],["Gouden paladijn","γ"],["Nachtelf","²"],["Druïdevorst","³"],["Feniksridder","x"],["Tempelwachter","∫"],["Ravenmagiër","≠"],["Woudelf","±"],["Bliksemstrijder","∝"],["Zandnomade","λ"],["Hemelwachter","φ"],["Misttovenaar","Ω"],["Kristalridder","θ"],["Wolvenjager","μ"],["Zonnepriesteres","σ"],["Runenboogschutter","∂"],["Dieptewachter","∇"],["Drakenmagiër","∈"],["Sterrendief","⊕"],["Schaduwpaladijn","∴"],["Oneindigheidswachter","∞"]];
 const questions=[{"t":"De productspreuk","q":"Zet de woordgroepen in de juiste volgorde.","tokens":["elke factor","tot die macht.","Om een product","verheffen we","tot een macht te verheffen,"],"answer":[2,4,3,0,1]},{"t":"De quotiëntspreuk","q":"Zet de woordgroepen in de juiste volgorde.","tokens":["het deeltal en de deler","tot die macht.","Om een quotiënt","verheffen we","tot een macht te verheffen,"],"answer":[2,4,3,0,1]},{"t":"Het productzegel","q":"Zet de symbolen in de juiste volgorde.","tokens":["bⁿ","=","·","(a · b)ⁿ","aⁿ"],"answer":[3,1,4,2,0]},{"t":"Het quotiëntzegel","q":"Zet de symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=",":","(a : b)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De productpoort","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a : b)ⁿ = aⁿ : bⁿ","(a · b)ⁿ = aⁿ · bⁿ"],"answer":[1],"fullRule":"Om een product tot een macht te verheffen, verheffen we elke factor tot die macht."},{"t":"De quotiëntpoort","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a : b)ⁿ = aⁿ : bⁿ","(a · b)ⁿ = aⁿ · bⁿ"],"answer":[0],"fullRule":"Om een quotiënt tot een macht te verheffen, verheffen we het deeltal en de deler tot die macht."},{"t":"De x-y-inscriptie","q":"Zet de symbolen in de juiste volgorde.","tokens":["yⁿ","=","·","(x · y)ⁿ","xⁿ"],"answer":[3,1,4,2,0]},{"t":"De x-y-breuk","q":"Zet de symbolen in de juiste volgorde.","tokens":["xⁿ","yⁿ","=",":","(x : y)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De gouden spreuk","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a · b)ⁿ = aⁿ · bⁿ","(a : b)ⁿ = aⁿ : bⁿ"],"answer":[0],"fullRule":"Om een product tot een macht te verheffen, verheffen we elke factor tot die macht."},{"t":"De blauwe spreuk","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a · b)ⁿ = aⁿ · bⁿ","(a : b)ⁿ = aⁿ : bⁿ"],"answer":[1],"fullRule":"Om een quotiënt tot een macht te verheffen, verheffen we het deeltal en de deler tot die macht."},{"t":"De drie factoren","q":"Zet de symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=","cⁿ","·","(a · b · c)ⁿ","·"],"answer":[5,2,0,4,1,6,3]},{"t":"De laatste inscriptie","q":"Zet de symbolen in de juiste volgorde.","tokens":["(p : q)ᵐ","pᵐ","qᵐ","=",":"],"answer":[0,3,1,4,2]}];
 const duelQs=questions.slice(0,10);
 const finalQs=[{"q":"(2a)^2","a":"4a^2","set":16},{"q":"(4c)^3","a":"64c^3","set":16},{"q":"(-ab)^2","a":"a^2b^2","set":16},{"q":"(-3c)^2","a":"9c^2","set":16},{"q":"(-2c)^3","a":"-8c^3","set":16},{"q":"(-2ab)^2","a":"4a^2b^2","set":16},{"q":"(2ac)^3","a":"8a^3c^3","set":16},{"q":"(a^2b)^2","a":"a^4b^2","set":16},{"q":"(-ab)^3","a":"-a^3b^3","set":16},{"q":"(-1/4 ac)^2","a":"1/16a^2c^2","set":16},{"q":"(2a^2b)^2","a":"4a^4b^2","set":17},{"q":"(4ac^4)^2","a":"16a^2c^8","set":17},{"q":"(10xy^2z^3)^2","a":"100x^2y^4z^6","set":17},{"q":"(-4/5 a^3b^4)^2","a":"16/25a^6b^8","set":17},{"q":"(-3x^2y^4)^3","a":"-27x^6y^12","set":17},{"q":"(2/3)^2","a":"4/9","set":19},{"q":"(-1/2)^3","a":"-1/8","set":19},{"q":"(4/5)^2","a":"16/25","set":19},{"q":"(-1/10)^3","a":"-1/1000","set":19},{"q":"(3/5)^(-2)","a":"25/9","set":19},{"q":"(1/3)^(-2)","a":"9","set":19},{"q":"(-3/5)^(-2)","a":"25/9","set":19},{"q":"(-1/3)^2","a":"1/9","set":19},{"q":"(4/5)^(-2)","a":"25/16","set":19},{"q":"(1/10)^(-3)","a":"1000","set":19},{"q":"(a/b)^2","a":"a^2/b^2","set":20},{"q":"(-x/2)^3","a":"-x^3/8","set":20},{"q":"(3/z^2)^2","a":"9/z^4","set":20},{"q":"(1/a)^4","a":"1/a^4","set":20},{"q":"(-c/2)^(-2)","a":"4/c^2","set":20},{"q":"(-x/y)^2","a":"x^2/y^2","set":20},{"q":"(a^2/b^3)^(-2)","a":"b^6/a^4","set":20},{"q":"(-3/y^3)^3","a":"-27/y^9","set":20},{"q":"(-1/ab)^2","a":"1/a^2b^2","set":20},{"q":"(x^2/y)^(-1)","a":"y/x^2","set":20},{"q":"(a/b)^m","a":"a^m/b^m","set":21},{"q":"(x/y)^(p+1)","a":"x^(p+1)/y^(p+1)","set":21},{"q":"(x/2)^(2+a)","a":"x^(2+a)/2^(2+a)","set":21},{"q":"(-3/2)^(2a)","a":"3^(2a)/2^(2a)","set":21},{"q":"(x^2/y)^(-m)","a":"y^m/x^(2m)","set":21}];
@@ -148,8 +148,8 @@ function avatarFace(n){
  const colors=['#2864b9','#398456','#e7c995','#c75537','#2e9ccc','#7650b7','#c79843','#ad376d'];
  const hair=['#513324','#352a1f','#f5e6b8','#a64225','#1b6c83','#3a263e','#b78235','#8d244f'];
  const skin=['#efbc95','#c88c64','#f3c7a7','#d39a72','#e3b18e','#b97c58','#e7b78e','#edb09b'];
- const mark=['∞','x','aⁿ','÷','√','◇','△','∑'];
- const c=colors[n],h=hair[n],face=skin[n],uid='avatar'+n;
+ const mark=avatars.map(a=>a[1]);
+ const c=colors[n%colors.length],h=hair[n%hair.length],face=skin[n%skin.length],uid='avatar'+n;
  return '<span class="fantasy-avatar" aria-hidden="true"><svg viewBox="0 0 180 240" xmlns="http://www.w3.org/2000/svg" role="img">'+
  '<defs><linearGradient id="'+uid+'robe" x1="0" x2="1" y1="0" y2="1"><stop stop-color="'+c+'"/><stop offset="1" stop-color="#162336"/></linearGradient>'+
  '<radialGradient id="'+uid+'glow"><stop stop-color="'+c+'" stop-opacity=".6"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></radialGradient></defs>'+
@@ -166,7 +166,7 @@ function avatarFace(n){
  '<path d="M82 130 Q91 137 100 130" fill="none" stroke="#a45d54" stroke-width="2.5" stroke-linecap="round"/>'+
  '<path d="M62 146 Q40 151 34 179 L49 184 L73 160 M118 160 L139 184 L153 178 Q145 151 118 146" fill="'+c+'" stroke="#ddbd7d" stroke-width="3"/>'+
  '<circle cx="91" cy="168" r="17" fill="#182a41" stroke="#e5c37e" stroke-width="3"/>'+
- '<text x="91" y="176" text-anchor="middle" font-size="'+(n===2?19:26)+'" font-weight="bold" fill="#ffe9a6" font-family="Georgia,serif">'+mark[n]+'</text>'+
+ '<text x="91" y="176" text-anchor="middle" font-size="'+(n===2?19:26)+'" font-weight="bold" fill="#ffe9a6" font-family="Georgia,serif">'+mark[n%mark.length]+'</text>'+
  (n===0||n===1||n===4?'<path d="M25 225 L31 85" stroke="#a7834d" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="76" r="16" fill="'+c+'" stroke="#e5c27a" stroke-width="4"/>':n===2||n===5?'<path d="M21 183 L58 177 L65 208 L27 215Z" fill="#664832" stroke="#e6c07b" stroke-width="3"/>':n===3?'<rect x="16" y="173" width="31" height="31" rx="5" fill="#ff704b" stroke="#e5b96c" stroke-width="3"/>':'<circle cx="28" cy="185" r="15" fill="none" stroke="#ffe1a2" stroke-width="5"/>')+
  '</svg></span>';
 }
@@ -386,8 +386,8 @@ function createDemo() {
 
 function addTeam(name) {
   const used=new Set(Object.values(state.teams||{}).map(t=>t.route));
-  const index=Array.from({length:8},(_,i)=>i).find(i=>!used.has(i));
-  if(index===undefined)throw Error('Maximum 8 teams.');
+  const index=Array.from({length:30},(_,i)=>i).find(i=>!used.has(i));
+  if(index===undefined)throw Error('Maximum 30 teams.');
 
   const id = 't' + index + '_' +
     Math.random().toString(36).slice(2, 5);
@@ -514,8 +514,8 @@ async function joinRoom() {
       throw Error('Het spel is al begonnen.');
     }
 
-    if (Object.keys(state.teams || {}).length >= 8) {
-      throw Error('Er zijn al 8 teams.');
+    if (Object.keys(state.teams || {}).length >= 30) {
+      throw Error('Er zijn al 30 teams.');
     }
 
     const requestId =
@@ -606,9 +606,9 @@ function listenJoins() {
             error: 'Het spel is al begonnen.'
           };
 
-        } else if (Object.keys(state.teams || {}).length >= 8) {
+        } else if (Object.keys(state.teams || {}).length >= 30) {
           response = {
-            error: 'Maximum 8 teams.'
+            error: 'Maximum 30 teams.'
           };
 
         } else {
@@ -682,7 +682,7 @@ async function handleRequest(r){
  if(!host||!state)return;const t=state.teams?.[r.teamId];if(!t)return;
  const n=Number(r.answer);
  if(r.action==='answer'&&state.phase==='avatars'){
-  if(!Number.isInteger(n)||n<0||n>=8||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
+  if(!Number.isInteger(n)||n<0||n>=30||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
   t.avatar=n;if(room==='SOLO'){state.phase='playing';state.started=Date.now();flash('Je oefenavontuur begint!');}else flash(t.name+' heeft een figuur gekozen.');await writeState();return;
  }
  if(r.action==='resetTokens'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
@@ -695,8 +695,8 @@ async function handleRequest(r){
   const q=getQuestion(t),selected=r.sequence;
   if(!Array.isArray(selected)||selected.length!==q.answer.length||selected.some(i=>!Number.isInteger(i)||i<0||i>=q.tokens.length)||new Set(selected).size!==selected.length)return;
   if(selected.every((v,i)=>v===q.answer[i])){
-   t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
-   if(t.step===routes[t.route].length-1){t.finished=true;if(room==='SOLO'){t.finished=false;t.step=0;t.route=(t.route+1)%8;flash('Nieuwe oefenronde!');}}
+   t.score+=100;t.solved++;t.step=Math.min(routes[t.route%8].length-1,t.step+1);
+   if(t.step===routes[t.route%8].length-1){t.finished=true;if(room==='SOLO'){t.finished=false;t.step=0;t.route=(t.route+1)%30;flash('Nieuwe oefenronde!');}}
    flash(adventureStages[Math.max(0,t.step-1)]?.success||'Doorgang geopend!');templeAudio.cue('correct');
   }else{
    t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;if(t.step===0)t.step=0;
@@ -722,9 +722,9 @@ async function handleRequest(r){
   p.push(n);t.progress=p;
   if(p.length===q.answer.length){
    if(p.every((v,i)=>v===q.answer[i])){
-    t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
+    t.score+=100;t.solved++;t.step=Math.min(routes[t.route%8].length-1,t.step+1);
     flash(t.name+' opent een doorgang!');
-    if(t.step===routes[t.route].length-1)t.finished=true;
+    if(t.step===routes[t.route%8].length-1)t.finished=true;
    }else{t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;flash(t.lastFeedback);}
    t.progress=[];
   }await writeState();return;
@@ -772,7 +772,7 @@ async function handleRequest(r){
  }
 }
 function triggerDuel(moved) {
-  const node = routes[moved.route][moved.step];
+  const node = routes[moved.route%8][moved.step];
 
   if (node === 'vault' || node === 'entry') return;
 
@@ -781,7 +781,7 @@ function triggerDuel(moved) {
       team.id !== moved.id &&
       !team.duel &&
       !team.finished &&
-      routes[team.route][team.step] === node
+      routes[team.route%8][team.step] === node
   );
 
   if (!opponent) return;
@@ -969,7 +969,7 @@ function renderStudent(){
   if(!Number.isInteger(t.avatar)){
    const taken=new Set(Object.values(state.teams||{}).map(v=>v.avatar));
    const grid=document.createElement('div');grid.className='avatargrid';
-   avatars.forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i);b.setAttribute('aria-label','Figuur '+(i+1));b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
+   avatars.forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i)+'<span class="avatar-name">'+escapeHtml(a[0])+'</span>';b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
   }return;
  }
  if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent='Spel afgelopen';title.textContent=w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent='Winnaar: '+(w?.name||'Onbekend');return;}
@@ -1099,7 +1099,7 @@ function drawStudentCamera(time){
  const canvas=$('studentWorld');if(!canvas||!state)return;
  const team=state.teams?.[teamId];if(!team)return;
  drawWorld(studentWorldBuffer,time);
- const route=routes[team.route]||routes[0];
+ const route=routes[team.route%8]||routes[0];
  const node=route[Math.min(team.step||0,route.length-1)];
  const routePoints=scenicRoutes[team.route]||scenicRoutes[0];
  const target=(state.phase==='final'||state.phase==='ended')?[routePoints[5][0]+(.52-routePoints[5][0])*Math.min(1,(team.finalPos||0)/16),routePoints[5][1]+(.37-routePoints[5][1])*Math.min(1,(team.finalPos||0)/16)]:routePoints[Math.min(team.step||0,routePoints.length-1)];
@@ -1182,7 +1182,7 @@ $('finishBtn').onclick = finishGame;
 $('demoAdd').onclick = async () => {
   if (
     state.phase !== 'lobby' ||
-    Object.keys(state.teams || {}).length >= 8
+    Object.keys(state.teams || {}).length >= 30
   ) return;
 
   addTeam(
