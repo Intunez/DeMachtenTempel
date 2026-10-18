@@ -463,8 +463,8 @@ async function joinRoom() {
       throw Error('Het spel is al begonnen.');
     }
 
-    if (Object.keys(state.teams || {}).length >= 30) {
-      throw Error('Er zijn al 30 teams.');
+    if (Object.keys(state.teams || {}).length >= 13) {
+      throw Error('Er zijn al 13 teams.');
     }
 
     const requestId =
@@ -555,9 +555,9 @@ function listenJoins() {
             error: 'Het spel is al begonnen.'
           };
 
-        } else if (Object.keys(state.teams || {}).length >= 30) {
+        } else if (Object.keys(state.teams || {}).length >= 13) {
           response = {
-            error: 'Maximum 30 teams.'
+            error: 'Maximum 13 teams.'
           };
 
         } else {
@@ -631,7 +631,7 @@ async function handleRequest(r){
  if(!host||!state)return;const t=state.teams?.[r.teamId];if(!t)return;
  const n=Number(r.answer);
  if(r.action==='answer'&&state.phase==='avatars'){
-  if(!Number.isInteger(n)||n<0||n>=30||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
+  if(!Number.isInteger(n)||n<0||n>=13||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
   t.avatar=n;if(room==='SOLO'){state.phase='playing';state.started=Date.now();flash('Je oefenavontuur begint!');}else flash(t.name+' heeft een figuur gekozen.');await writeState();return;
  }
  if(r.action==='resetTokens'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
@@ -1138,7 +1138,7 @@ $('finishBtn').onclick = finishGame;
 $('demoAdd').onclick = async () => {
   if (
     state.phase !== 'lobby' ||
-    Object.keys(state.teams || {}).length >= 30
+    Object.keys(state.teams || {}).length >= 13
   ) return;
 
   addTeam(
@@ -1184,5 +1184,5 @@ function mountDemoControls(){
  let back=$('demoTeacher');if(!back){back=document.createElement('button');back.id='demoTeacher';back.textContent='Terug naar leerkracht';document.querySelector('header .headright').appendChild(back);}back.onclick=()=>{show('teacher');render();};
 }
 const demoLink=document.createElement('button');demoLink.className='ghost';demoLink.textContent='Test zonder spelcode';demoLink.id='localTestBtn';
-demoLink.onclick=()=>{let options=$('localTestOptions');if(options){options.remove();return;}options=document.createElement('div');options.id='localTestOptions';[3,8,30].forEach(count=>{const b=document.createElement('button');b.textContent=count+' teams';b.onclick=()=>createDemo(count);options.appendChild(b);});demoLink.after(options);};
+demoLink.onclick=()=>{let options=$('localTestOptions');if(options){options.remove();return;}options=document.createElement('div');options.id='localTestOptions';[3,8,13].forEach(count=>{const b=document.createElement('button');b.textContent=count+' teams';b.onclick=()=>createDemo(count);options.appendChild(b);});demoLink.after(options);};
 $('firebaseHelp').before(demoLink);
