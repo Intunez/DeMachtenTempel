@@ -31,75 +31,22 @@ let view = 'welcome';
 let currentSignature = '';
 let requestQueue = Promise.resolve();
 
-/* Originele procedurele fantasy-soundtrack: geen externe audiobestanden of auteursrechten. */
+/* Eigen soundtrack: test-v2/muziek spel.mp3; browser start na gebruikersklik. */
 const templeAudio=(()=>{
- let context=null,master=null,enabled=false,volume=.75,nextBeat=0,beat=0,lastScene='',timer=null;
- const chords={welcome:[[48,55,60,63],[46,53,58,62],[44,51,56,60],[43,50,55,59]],
-  playing:[[48,55,60,64],[45,52,57,60],[41,48,53,57],[43,50,55,59]],
-  final:[[50,57,62,65],[46,53,58,62],[48,55,60,64],[43,50,55,59]],
-  duel:[[45,52,57,60],[43,50,55,58],[41,48,53,57],[43,50,55,59]],
-  ended:[[48,55,60,64],[53,60,65,69],[55,62,67,71],[48,55,60,72]]};
- const hz=n=>440*Math.pow(2,(n-69)/12);
- const sceneName=()=>state?.phase==='ended'?'ended':state?.phase==='final'?(view==='student'&&state?.teams?.[teamId]?.duel?'duel':'final'):state?.phase==='playing'?'playing':'welcome';
- function note(n,when,duration,level=.08,type='sine',pan=0){
-  if(!context||!master)return;
-  const osc=context.createOscillator(),gain=context.createGain(),stereo=context.createStereoPanner();
-  osc.type=type;osc.frequency.setValueAtTime(hz(n),when);
-  stereo.pan.value=pan;
-  const end=when+duration;
-  gain.gain.setValueAtTime(.0001,when);
-  gain.gain.exponentialRampToValueAtTime(Math.max(.0002,level),when+.06);
-  gain.gain.exponentialRampToValueAtTime(.0001,end);
-  osc.connect(gain).connect(stereo).connect(master);
-  osc.start(when);osc.stop(end+.02);
- }
- function cue(kind){
-  if(!enabled||!context||context.state!=='running')return;
-  const t=context.currentTime+.025;
-  if(kind==='correct'){note(72,t,.22,.11,'sine',-.3);note(76,t+.13,.3,.11,'sine',.2);note(79,t+.26,.6,.12,'triangle');}
-  if(kind==='wrong'){note(53,t,.24,.07,'triangle');note(49,t+.18,.42,.07,'sine');}
-  if(kind==='duel'){note(45,t,.4,.15,'sawtooth');note(52,t+.19,.55,.09,'triangle');}
-  if(kind==='win'){[60,64,67,72,76].forEach((n,i)=>note(n,t+i*.14,1.6,.10,'triangle',(i-2)*.18));}
- }
- function tick(){
-  if(!enabled||!context||context.state!=='running')return;
-  const scene=sceneName();
-  if(scene!==lastScene){lastScene=scene;nextBeat=context.currentTime+.05;beat=0;}
-  const tempo=scene==='final'||scene==='duel'?.34:scene==='ended'?.56:.67;
-  while(nextBeat<context.currentTime+1.1){
-   const chord=chords[scene][Math.floor(beat/8)%4],step=beat%8;
-   if(step===0){note(chord[0]-12,nextBeat,tempo*7,.08,'sine');note(chord[0],nextBeat,tempo*6,.045,'triangle',-.5);}
-   if(step%2===0){note(chord[step/2],nextBeat,tempo*1.8,.046,'sine',step%4===0?-.55:.55);}
-   if(scene==='final'||scene==='duel'){
-    if(step%2===0)note(chord[0]-24,nextBeat,.16,.065,'triangle');
-    note(chord[(step+1)%4]+12,nextBeat,tempo*.8,.028,'triangle');
-   }else if(step===3||step===7){note(chord[2]+12,nextBeat,tempo*2,.036,'sine',.4);}
-   nextBeat+=tempo;beat++;
-  }
- }
- function updateButton(){
-  const b=document.getElementById('templeMusicToggle'),v=document.getElementById('templeMusicVolume');
-  if(b){b.textContent=enabled?'♫ Muziek aan':'♪ Muziek uit';b.setAttribute('aria-pressed',String(enabled));}
-  if(v)v.value=String(Math.round(volume*100));
- }
- async function toggle(){
-  try{
-   if(!context){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)throw Error('Audio niet ondersteund');context=new AudioContext();master=context.createGain();master.gain.value=0;master.connect(context.destination);}
-   if(enabled){enabled=false;master.gain.setTargetAtTime(0,context.currentTime,.06);clearInterval(timer);timer=null;}
-   else{await context.resume();if(context.state!=='running')throw Error('Browser heeft audio geblokkeerd');enabled=true;master.gain.setTargetAtTime(volume,context.currentTime,.03);lastScene='';nextBeat=0;beat=0;cue('correct');timer=setInterval(tick,180);tick();}
-   updateButton();
-  }catch(e){console.warn('Muziek niet beschikbaar',e);const b=document.getElementById('templeMusicToggle');if(b)b.textContent='Audio geblokkeerd – probeer opnieuw';alert('De browser kon de muziek niet afspelen: '+e.message);}
- }
- function setVolume(v){volume=Math.max(0,Math.min(1,Number(v)/100));if(master&&context)master.gain.setTargetAtTime(enabled?volume:0,context.currentTime,.05);}
- function mount(){
-  const header=document.querySelector('header .headright');if(!header||document.getElementById('templeMusicToggle'))return;
+ const player=new Audio('./muziek%20spel.mp3');
+ player.loop=true;player.preload='auto';player.volume=.75;
+ let enabled=false;
+ function update(){const b=document.getElementById('templeMusicToggle');if(b){b.textContent=enabled?'♫ Muziek aan':'♪ Muziek uit';b.setAttribute('aria-pressed',String(enabled));}}
+ async function toggle(){if(enabled){player.pause();enabled=false;update();return;}try{await player.play();enabled=true;update();}catch(e){console.warn('MP3 kan niet afspelen',e);alert('Eigen MP3 ontbreekt of kan niet afspelen. Controleer test-v2/muziek spel.mp3.');}}
+ function setVolume(v){player.volume=Math.max(0,Math.min(1,Number(v)/100));}
+ function mount(){if(document.getElementById('templeMusicToggle'))return;
   const wrap=document.createElement('div');wrap.className='temple-audio-controls';
-  const button=document.createElement('button');button.id='templeMusicToggle';button.className='ghost';button.type='button';button.onclick=toggle;
-  const label=document.createElement('label');label.textContent='Volume ';label.title='Volume van de spelmuziek';
-  const slider=document.createElement('input');slider.id='templeMusicVolume';slider.type='range';slider.min='0';slider.max='100';slider.value='75';slider.setAttribute('aria-label','Muziekvolume');slider.oninput=()=>setVolume(slider.value);
-  label.appendChild(slider);wrap.append(button,label);document.body.appendChild(wrap);updateButton();
+  const button=document.createElement('button');button.id='templeMusicToggle';button.type='button';button.className='ghost';button.onclick=toggle;
+  const label=document.createElement('label');label.textContent='Volume ';
+  const slider=document.createElement('input');slider.id='templeMusicVolume';slider.type='range';slider.min='0';slider.max='100';slider.value='75';slider.oninput=()=>setVolume(slider.value);
+  label.appendChild(slider);wrap.append(button,label);document.body.appendChild(wrap);update();
  }
- return {mount,cue};
+ return {mount,cue(){},toggle};
 })();
 const POINTS = {
   entry: [.10, .84],
@@ -348,7 +295,7 @@ function createDemo(count=3) {
   room = 'DEMO';
   state = newState();
 
-  Array.from({length:Math.max(3,Math.min(30,count))},(_,i)=>'Testteam '+(i+1)).forEach((name,i)=>{const id=addTeam(name);state.teams[id].avatar=i;});
+  Array.from({length:Math.max(3,Math.min(13,count))},(_,i)=>'Testteam '+(i+1)).forEach((name,i)=>{const id=addTeam(name);state.teams[id].avatar=i;});
 
   openTeacher();
 
@@ -359,8 +306,8 @@ function createDemo(count=3) {
 
 function addTeam(name) {
   const used=new Set(Object.values(state.teams||{}).map(t=>Number.isInteger(t.slot)?t.slot:t.route));
-  const index=Array.from({length:30},(_,i)=>i).find(i=>!used.has(i));
-  if(index===undefined)throw Error('Maximum 30 teams.');
+  const index=Array.from({length:13},(_,i)=>i).find(i=>!used.has(i));
+  if(index===undefined)throw Error('Maximum 13 teams.');
 
   const id = 't' + index + '_' +
     Math.random().toString(36).slice(2, 5);
@@ -742,7 +689,7 @@ async function handleRequest(r){
    if(t.finalPos!==previous+1)return;
    if(t.finalPos>=16){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');templeAudio.cue('win');}
    else flash('⚡ '+t.name+' bereikt vak '+t.finalPos);
-  }else{t.wrong++;flash('Fout finaleantwoord bij '+t.name);}
+  }else{t.wrong++;t.finalPos=Math.max(1,t.finalPos-1);flash('Fout finaleantwoord: '+t.name+' gaat één vak terug naar '+t.finalPos);}
   await writeState();
  }
 }
@@ -860,7 +807,7 @@ function render(){
  if(!state)return;
  if(view==='teacher'){
   const teams=Object.values(state.teams||{}).sort((a,b)=>b.score-a.score);
-  $('teamCount').textContent=teams.length+' / 30';
+  $('teamCount').textContent=teams.length+' / 13';
   $('scoreboard').innerHTML=teams.map(t=>'<div class="teamrow">'+avatarFace(t.avatar)+'<div><b>'+escapeHtml(t.name)+'</b><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.duel?'⚔ Duel':t.solved+' opdrachten opgelost')+'</small></div><span class="pts">'+t.score+'</span><button type="button" class="remove-team" data-remove-team="'+escapeHtml(t.id)+'" title="Team verwijderen" aria-label="Verwijder team '+escapeHtml(t.name)+'">✕</button></div>').join('');
   $('scoreboard').querySelectorAll('[data-remove-team]').forEach(btn=>btn.addEventListener('click',()=>removeTeamFromTeacher(btn.dataset.removeTeam).catch(e=>alert('Verwijderen mislukt: '+e.message))));
   $('phaseLabel').textContent=({lobby:'Wachten op teams',avatars:'Avatarselectie',playing:'De tempel is geopend',final:'⚡ Finale',ended:'🏆 Spel afgelopen'})[state.phase];
@@ -1060,7 +1007,7 @@ function drawWorld(canvas,time){
   ctx.fillStyle='#10232ccc';ctx.beginPath();ctx.ellipse(0,22,22,9,0,0,Math.PI*2);ctx.fill();
   ctx.shadowBlur=0;ctx.fillStyle=t.color;ctx.beginPath();ctx.arc(0,-12,18,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#10212b';ctx.font='bold 21px Inter,Arial';ctx.textAlign='center';ctx.fillText(avatars[t.avatar]?.[1]||'✦',0,-5);
-  ctx.font='bold 15px Inter,Arial';ctx.lineWidth=5;ctx.strokeStyle='#071a20';ctx.strokeText(t.name,0,-40);ctx.fillStyle='#fff7df';ctx.fillText(t.name,0,-40);
+  ctx.font='bold 15px Inter,Arial';ctx.lineWidth=5;ctx.strokeStyle='#071a20';
   ctx.restore();
  }
  if(state.phase==='final'||state.phase==='ended'){
