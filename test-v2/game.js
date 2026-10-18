@@ -36,7 +36,7 @@ const templeAudio=(()=>{
  const player=new Audio('./muziek%20spel.mp3');
  player.loop=true;player.preload='auto';player.volume=.75;
  let enabled=false;
- function update(){const b=document.getElementById('templeMusicToggle');if(b){b.textContent=enabled?'♫ Muziek aan':'♪ Muziek uit';b.setAttribute('aria-pressed',String(enabled));}}
+ function update(){const wrap=document.querySelector('.temple-audio-controls');if(wrap){const allowed=view==='teacher'||(view==='student'&&room==='SOLO');wrap.hidden=!allowed;if(!allowed&&enabled){player.pause();enabled=false;}}const b=document.getElementById('templeMusicToggle');if(b){b.textContent=enabled?'♫ Muziek aan':'♪ Muziek uit';b.setAttribute('aria-pressed',String(enabled));}}
  async function toggle(){if(enabled){player.pause();enabled=false;update();return;}try{await player.play();enabled=true;update();}catch(e){console.warn('MP3 kan niet afspelen',e);alert('Eigen MP3 ontbreekt of kan niet afspelen. Controleer test-v2/muziek spel.mp3.');}}
  function setVolume(v){player.volume=Math.max(0,Math.min(1,Number(v)/100));}
  function mount(){if(document.getElementById('templeMusicToggle'))return;
@@ -46,7 +46,7 @@ const templeAudio=(()=>{
   const slider=document.createElement('input');slider.id='templeMusicVolume';slider.type='range';slider.min='0';slider.max='100';slider.value='75';slider.oninput=()=>setVolume(slider.value);
   label.appendChild(slider);wrap.append(button,label);document.body.appendChild(wrap);update();
  }
- return {mount,cue(){},toggle};
+ return {mount,cue(){},toggle,update};
 })();
 const POINTS = {
   entry: [.10, .84],
@@ -144,6 +144,7 @@ const newState = () => ({
 
 function show(id) {
   view = id;
+  templeAudio.update();
   screens.forEach(s => {
     $(s).classList.toggle('hidden', s !== id);
   });
@@ -386,9 +387,11 @@ function paintTeacherCycle(){
  const teams=Object.values(state.teams||{}).sort((a,b)=>(a.slot||0)-(b.slot||0));
  panel.innerHTML='<h3>LIVE MEEKIJKEN · '+teams.length+' teams</h3><div class="teacher-answer-grid">'+teams.map(t=>{
   const q=state.phase==='playing'&&!t.finished?getQuestion(t):state.phase==='final'?finaleVraag(t):null;
-  const progress=(t.progress||[]).map(i=>q?.tokens?.[i]).filter(Boolean);
+  const progress=(t.liveDraft||t.progress||[]).map(i=>q?.tokens?.[i]).filter(Boolean);
   const title=q?(q.q||q.question||q.fullRule||'Oefening'):'Wachten op oefening';
-  return '<div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(progress.length?progress.map(x=>escapeHtml(String(x))).join(' · '):'Nog geen antwoord ingediend')+'</div><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.solved+' opgelost')+'</small></div>';
+  const finalOptions=state.phase==='final'&&q?finaleChoices(q).options:[];
+  const preview=state.phase==='final'&&Number.isInteger(t.liveFinalChoice)?'Aangeklikt: '+String.fromCharCode(65+t.liveFinalChoice)+' — '+(finalOptions[t.liveFinalChoice]||''):'';
+  return '<div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(progress.length?progress.map(x=>escapeHtml(String(x))).join(' · '):escapeHtml(preview||'Nog niets aangeklikt'))+'</div><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.solved+' opgelost')+'</small></div>';
  }).join('')+'</div>';
 }
 function openTeacher() {
@@ -634,8 +637,19 @@ async function handleRequest(r){
   if(!Number.isInteger(n)||n<0||n>=13||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
   t.avatar=n;if(room==='SOLO'){state.phase='playing';state.started=Date.now();flash('Je oefenavontuur begint!');}else flash(t.name+' heeft een figuur gekozen.');await writeState();return;
  }
- if(r.action==='resetTokens'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
-  t.progress=[];await writeState();return;
+ if(r.action==='liveDraft'&&['playing','final'].includes(state.phase)){
+   if(!Array.isArray(r.sequence)||r.sequence.length>16)return;
+   const q=state.phase==='playing'?getQuestion(t):getActiveDuel(t)?duelQs[getActiveDuel(t).qIndex]:null;
+   if(!q||r.sequence.some(i=>!Number.isInteger(i)||i<0||i>=q.tokens.length))return;
+   if(r.atSolved!==undefined&&r.atSolved!==t.solved)return;
+   t.liveDraft=[...r.sequence];await writeState();return;
+  }
+  if(r.action==='finalPreview'&&state.phase==='final'){
+   if(!Number.isInteger(r.choice)||r.choice<0||r.choice>2)return;
+   t.liveFinalChoice=r.choice;await writeState();return;
+  }
+  if(r.action==='resetTokens'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
+  t.progress=[];t.liveDraft=[];await writeState();return;
  }
  if(r.action==='resetTokens'&&state.phase==='final'&&getActiveDuel(t)){
   const duel=getActiveDuel(t);duel.progress[t.id]=[];await writeState();return;
@@ -652,7 +666,7 @@ async function handleRequest(r){
    t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;if(t.step===0)t.step=0;
    flash('❌ Fout antwoord van '+t.name);templeAudio.cue('wrong');
   }
-  t.progress=[];await writeState();return;
+  t.progress=[];t.liveDraft=[];await writeState();return;
  }
  if(r.action==='submitDuelTokens'&&state.phase==='final'&&!state.winner){
   const d=getActiveDuel(t);if(!d||d.winner)return;
@@ -859,6 +873,7 @@ function render(){
 }
 let tokenDraft=null;
 function tokenPuzzle(q,action,progress){
+ const publishDraft=()=>{if(room!=='SOLO'&&online)sendRequest('liveDraft',{sequence:[...selected],atSolved:state.teams[teamId].solved}).catch(console.warn);};
  const box=$('options'),kind=action==='duel'?'duel':'adventure';
  const key=kind+':'+(kind==='duel'?(getActiveDuel(state.teams[teamId])?.id||''):((state.teams[teamId]?.solved||0)+':'+(state.teams[teamId]?.route||0)))+':'+(state.teams[teamId]?.wrong||0);
  if(!tokenDraft||tokenDraft.key!==key)tokenDraft={key,sequence:[]};
@@ -869,12 +884,12 @@ function tokenPuzzle(q,action,progress){
   const line=document.createElement('div');line.className='tokenline token-dropzone';
   line.setAttribute('aria-label','Samengestelde formule; sleep een stuk hierheen');
   line.ondragover=e=>e.preventDefault();
-  line.ondrop=e=>{e.preventDefault();const raw=e.dataTransfer.getData('text/plain');const i=Number(raw);if(!Number.isInteger(i)||i<0||i>=q.tokens.length)return;if(raw.startsWith('placed:'))return;if(!selected.includes(i)){selected.push(i);paint();}};
+  line.ondrop=e=>{e.preventDefault();const raw=e.dataTransfer.getData('text/plain');const i=Number(raw);if(!Number.isInteger(i)||i<0||i>=q.tokens.length)return;if(raw.startsWith('placed:'))return;if(!selected.includes(i)){selected.push(i);paint();publishDraft();}};
   selected.forEach((index,at)=>{
    const b=document.createElement('button');b.type='button';b.className='placed token-placed';
    b.textContent=q.tokens[index];b.title='Klik om dit stuk terug te leggen';b.draggable=true;
    b.ondragstart=e=>e.dataTransfer.setData('text/plain','placed:'+at);
-   b.onclick=()=>{selected.splice(at,1);paint();};line.appendChild(b);
+   b.onclick=()=>{selected.splice(at,1);paint();publishDraft();};line.appendChild(b);
   });
   if(!selected.length){const hint=document.createElement('span');hint.className='token-empty';hint.textContent='Sleep of klik hier de formule samen';line.appendChild(hint);}
   box.appendChild(line);
@@ -890,9 +905,9 @@ function tokenPuzzle(q,action,progress){
   box.appendChild(choices);
   const actions=document.createElement('div');actions.className='token-actions';
   const undo=document.createElement('button');undo.type='button';undo.textContent='↶ Laatste stap terug';undo.disabled=!selected.length;
-  undo.onclick=()=>{selected.pop();paint();};actions.appendChild(undo);
+  undo.onclick=()=>{selected.pop();paint();publishDraft();};actions.appendChild(undo);
   const reset=document.createElement('button');reset.type='button';reset.textContent='↺ Alles wissen';reset.disabled=!selected.length;
-  reset.onclick=()=>{selected.length=0;paint();};actions.appendChild(reset);
+  reset.onclick=()=>{selected.length=0;paint();publishDraft();};actions.appendChild(reset);
   const check=document.createElement('button');check.type='button';check.className='primary';check.textContent='✓ Nakijken';
   check.disabled=selected.length!==q.answer.length;
   check.onclick=async()=>{
@@ -941,7 +956,7 @@ function renderStudent(){
    button.innerHTML='<span class="finale-choice-letter">'+String.fromCharCode(65+index)+'</span><span class="math-exercise">'+mathExpressionHtml(answer)+'</span>';
    button.onclick=async()=>{
     grid.querySelectorAll('button').forEach(b=>b.disabled=true);
-    try{await sendRequest('final',{answer:index,atPosition:t.finalPos});if(!demo)$('feedback').textContent='Antwoord ontvangen…';}
+    try{if(online)await sendRequest('finalPreview',{choice:index});await sendRequest('final',{answer:index,atPosition:t.finalPos});if(!demo)$('feedback').textContent='Antwoord ontvangen…';}
     catch(e){$('feedback').textContent=e.message;grid.querySelectorAll('button').forEach(b=>b.disabled=false);}
    };
    grid.appendChild(button);
