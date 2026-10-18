@@ -921,7 +921,7 @@ function renderStudent(){
   if(!Number.isInteger(t.avatar)){
    const taken=new Set(Object.values(state.teams||{}).map(v=>v.avatar));
    const grid=document.createElement('div');grid.className='avatargrid';
-   avatars.forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i)+'<span class="avatar-name">'+escapeHtml(a[0])+'</span>';b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
+   avatars.slice(0,13).forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i);b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
   }return;
  }
  if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent='Spel afgelopen';title.textContent=w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent='Winnaar: '+(w?.name||'Onbekend');return;}
