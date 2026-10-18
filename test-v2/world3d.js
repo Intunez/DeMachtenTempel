@@ -508,6 +508,7 @@ function finalePart(geometry,material,x,y,z){
 const raceStone=new THREE.InstancedMesh(new THREE.BoxGeometry(RACE.laneWidth-.10,.34,RACE.stride-.12),marble,RACE.lanes*RACE.squares);
 const tileTransform=new THREE.Object3D();
 const raceColors=[new THREE.Color(0x7c807b),new THREE.Color(0x989487)];
+const raceLabels=[];
 let raceIndex=0;
 for(let lane=0;lane<RACE.lanes;lane++){
  for(let step=0;step<16;step++){
@@ -525,7 +526,7 @@ for(let step=0;step<RACE.squares;step++){
   tileTransform.position.set((lane-(RACE.lanes-1)/2)*RACE.laneWidth-.55,RACE.floorY+.015,RACE.startZ-step*RACE.stride+.7);
   tileTransform.rotation.set(-Math.PI/2,0,0);tileTransform.scale.setScalar(.65);tileTransform.updateMatrix();labels.setMatrixAt(lane,tileTransform.matrix);
  }
- finalCourse.add(labels);
+ finalCourse.add(labels);raceLabels.push(labels);
 }
 raceStone.castShadow=true;raceStone.receiveShadow=true;finalCourse.add(raceStone);
 for(const side of [-1,1]){
@@ -766,7 +767,8 @@ export function getFantasyPortraits(){
  portraitCache=portraits;return portraits;
 }
 const lerp=(a,b,t)=>a.clone().lerp(b,Math.max(0,Math.min(1,t)));
-function position(team,phase){const p=teamPosition(team,phase);return new THREE.Vector3(p.x,p.y,p.z);}
+let activeRaceSlots=[];
+function position(team,phase){const p=teamPosition(team,phase,activeRaceSlots);return new THREE.Vector3(p.x,p.y,p.z);}
 let lastCanvas=null,frame=0;
 export function draw3D(canvas,state,view,teamId,time){
  if(!canvas)return false;
@@ -777,6 +779,30 @@ export function draw3D(canvas,state,view,teamId,time){
  finalCourse.visible=state?.phase==='final'||state?.phase==='ended';world.visible=!finalCourse.visible;scene.fog.density=finalCourse.visible?.002:.006;
  sun.position.z=24+(finalCourse.visible?RACE.originZ:0);sun.target.position.z=finalCourse.visible?RACE.originZ:0;
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
+  if(finalCourse.visible){
+   const slots=teams.map(t=>Number.isInteger(t.slot)?t.slot:(t.route||0)).sort((a,b)=>a-b).slice(0,RACE.lanes);
+   const signature=slots.join(',');
+   if(finalCourse.userData.laneSignature!==signature){
+    activeRaceSlots=slots;
+    finalCourse.userData.laneSignature=signature;
+    const n=slots.length;
+    const transform=new THREE.Object3D();
+    for(let lane=0;lane<RACE.lanes;lane++){
+     const active=lane<n;
+     const x=(lane-(n-1)/2)*RACE.laneWidth;
+     for(let step=0;step<RACE.squares;step++){
+      transform.position.set(x,3.07,RACE.startZ-step*RACE.stride);
+      transform.rotation.set(0,0,0);transform.scale.setScalar(active?1:0);transform.updateMatrix();
+      raceStone.setMatrixAt(lane*RACE.squares+step,transform.matrix);
+      const label=raceLabels[step];
+      transform.position.set(x-.55,RACE.floorY+.015,RACE.startZ-step*RACE.stride+.7);
+      transform.rotation.set(-Math.PI/2,0,0);transform.scale.setScalar(active?.65:0);transform.updateMatrix();
+      label.setMatrixAt(lane,transform.matrix);label.instanceMatrix.needsUpdate=true;
+     }
+    }
+    raceStone.instanceMatrix.needsUpdate=true;
+   }
+  }
  for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);avatars.delete(id);soldierMixers.delete(id);}
  for(const t of teams){const selected=Number.isInteger(t.avatar)?t.avatar:t.route;let g=avatars.get(t.id);if(g&&g.userData.avatarIndex!==selected){scene.remove(g);avatars.delete(t.id);soldierMixers.delete(t.id);g=null;}g=avatar(t.id,selected);const p=position(t,state?.phase);
  if(g.userData.previousWrong===undefined)g.userData.previousWrong=t.wrong||0;
