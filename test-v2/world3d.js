@@ -438,7 +438,23 @@ export function draw3D(canvas,state,view,teamId,time){
  finalCourse.visible=state?.phase==='final'||state?.phase==='ended';
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
  for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);soldierMixers.delete(id);}
- for(const t of teams){const g=avatar(t.id,Number.isInteger(t.avatar)?t.avatar:t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
+ for(const t of teams){const g=avatar(t.id,Number.isInteger(t.avatar)?t.avatar:t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);
+ if(g.userData.previousWrong===undefined)g.userData.previousWrong=t.wrong||0;
+ if((t.wrong||0)>g.userData.previousWrong&&state?.phase==='playing'){
+  g.userData.fallStarted=time;g.userData.fallStage=Math.min(5,t.step||0);
+ }
+ g.userData.previousWrong=t.wrong||0;
+ g.position.lerp(p,.07);
+ const fallAge=time-(g.userData.fallStarted||-10000);
+ if(fallAge>=0&&fallAge<2200){
+  const progress=fallAge/2200;
+  // Fall into the ravine and magically respawn; game progress is not lost.
+  const plunge=progress<.55?progress/.55:1-(progress-.55)/.45;
+  g.position.y-=Math.sin(Math.PI*.5*plunge)*Math.min(7,Math.max(3,p.y+3));
+  g.rotation.z=Math.sin(progress*Math.PI)*.65;
+  g.scale.setScalar(progress>.48&&progress<.62?.72:1);
+ }else{g.rotation.z=0;g.scale.setScalar(1);g.position.y+=Math.sin(time*.002+t.route)*.004;}
+ g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
  if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(7.5)).add(new THREE.Vector3(0,4.3,0));camera.position.lerp(desired,.055);camera.lookAt(target.x*.48,6.7,target.z*.48);}
  else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
