@@ -642,7 +642,7 @@ export function draw3D(canvas,state,view,teamId,time){
  finalCourse.visible=state?.phase==='final'||state?.phase==='ended';
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
  for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);soldierMixers.delete(id);}
- for(const t of teams){const g=avatar(t.id,Number.isInteger(t.avatar)?t.avatar:t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);
+ for(const t of teams){const selected=Number.isInteger(t.avatar)?t.avatar:t.route;let g=avatars.get(t.id);if(g&&g.userData.avatarIndex!==selected){scene.remove(g);avatars.delete(t.id);soldierMixers.delete(t.id);g=null;}g=avatar(t.id,selected);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);
  if(g.userData.previousWrong===undefined)g.userData.previousWrong=t.wrong||0;
  if((t.wrong||0)>g.userData.previousWrong&&state?.phase==='playing'){
   g.userData.fallStarted=time;g.userData.fallStage=Math.min(5,t.step||0);
@@ -650,18 +650,34 @@ export function draw3D(canvas,state,view,teamId,time){
  g.userData.previousWrong=t.wrong||0;
  g.position.lerp(p,.07);
  const fallAge=time-(g.userData.fallStarted||-10000);
- if(fallAge>=0&&fallAge<2200&&g.userData.fallStage===0){
-  const progress=fallAge/2200;
-  // The bridge gives way: fall down and out of view; no magical rescue.
-  g.position.y-=Math.pow(progress,1.45)*28;
-  g.rotation.z=progress*1.3;
-  g.scale.setScalar(Math.max(.12,1-progress*.75));
+ if(fallAge>=0&&fallAge<2200){
+  const progress=fallAge/2200,stage=g.userData.fallStage;
+  if(stage===0){ // Bridge snaps: character tumbles visibly into the open ravine.
+   g.position.y-=Math.pow(progress,1.45)*28;
+   g.rotation.z=progress*1.3;
+   g.scale.setScalar(Math.max(.12,1-progress*.75));
+  }else if(stage===1){ // Waterfall surge pushes the hero back.
+   g.position.add(new THREE.Vector3(Math.sin(t.route*Math.PI/4),0,Math.cos(t.route*Math.PI/4)).multiplyScalar(Math.sin(progress*Math.PI)*4.4));
+   g.rotation.z=Math.sin(progress*Math.PI)*-.55;
+  }else if(stage===2){ // Dragon fire knocks the hero backward.
+   g.position.y+=Math.sin(progress*Math.PI)*1.8;
+   g.rotation.x=-Math.sin(progress*Math.PI)*.9;
+  }else if(stage===3){ // Failed portal spell spins and repels the hero.
+   g.rotation.y+=progress*Math.PI*4;
+   g.position.y+=Math.sin(progress*Math.PI)*2.1;
+  }else if(stage===4){ // Falling crystals make the hero duck.
+   g.scale.y=1-Math.sin(progress*Math.PI)*.45;
+   g.position.y-=Math.sin(progress*Math.PI)*.35;
+  }else{ // Vault door shockwave pushes the hero backward.
+   g.position.y+=Math.sin(progress*Math.PI)*.7;
+   g.rotation.z=Math.sin(progress*Math.PI)*.7;
+  }
  }else{
-  g.rotation.z=0;g.scale.setScalar(1);
+  g.rotation.z=0;g.rotation.x=0;g.scale.setScalar(1);
   if(fallAge>=2200&&fallAge<2350&&g.userData.fallStage===0)g.position.copy(position({...t,step:0},state?.phase));
   g.position.y+=Math.sin(time*.002+t.route)*.004;
  }
- g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
+ if(!(fallAge>=0&&fallAge<2200&&g.userData.fallStage===3))g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
  if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const onBridge=state.phase==='playing'&&(state.teams[teamId].step||0)===0;const desired=target.clone().add(direction.multiplyScalar(onBridge?10.5:8.2)).add(new THREE.Vector3(0,onBridge?8.5:6.4,0));camera.position.lerp(desired,.055);const aim=target.clone().multiplyScalar(onBridge?.84:.72);aim.y=onBridge?0.0:5.3;camera.lookAt(aim);}
  else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
