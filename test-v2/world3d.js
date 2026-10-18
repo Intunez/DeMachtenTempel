@@ -859,9 +859,17 @@ export function draw3D(canvas,state,view,teamId,time){
  const yaw=finalCourse.visible?Math.PI:(figure?.rotation.y??Math.atan2(-target.x,-target.z));
  const side=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
- const desired=target.clone().addScaledVector(side,13.5).addScaledVector(forward,-2.8).add(new THREE.Vector3(0,7.8,0));
- camera.position.lerp(desired,.07);
- const aim=target.clone().addScaledVector(forward,3.2).add(new THREE.Vector3(0,1.9,0));
+ // Keep the camera close to the avatar, not behind trees or cliffs.
+ // A modest side offset preserves a visible profile; a high angle shows the path.
+ const desired=target.clone().addScaledVector(side,5.8).addScaledVector(forward,-1.2).add(new THREE.Vector3(0,5.4,0));
+ const aim=(figure?.position||target).clone().add(new THREE.Vector3(0,1.35,0));
+ // Prevent the camera from ending up behind opaque scenery.
+ const from=aim.clone(),toward=desired.clone().sub(from),distance=toward.length();
+ const ray=new THREE.Raycaster(from,toward.normalize(),0.1,distance);
+ const obstacles=ray.intersectObjects(world.children,true);
+ const blocking=obstacles.find(hit=>hit.object.isMesh&&hit.distance>1.5&&hit.object.visible&&hit.object.material?.transparent!==true);
+ if(blocking){desired.copy(from).addScaledVector(toward,Math.max(1.8,blocking.distance-0.65));}
+ camera.position.lerp(desired,.16);
  if(failing>=0&&failing<2200&&figure?.userData.fallStage===0)aim.y=figure.position.y+1;
  camera.lookAt(aim);
  }else if(finalCourse.visible){
