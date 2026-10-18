@@ -1096,7 +1096,7 @@ function drawStudentCamera(time){
 }
 
 let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0;
-import('./world3d.js?v=avatarloadfix20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
+import('./world3d.js?v=portraitsvisible20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
@@ -1109,7 +1109,7 @@ function drawWelcomeFallback(canvas,time){
 function animate(time) {
   if(!fantasyPortraits&&getFantasyPortraits&&state?.phase==='avatars'&&time-portraitCheck>2000){
    portraitCheck=time;
-   try{const portraits=getFantasyPortraits();if(portraits?.length===30){fantasyPortraits=portraits;render();}}catch(error){console.warn('3D-avatarportretten niet beschikbaar',error);getFantasyPortraits=null;}
+   try{const portraits=getFantasyPortraits();if(portraits?.length===30){fantasyPortraits=portraits;currentSignature=null;render();}}catch(error){console.warn('3D-avatarportretten niet beschikbaar',error);getFantasyPortraits=null;}
   }
   if (view === 'teacher') {
     if(!draw3D||!draw3D($('worldCanvas'),state,'teacher',null,time))drawWorld($('worldCanvas'), time);
