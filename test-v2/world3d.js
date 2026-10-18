@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const THREE_COLORS=['#ffb563','#8cd9ff','#e4a5ff','#9ff2bf','#ffd68b','#f4a2cb','#d0ed87','#b3aaff'];
 const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*2.72;return new THREE.Vector3(Math.cos(angle)*radius,3.0,Math.sin(angle)*radius);});});
-const scene=new THREE.Scene();scene.background=new THREE.Color(0xa4c4c7);scene.fog=new THREE.FogExp2(0xa4c4c7,.0025);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xa4c4c7);scene.fog=new THREE.FogExp2(0xa4c4c7,.0022);
 const world=new THREE.Group();scene.add(world);
 scene.add(new THREE.HemisphereLight(0xd5e8ff,0x273e32,1.45));
 const sun=new THREE.DirectionalLight(0xffe5b5,3.9);sun.position.set(-22,40,24);scene.add(sun);
@@ -170,6 +170,68 @@ function build(){
  const cloak=new THREE.Mesh(new THREE.ConeGeometry(1.1,3.3,12),mat(0x263947));guardian.add(cloak);
  const head=new THREE.Mesh(new THREE.IcosahedronGeometry(.85,2),mat(0x738b91,{metalness:.45}));head.position.y=2;guardian.add(head);
  const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.62),crystal);gem.position.set(0,3.7,0);guardian.add(gem);guardian.userData.gem=gem;world.add(guardian);world.userData.guardian=guardian;
+ // Grand approach: illuminated carved walkway, portals and suspended ruins.
+ const approach=new THREE.Group();world.add(approach);
+ const buildPart=(geo,material,x,y,z,parent=approach)=>{const o=new THREE.Mesh(geo,material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;};
+ const carved=mat(0x99927e,{map:stoneTex,roughness:.83});
+ const gilded=mat(0xd9b26b,{metalness:.64,roughness:.33});
+ const magical=[0x5de6e4,0x8e69ff,0x7cffaf,0xffc363];
+ // A recognizable front-facing ceremonial road and wide stairway.
+ for(let j=0;j<22;j++){
+  const z=10.3+j*.83;
+  const slab=buildPart(new THREE.BoxGeometry(7.1,.28,.78),carved,0,3.0,z);
+  if(j%3===0){
+   for(const side of [-1,1]){
+    const post=buildPart(new THREE.BoxGeometry(.78,1.55,.78),carved,side*4.15,3.85,z);
+    buildPart(new THREE.BoxGeometry(1.04,.20,1.04),gilded,side*4.15,4.7,z);
+    const fire=buildPart(new THREE.ConeGeometry(.24,.64,12),mat(0xffb35c,{emissive:0xff791c,emissiveIntensity:2.1,transparent:true,opacity:.9}),side*4.15,5.11,z);
+    if(j%9===0){const light=new THREE.PointLight(0xffa750,7,13);light.position.set(side*4.15,5.1,z);scene.add(light);}
+   }
+  }
+  if(j%4===0){
+   const rune=buildPart(new THREE.OctahedronGeometry(.18,1),mat(0xffe9b5,{emissive:0xffc66b,emissiveIntensity:2}),0,3.28,z);
+   rune.scale.y=.2;
+  }
+ }
+ // Three distinct colored magical doorways on the outer terraces.
+ for(let k=0;k<3;k++){
+  const a=[.55,2.65,4.10][k],rr=20.7,x=Math.sin(a)*rr,z=Math.cos(a)*rr;
+  const gate=new THREE.Group();gate.position.set(x,3.5,z);gate.rotation.y=a;world.add(gate);
+  const m=mat(magical[k],{emissive:magical[k],emissiveIntensity:1.6,transparent:true,opacity:.85,side:THREE.DoubleSide});
+  const left=buildPart(new THREE.CylinderGeometry(.48,.60,5.5,12),carved,-2,2.7,0,gate);
+  buildPart(new THREE.CylinderGeometry(.48,.60,5.5,12),carved,2,2.7,0,gate);
+  buildPart(new THREE.BoxGeometry(5.1,.65,1.15),gilded,0,5.6,0,gate);
+  const halo=buildPart(new THREE.TorusGeometry(1.9,.16,12,48),m,0,2.9,.25,gate);halo.scale.y=1.35;
+  const shimmer=buildPart(new THREE.PlaneGeometry(3.45,4.8),mat(magical[k],{emissive:magical[k],emissiveIntensity:1.1,transparent:true,opacity:.27,side:THREE.DoubleSide}),0,2.9,.20,gate);
+ }
+ // Satellite islands with ruins and their own long cascading waterfalls.
+ for(let k=0;k<6;k++){
+  const a=k*Math.PI/3+.35,rr=49+(k%2)*11,x=Math.sin(a)*rr,z=Math.cos(a)*rr,y=8+(k%3)*4;
+  const floating=new THREE.Group();floating.position.set(x,y,z);world.add(floating);
+  const mass=buildPart(new THREE.IcosahedronGeometry(7.5,3),rock,0,-2,0,floating);mass.scale.set(1.2,.68,1.05);
+  buildPart(new THREE.CylinderGeometry(7.6,7.2,1.2,36),moss,0,1.0,0,floating);
+  for(let c=0;c<5;c++){
+   const angle=c*Math.PI*2/5,px=Math.cos(angle)*4.2,pz=Math.sin(angle)*4.2;
+   buildPart(new THREE.CylinderGeometry(.45,.57,3.5,10),carved,px,3.1,pz,floating);
+  }
+  buildPart(new THREE.TorusGeometry(3.9,.28,12,36),gilded,0,5.0,0,floating).rotation.x=Math.PI/2;
+  const fall=buildPart(new THREE.PlaneGeometry(2.4,19),water,4.5,-9.5,0,floating);fall.rotation.y=.3;
+  const crystalIsland=buildPart(new THREE.OctahedronGeometry(1.25,1),mat(magical[k%4],{emissive:magical[k%4],emissiveIntensity:1.2}),0,4.4,0,floating);
+ }
+ // Banners with the infinity mark: mathematical theme integrated into the architecture.
+ function bannerMaterial(){
+  const c=document.createElement('canvas');c.width=256;c.height=512;
+  const x=c.getContext('2d');x.fillStyle='#17335b';x.fillRect(0,0,256,512);
+  x.strokeStyle='#d6ac5d';x.lineWidth=14;x.strokeRect(15,12,226,482);
+  x.fillStyle='#f3d18b';x.font='bold 160px Georgia';x.textAlign='center';x.fillText('∞',128,300);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;
+  return new THREE.MeshStandardMaterial({map:t,side:THREE.DoubleSide,roughness:.9});
+ }
+ const banners=bannerMaterial();
+ for(const side of [-1,1]){
+  const banner=buildPart(new THREE.PlaneGeometry(2.1,4.6),banners,side*6.2,12.0,6.2);
+  banner.rotation.y=side*.20;
+ }
  // Layered, irregular mountain silhouettes; no triangular cone mountains.
  const mountainPalette=[0x738a87,0x819895,0x6c8583,0x9da9a3];
  for(let i=0;i<18;i++){
@@ -330,8 +392,8 @@ export function draw3D(canvas,state,view,teamId,time){
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
  for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);}
  for(const t of teams){const g=avatar(t.id,Number.isInteger(t.avatar)?t.avatar:t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
- if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(12)).add(new THREE.Vector3(0,9,0));camera.position.lerp(desired,.045);camera.lookAt(target.x, target.y+3.7,target.z);}
- else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(58*distance,72*distance,110*distance),.055);camera.lookAt(0,0,0);}
+ if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(7.5)).add(new THREE.Vector3(0,4.3,0));camera.position.lerp(desired,.055);camera.lookAt(target.x*.48,6.7,target.z*.48);}
+ else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
  if(world.userData.falls)for(let i=0;i<world.userData.falls.length;i++){const f=world.userData.falls[i];f.material.opacity=.63+.12*Math.sin(time*.002+i);}
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=3.7+Math.sin(time*.0015)*.25;}
