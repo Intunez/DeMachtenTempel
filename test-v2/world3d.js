@@ -464,16 +464,27 @@ const jewel=mat(0x79e5f3,{emissive:0x2b9ca7,emissiveIntensity:1.8,roughness:.15}
 function finalePart(geometry,material,x,y,z){
  const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;finalCourse.add(o);return o;
 }
-for(let i=0;i<16;i++){
- const z=27-i*1.22;
- finalePart(new THREE.BoxGeometry(11.7,.38,1.18),marble,0,3.08,z);
- for(const side of [-1,1]){
-  finalePart(new THREE.BoxGeometry(.30,.6,1.18),bronze,side*6,3.43,z);
-  if(i%3===0){
-   finalePart(new THREE.CylinderGeometry(.35,.43,3.4,12),marble,side*6.55,5.1,z);
-   finalePart(new THREE.BoxGeometry(1.1,.42,1.1),bronze,side*6.55,6.9,z);
-   const flame=finalePart(new THREE.OctahedronGeometry(.35,1),jewel,side*6.55,7.5,z);
-  }
+// Thirty parallel race lanes, each made of sixteen individual stone squares.
+const raceStone=new THREE.InstancedMesh(new THREE.BoxGeometry(.72,.34,1.06),marble,30*16);
+const tileTransform=new THREE.Object3D();
+const raceColors=[new THREE.Color(0x7c807b),new THREE.Color(0x989487)];
+let raceIndex=0;
+for(let lane=0;lane<30;lane++){
+ for(let step=0;step<16;step++){
+  const z=27-step*1.22,x=(lane-14.5)*.76;
+  tileTransform.position.set(x,3.07,z);tileTransform.updateMatrix();
+  raceStone.setMatrixAt(raceIndex,tileTransform.matrix);
+  raceStone.setColorAt(raceIndex,raceColors[(lane+step)%2]);
+  raceIndex++;
+ }
+}
+raceStone.castShadow=true;raceStone.receiveShadow=true;finalCourse.add(raceStone);
+for(const side of [-1,1]){
+ const edge=side*12.05;
+ for(let step=0;step<16;step+=3){
+  const z=27-step*1.22;
+  finalePart(new THREE.CylinderGeometry(.35,.45,2.8,12),marble,edge,4.7,z);
+  finalePart(new THREE.OctahedronGeometry(.3,1),jewel,edge,6.25,z);
  }
 }
 const vault=new THREE.Group();vault.position.set(0,3.35,6.7);finalCourse.add(vault);
@@ -696,7 +707,7 @@ export function getFantasyPortraits(){
 }
 const lerp=(a,b,t)=>a.clone().lerp(b,Math.max(0,Math.min(1,t)));
 function position(team,phase){const path=routePoints[team.route%8]||routePoints[0];
- if(phase==='final'||phase==='ended'){const lane=((team.route||0)%30-14.5)*.42;const pos=Math.max(1,Math.min(16,team.finalPos||1));return new THREE.Vector3(lane,3.45,27-(pos-1)*1.22);}
+ if(phase==='final'||phase==='ended'){const lane=((Number.isInteger(team.slot)?team.slot:team.route||0)%30-14.5)*.76;const pos=Math.max(0,Math.min(16,team.finalPos||0));return new THREE.Vector3(lane,3.5,27-Math.max(0,pos-1)*1.22);}
  const p=Math.max(0,Math.min(path.length-1,team.step||0)),i=Math.floor(p);const at=lerp(path[i],path[Math.min(i+1,6)],p-i);const group=Math.floor((team.route||0)/8);const side=(((team.route||0)%8)%2?1:-1);const angle=(team.route%8)*Math.PI/4;at.x+=Math.sin(angle)*side*group*.72;at.z+=Math.cos(angle)*side*group*.72;return at;}
 let lastCanvas=null,frame=0;
 export function draw3D(canvas,state,view,teamId,time){
@@ -739,13 +750,13 @@ export function draw3D(canvas,state,view,teamId,time){
    g.rotation.z=Math.sin(progress*Math.PI)*.7;
   }
  }else{
-  g.rotation.z=0;g.rotation.x=0;g.scale.setScalar(1);
+  g.rotation.z=0;g.rotation.x=0;g.scale.setScalar(state?.phase==='final'||state?.phase==='ended'?1.55:1.45);
   if(fallAge>=2200&&fallAge<2350&&g.userData.fallStage===0)g.position.copy(position({...t,step:0},state?.phase));
   g.position.y+=Math.sin(time*.002+t.route)*.004;
  }
  if(!(fallAge>=0&&fallAge<2200&&g.userData.fallStage===3))g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
- if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const onBridge=state.phase==='playing'&&(state.teams[teamId].step||0)===0;const desired=target.clone().add(direction.multiplyScalar(onBridge?15.5:13.2)).add(new THREE.Vector3(0,onBridge?12.2:10.2,0));camera.position.lerp(desired,.055);const aim=target.clone().multiplyScalar(onBridge?.93:.85);aim.y=onBridge?2.0:4.3;camera.lookAt(aim);}
- else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
+ if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const onBridge=state.phase==='playing'&&(state.teams[teamId].step||0)===0;const desired=target.clone().add(direction.multiplyScalar(onBridge?9.8:9.0)).add(new THREE.Vector3(0,onBridge?7.5:7.0,0));camera.position.lerp(desired,.055);const aim=target.clone();aim.y=5.4;camera.lookAt(aim);}
+ else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(12,31,57),.035);camera.lookAt(0,4,17);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
  if(world.userData.waterTexture)world.userData.waterTexture.offset.y=-(time*.00023%1);
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=3.7+Math.sin(time*.0015)*.25;}
