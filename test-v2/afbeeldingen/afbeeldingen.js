@@ -11,7 +11,26 @@ function fallback(index){const colors=[['#6a9ab3','#152c45'],['#74a9be','#142c46
 function stage(){if(!$('welcome').classList.contains('hidden'))return 7;const text=($('studentStatus')?.textContent||'')+' '+($('myPosition')?.textContent||'')+' '+($('phaseLabel')?.textContent||'');if(/finale|vak \d+\/16|race|spel afgelopen/i.test(text))return 6;const names=['brug','waterval','draak','portaal','kristal','schatkamer'];const body=($('questTitle')?.textContent||'')+' '+($('eventLabel')?.textContent||'');let idx=names.findIndex(x=>body.toLowerCase().includes(x));if(idx>=0)return idx;const chapter=text.match(/hoofdstuk\s*(\d+)/i);return chapter?Math.max(0,Math.min(5,+chapter[1]-1)):0}
 function setArt(){const st=stage();const file=files[st];const url=urls.get(file);const scene=url?'url("'+url+'")':fallback(st);document.querySelectorAll('.image-stage').forEach(el=>{el.style.setProperty('--fantasy-scene',scene);const selected=document.querySelector('.avatar-option.selected, .avatar-card.selected');const avatar=selected?Number(selected.dataset.avatar):0;const hero=urls.get(portraits[Number.isFinite(avatar)?avatar:0]);if(hero){el.dataset.avatar='1';el.style.setProperty('--fantasy-hero','url("'+hero+'")')}else delete el.dataset.avatar});const n=files.filter(x=>urls.has(x)).length;const p=portraits.filter(x=>urls.has(x)).length;$('artStatus').textContent=n===8&&p===13?'✓ Alle goedgekeurde beelden geladen':n+' van 8 decors · '+p+' van 13 helden';$('artUpload').classList.toggle('ready',n===8&&p===13)}
 function audioControl(){if(!audio)return;const teacher=!$('teacher').classList.contains('hidden');const solo=/alleen oefenen|SOLO/i.test($('connection')?.textContent||'');if(!teacher&&!solo){audio.pause();return}if(enabled&&audio.paused)audio.play().catch(()=>{});}
-async function loadFiles(ev){let n=0;for(const file of ev.target.files){if(!files.includes(file.name)&&!portraits.includes(file.name)&&!/^muziek spel\.mp3$/i.test(file.name))continue;add(file.name,file);await store(file.name,file);n++}setArt();if(urls.has('muziek spel.mp3')){if(audio)audio.pause();audio=new Audio(urls.get('muziek spel.mp3'));audio.loop=true;audio.volume=.65;audioControl()}$('artStatus').textContent=n+' bestanden blijvend opgeslagen in deze browser';}
+async function loadFiles(ev){
+ let n=0;
+ for(const file of ev.target.files){
+  if(file.name.toLowerCase().endsWith('.zip') && window.JSZip){
+   const archive=await window.JSZip.loadAsync(file);
+   for(const path of Object.keys(archive.files)){
+    const entry=archive.files[path];if(entry.dir)continue;
+    const name=path.split('/').pop();
+    if(!files.includes(name)&&!portraits.includes(name)&&name!=='muziek spel.mp3')continue;
+    const blob=await entry.async('blob');
+    add(name,blob);await store(name,blob);n++;
+   }
+  }else if(files.includes(file.name)||portraits.includes(file.name)||file.name==='muziek spel.mp3'){
+   add(file.name,file);await store(file.name,file);n++;
+  }
+ }
+ setArt();
+ if(urls.has('muziek spel.mp3')){if(audio)audio.pause();audio=new Audio(urls.get('muziek spel.mp3'));audio.loop=true;audio.volume=.65;audioControl()}
+ $('artStatus').textContent=n+' bestanden opgeslagen. Volgende keer automatisch geladen.';
+}
 function start(){const input=$('artFiles');if(input)input.addEventListener('change',loadFiles);const bar=$('artUpload');const b=document.createElement('button');b.textContent='♫ Muziek aan/uit';b.onclick=()=>{enabled=!enabled;audioControl();b.textContent=enabled?'♫ Muziek uit':'♫ Muziek aan'};bar.appendChild(b);restore().then(()=>{setArt();if(urls.has('muziek spel.mp3')){audio=new Audio(urls.get('muziek spel.mp3'));audio.loop=true;audio.volume=.65}}).catch(e=>{$('artStatus').textContent='Beeldenopslag niet beschikbaar: '+e.message});setInterval(()=>{const sig=stage()+'|'+$('studentStatus')?.textContent+'|'+$('phaseLabel')?.textContent;if(sig!==lastSignature){lastSignature=sig;setArt()}audioControl()},1400)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
