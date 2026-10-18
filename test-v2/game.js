@@ -131,7 +131,7 @@ const routes = [
 
 // Zes verhaalhoofdstukken. Elke route volgt dezelfde avonturen in een andere volgorde.
 const adventureStages=[
- {name:'🌉 De breukbrug van de machten',intro:'De stenen brug brokkelt af boven een bodemloze kloof. Herstel de machtenspreuk om veilig over te steken!',fail:'💥 FOUT! De brug breekt en je held stort in het ravijn. Je begint de oversteek opnieuw vanaf het begin.',success:'✨ De brug licht op. Je bereikt veilig de overkant!'},
+ {name:'🌉 De wankele brug der machten',intro:'De stenen brug brokkelt af boven een bodemloze kloof. Herstel de machtenspreuk om veilig over te steken!',fail:'💥 FOUT! De brug breekt en je held stort in het ravijn. Je begint de oversteek opnieuw vanaf het begin.',success:'✨ De brug licht op. Je bereikt veilig de overkant!'},
  {name:'🌊 De waterval van vergeten machten',intro:'Achter het donderende water ligt een geheime doorgang. Ontcijfer de spreuk om de waterval te splijten.',fail:'🌊 De waterval sleurt je terug naar de oever. Herstel de spreuk!',success:'💧 Het water wijkt uiteen en onthult een verborgen trap!'},
  {name:'🔥 De drakenproef van de exponenten',intro:'De exponentendraak bewaakt de doorgang. Pas de machtregels juist toe om het beschermschild tegen zijn vuur te activeren.',fail:'🔥 Het schild breekt en de vlammen dwingen je achteruit!',success:'🛡️ Een gouden schild dooft de drakenvlammen!'},
  {name:'🌀 Het portaal van de oneindigheid',intro:'Een draaiende magische poort verspert je weg. Alleen de juiste macht opent de doorgang.',fail:'🌀 Het portaal slingert je terug naar het begin van de poort!',success:'✨ Het portaal opent en je stapt een nieuwe wereld binnen!'},
