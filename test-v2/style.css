@@ -148,3 +148,7 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 .avatarcard .fantasy-3d-portrait{display:block;width:100%;max-width:174px;height:174px;object-fit:cover;object-position:center;border-radius:8px;box-shadow:0 8px 18px #0009}
 .avatarcard .avatar-name{font-size:12px;font-weight:700;color:#f4e3bd;text-align:center;line-height:1.25}
 .avatarcard:disabled{filter:grayscale(.85);opacity:.38}
+
+.fantasy-avatar-loading{width:100%;height:174px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border-radius:8px;background:radial-gradient(ellipse at 50% 65%,#355269,#0b1728 70%);color:#dfd2b0}
+.fantasy-avatar-loading-icon{font-size:58px;line-height:1;color:#e6c17b;text-shadow:0 0 20px #ffc66a80}
+.fantasy-avatar-loading small{font-size:11px;color:#d8d2c4}
