@@ -146,30 +146,7 @@ const finalQs=[{"q":"(2a)^2","a":"4a^2","set":16},{"q":"(4c)^3","a":"64c^3","set
 function avatarFace(n){
  if(!Number.isInteger(n))return '<span class="avatar-pending">✧</span>';
  if(fantasyPortraits?.[n])return '<img class="fantasy-3d-portrait" src="'+fantasyPortraits[n]+'" alt="" loading="lazy">';
- const colors=['#2864b9','#398456','#e7c995','#c75537','#2e9ccc','#7650b7','#c79843','#ad376d'];
- const hair=['#513324','#352a1f','#f5e6b8','#a64225','#1b6c83','#3a263e','#b78235','#8d244f'];
- const skin=['#efbc95','#c88c64','#f3c7a7','#d39a72','#e3b18e','#b97c58','#e7b78e','#edb09b'];
- const mark=avatars.map(a=>a[1]);
- const c=colors[n%colors.length],h=hair[n%hair.length],face=skin[n%skin.length],uid='avatar'+n;
- return '<span class="fantasy-avatar" aria-hidden="true"><svg viewBox="0 0 180 240" xmlns="http://www.w3.org/2000/svg" role="img">'+
- '<defs><linearGradient id="'+uid+'robe" x1="0" x2="1" y1="0" y2="1"><stop stop-color="'+c+'"/><stop offset="1" stop-color="#162336"/></linearGradient>'+
- '<radialGradient id="'+uid+'glow"><stop stop-color="'+c+'" stop-opacity=".6"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></radialGradient></defs>'+
- '<ellipse cx="90" cy="128" rx="80" ry="100" fill="url(#'+uid+'glow)"/>'+
- '<path d="M47 147 Q19 168 13 225 L167 225 Q159 170 130 145Z" fill="url(#'+uid+'robe)" stroke="#d7b66c" stroke-width="2"/>'+
- '<path d="M57 149 Q36 177 45 227 L137 227 Q142 180 121 148Z" fill="'+c+'" stroke="#d8bc82" stroke-width="2"/>'+
- '<path d="M65 154 L91 210 L115 154" fill="#172e42" opacity=".75"/>'+
- '<path d="M58 165 L46 202 M123 165 L135 202" stroke="#e5c17a" stroke-width="3" opacity=".8"/>'+
- '<rect x="52" y="185" width="78" height="9" rx="3" fill="#51372b"/><rect x="83" y="183" width="16" height="13" rx="2" fill="#e8c780"/>'+
- '<path d="M68 100 Q58 63 90 54 Q123 62 112 106 L111 130 Q105 147 90 149 Q73 147 68 129Z" fill="'+face+'"/>'+
- '<path d="M64 104 Q47 65 73 49 Q100 31 122 57 Q134 76 117 109 L115 86 Q103 79 99 66 Q86 84 68 84Z" fill="'+h+'" stroke="#281f29" stroke-width="2"/>'+
- '<path d="M67 83 Q75 53 98 58 Q122 60 122 82" fill="none" stroke="'+h+'" stroke-width="13" stroke-linecap="round"/>'+
- '<ellipse cx="78" cy="110" rx="4" ry="5" fill="#263345"/><ellipse cx="102" cy="110" rx="4" ry="5" fill="#263345"/>'+
- '<path d="M82 130 Q91 137 100 130" fill="none" stroke="#a45d54" stroke-width="2.5" stroke-linecap="round"/>'+
- '<path d="M62 146 Q40 151 34 179 L49 184 L73 160 M118 160 L139 184 L153 178 Q145 151 118 146" fill="'+c+'" stroke="#ddbd7d" stroke-width="3"/>'+
- '<circle cx="91" cy="168" r="17" fill="#182a41" stroke="#e5c37e" stroke-width="3"/>'+
- '<text x="91" y="176" text-anchor="middle" font-size="'+(n===2?19:26)+'" font-weight="bold" fill="#ffe9a6" font-family="Georgia,serif">'+mark[n%mark.length]+'</text>'+
- (n===0||n===1||n===4?'<path d="M25 225 L31 85" stroke="#a7834d" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="76" r="16" fill="'+c+'" stroke="#e5c27a" stroke-width="4"/>':n===2||n===5?'<path d="M21 183 L58 177 L65 208 L27 215Z" fill="#664832" stroke="#e6c07b" stroke-width="3"/>':n===3?'<rect x="16" y="173" width="31" height="31" rx="5" fill="#ff704b" stroke="#e5b96c" stroke-width="3"/>':'<circle cx="28" cy="185" r="15" fill="none" stroke="#ffe1a2" stroke-width="5"/>')+
- '</svg></span>';
+ return '<span class="fantasy-avatar-loading" role="img" aria-label="3D-figuur wordt geladen"><span class="fantasy-avatar-loading-icon">✦</span><small>3D-figuur laden…</small></span>';
 }
 function norm(v){return String(v).replace(/\s/g,'').replace(/[·×*]/g,'').replace(/−/g,'-').replace(/[{}]/g,'').replace(/:/g,'/').replace(/\^\(([^()]+)\)/g,'^$1');}
 function hash(v){let x=2166136261;for(const ch of norm(v)){x^=ch.charCodeAt(0);x=Math.imul(x,16777619);}return x>>>0;}
