@@ -1085,7 +1085,7 @@ function drawStudentCamera(time){
 }
 
 let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0,worldError='';
-import('./world3d.js?v=sidecamera20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>{worldError='De 3D-wereld kon niet starten. Controleer of WebGL beschikbaar is.';console.warn(worldError,error);const loading=$('previewLoading');if(loading){loading.textContent=worldError;loading.classList.add('world-error');}for(const frame of document.querySelectorAll('.worldframe,.adventure-view')){const warning=document.createElement('div');warning.className='world-warning';warning.textContent=worldError;frame.appendChild(warning);}currentSignature='';if(state)render();});
+import('./world3d.js?v=visibleavatar20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>{worldError='De 3D-wereld kon niet starten. Controleer of WebGL beschikbaar is.';console.warn(worldError,error);const loading=$('previewLoading');if(loading){loading.textContent=worldError;loading.classList.add('world-error');}for(const frame of document.querySelectorAll('.worldframe,.adventure-view')){const warning=document.createElement('div');warning.className='world-warning';warning.textContent=worldError;frame.appendChild(warning);}currentSignature='';if(state)render();});
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
