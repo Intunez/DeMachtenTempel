@@ -132,3 +132,12 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 .vault-path-marker{font-size:26px;color:#fff8dc;text-shadow:0 0 12px var(--teamcolor),0 0 4px #000;transition:left .7s ease}
 .vault-race-footer{display:flex;justify-content:space-between;margin:16px 8px 0;color:#e3c991;font-size:12px;letter-spacing:.08em}
 @media(max-width:600px){.vault-race{padding:12px}.vault-lane{padding:9px}.vault-lanes{max-height:55vh}.vault-lane-info .vault-avatar{display:none}}
+
+/* Finale: lange algebraïsche antwoorden blijven leesbaar, nooit overlappen */
+#student .quest .finale-choices{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:12px;width:100%;min-width:0}
+#student .quest .finale-choice{box-sizing:border-box;display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;justify-items:center;min-width:0;width:100%;min-height:82px;padding:13px 20px;gap:12px;overflow:hidden;text-align:center}
+#student .quest .finale-choice .finale-choice-letter{position:static;transform:none;grid-column:1;width:36px;height:36px}
+#student .quest .finale-choice .math-exercise{grid-column:2;display:block;max-width:100%;min-width:0;width:100%;font-size:clamp(25px,3.2vw,43px)!important;line-height:1.4!important;white-space:normal!important;overflow-wrap:anywhere;text-align:center}
+#student .quest .finale-choice .math-exercise sup{font-size:.57em;line-height:0}
+#student .quest #feedback{font-size:clamp(14px,1.6vw,18px);line-height:1.5;overflow-wrap:anywhere;max-width:100%;margin:12px 0}
+@media(max-width:600px){#student .quest .finale-choice{padding:12px 9px;grid-template-columns:32px minmax(0,1fr)}#student .quest .finale-choice .math-exercise{font-size:clamp(21px,6vw,30px)!important}}
