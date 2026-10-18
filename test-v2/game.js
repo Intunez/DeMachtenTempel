@@ -1117,7 +1117,7 @@ function drawStudentCamera(time){
 }
 
 let draw3D=null;
-import('./world3d.js?v=ravinerestart20261018').then(module=>{draw3D=module.draw3D;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
+import('./world3d.js?v=ravinevisible20261018').then(module=>{draw3D=module.draw3D;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
