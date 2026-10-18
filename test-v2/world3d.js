@@ -597,7 +597,7 @@ export function draw3D(canvas,state,view,teamId,time){
    root.userData.planks.forEach((plank,i)=>{plank.rotation.z=fail?Math.min(1.2,p*2.0)*(i%2?1:-1):Math.sin(time*.002+i)*.025;plank.position.y=fail?-.2-p*9:.16+Math.sin(time*.001+i)*.045;});
   }
   if(stage===1&&root.userData.falls){
-   root.userData.falls.forEach((fall,i)=>{fall.material.opacity=.58+.14*Math.sin(time*.005+i);fall.position.z=(i?1:-1)*(1.2+.12*Math.sin(time*.002));});
+   root.userData.falls.forEach((fall,i)=>{fall.material.opacity=.58+.14*Math.sin(time*.005+i);fall.position.z=(i?1:-1)*(1.2+.12*Math.sin(time*.002)+(fail?Math.sin(p*Math.PI)*1.5:0));});
   }
   if(stage===2){
    const fire=root.userData.flame,shield=root.userData.shield;
@@ -605,9 +605,9 @@ export function draw3D(canvas,state,view,teamId,time){
    fire.material.opacity=.55+.3*Math.sin(time*.009)**2;
    shield.visible=!fail;shield.scale.setScalar(1+.07*Math.sin(time*.006));
   }
-  if(stage===3&&root.userData.ring)root.userData.ring.rotation.x=time*.0005;
-  if(stage===4&&root.userData.crystals)root.userData.crystals.forEach((c,i)=>{c.rotation.y=time*.0006+i;c.position.y=.5+(i%3)*.5+.15*Math.sin(time*.003+i);});
-  if(stage===5&&root.userData.door)root.userData.door.rotation.y=.07*Math.sin(time*.001);
+  if(stage===3&&root.userData.ring){root.userData.ring.rotation.x=time*.0005+(fail?p*9:0);root.userData.portal.scale.setScalar(fail?Math.max(.15,1-p):1);}
+  if(stage===4&&root.userData.crystals)root.userData.crystals.forEach((c,i)=>{c.rotation.y=time*.0006+i+(fail?p*7:0);c.position.y=.5+(i%3)*.5+.15*Math.sin(time*.003+i)-(fail?p*5:0);});
+  if(stage===5&&root.userData.door)root.userData.door.rotation.y=fail?Math.sin(p*Math.PI)*-.8:.07*Math.sin(time*.001);
  }
  const delta=Math.min(soldierClock.getDelta(),.05);for(const mixer of soldierMixers.values())mixer.update(delta);renderer.render(scene,camera);frame++;const loading=document.getElementById('previewLoading');if(loading&&view==='welcome')loading.style.display='none';return true;
  }catch(err){if(frame<2)console.warn('3D view unavailable',err);return false;}
