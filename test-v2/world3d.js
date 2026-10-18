@@ -193,7 +193,15 @@ function build(){
    mesh.castShadow=true;mesh.receiveShadow=true;bridge.add(mesh);return mesh;
   };
   // Black fissure with steep jagged walls descending well below the island.
-  make(new THREE.PlaneGeometry(8.7,9.4),abyssBlack,22.4,3.20,0).rotation.x=-Math.PI/2;
+  // Leave the top OPEN: a flat black plane used to hide the depth of the ravine.
+  const voidFloor=make(new THREE.PlaneGeometry(8.7,9.4),abyssBlack,22.4,-18.0,0);voidFloor.rotation.x=-Math.PI/2;
+  for(const edge of [-1,1]){
+   const lip=make(new THREE.BoxGeometry(9.4,.7,.75),abyssRock,22.4,2.85,edge*4.5);
+   for(let depth=0;depth<5;depth++){
+    const ridge=make(new THREE.BoxGeometry(9.1,.5,.85),abyssRock,22.4,1-depth*3.4,edge*(4.4-depth*.22));
+    ridge.rotation.x=edge*.11;
+   }
+  }
   for(const side of [-1,1]){
    const wall=make(new THREE.BoxGeometry(8.7,16,1.05),abyssRock,22.4,-5.0,side*4.35);
    for(let j=0;j<10;j++){
@@ -223,7 +231,7 @@ function build(){
    make(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),44,.045,7,false),ropeMat,0,0,0);
   }
   // Blue depth haze makes the gulf legible from the student's camera.
-  const haze=make(new THREE.PlaneGeometry(7.8,8.0),new THREE.MeshBasicMaterial({color:0x28617b,transparent:true,opacity:.23,depthWrite:false,side:THREE.DoubleSide}),22.4,-1.8,0);
+  const haze=make(new THREE.PlaneGeometry(7.8,8.0),new THREE.MeshBasicMaterial({color:0x28617b,transparent:true,opacity:.12,depthWrite:false,side:THREE.DoubleSide}),22.4,-12.0,0);
   haze.rotation.x=-Math.PI/2;
  }
  world.userData.ravineGroups=ravineGroups;
@@ -431,7 +439,7 @@ const gltfLoader=new GLTFLoader();
 const assetBase='https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/';
 gltfLoader.loadAsync(assetBase+'Lantern/glTF-Binary/Lantern.glb').then(gltf=>{
  [[9,4,10],[-9,4,10],[10,4,-9],[-10,4,-9],[0,4,28],[0,4,-28]].forEach(([x,y,z])=>{
-  const model=gltf.scene.clone(true);model.position.set(x,y,z);model.scale.setScalar(2.1);
+  const model=gltf.scene.clone(true);model.position.set(x,y,z);model.scale.setScalar(.42);
   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
   world.add(model);
  });
@@ -584,6 +592,31 @@ function nameLabel(name){
 }
 
 function avatar(id,index){let g=avatars.get(id);if(g)return g;g=new THREE.Group();const fallback=new THREE.Group();character(fallback,index);g.add(fallback);g.userData.fallback=fallback;g.userData.avatarIndex=index;g.userData.label=nameLabel('Team');g.add(g.userData.label);scene.add(g);avatars.set(id,g);installDetailedCharacter(g,index,id);return g;}
+// Render the actual textured 3D character models as selectable portraits.
+// No static cartoon SVGs once the GLB has loaded.
+let portraitCache=null;
+export function getFantasyPortraits(){
+ if(portraitCache)return portraitCache;
+ if(!soldierAsset)return null;
+ const portraitScene=new THREE.Scene();portraitScene.background=new THREE.Color(0x15273a);
+ portraitScene.add(new THREE.HemisphereLight(0xeaf1ff,0x343d55,2.2));
+ const light=new THREE.DirectionalLight(0xffdcb5,3.8);light.position.set(-3,7,8);portraitScene.add(light);
+ const cam=new THREE.PerspectiveCamera(35,192/240,.1,100);cam.position.set(3.4,3.5,8.3);cam.lookAt(0,1.7,0);
+ const portraitRenderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'low-power'});
+ portraitRenderer.setPixelRatio(1);portraitRenderer.setSize(192,240,false);
+ portraitRenderer.outputColorSpace=THREE.SRGBColorSpace;
+ const portraits=[];
+ for(let i=0;i<30;i++){
+  const figure=new THREE.Group();portraitScene.add(figure);
+  installDetailedCharacter(figure,i,'portrait-'+i);
+  portraitRenderer.render(portraitScene,cam);
+  portraits.push(portraitRenderer.domElement.toDataURL('image/png'));
+  portraitScene.remove(figure);
+  soldierMixers.delete('portrait-'+i);
+ }
+ portraitRenderer.dispose();portraitRenderer.forceContextLoss();
+ portraitCache=portraits;return portraits;
+}
 const lerp=(a,b,t)=>a.clone().lerp(b,Math.max(0,Math.min(1,t)));
 function position(team,phase){const path=routePoints[team.route%8]||routePoints[0];
  if(phase==='final'||phase==='ended'){const lane=((team.route||0)%30-14.5)*.42;const pos=Math.max(1,Math.min(16,team.finalPos||1));return new THREE.Vector3(lane,3.45,27-(pos-1)*1.22);}
