@@ -227,3 +227,18 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 .challenge-area summary{cursor:pointer;color:#ffda92;font-weight:700;font-size:13px;}
 .world-warning{position:absolute;top:12px;left:12px;right:12px;z-index:7;padding:9px 12px;border:1px solid #c49b5e;border-radius:8px;background:#14202dec;color:#f8dfb5;font-size:12px;text-align:center;}
 .worldframe .world-warning{top:50px;}
+
+/* Automatisch wisselend leerkrachtenoverzicht */
+#teacherCycleBar{position:absolute;left:12px;top:60px;z-index:7;display:flex;align-items:center;gap:10px;background:#0b1d28e8;padding:6px 10px;border:1px solid #d3ad60;border-radius:12px;color:#f8d99c;font-size:12px}
+#teacherCycleBar button{font-size:12px;padding:7px 10px}
+#teacherAnswersPanel{position:absolute;inset:108px 14px 14px;z-index:6;overflow:auto;background:#071b26f2;border:1px solid #d3ad60;border-radius:16px;padding:18px;color:#f5e8c8}
+#teacherAnswersPanel[hidden]{display:none!important}
+#teacherAnswersPanel h3{margin:0 0 12px;font-size:17px}
+.teacher-answer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:9px}
+.teacher-answer-team{border:1px solid #876f43;background:#122a36;padding:10px;border-radius:10px;min-height:105px;display:flex;flex-direction:column;gap:5px}
+.teacher-answer-team small{font-size:11px;color:#d6d2c5}
+.teacher-answer-draft{font-size:12px;color:#ffdb85;min-height:24px;overflow-wrap:anywhere}
+#teacherAnswersPanel.teacher-answer-compact{inset:auto 12px 12px;max-height:37%;padding:12px}
+#teacherAnswersPanel.teacher-answer-compact .teacher-answer-grid{grid-template-columns:repeat(auto-fit,minmax(135px,1fr))}
+#teacherAnswersPanel.teacher-answer-compact .teacher-answer-team{min-height:65px}
+@media(max-width:800px){#teacherCycleBar{top:75px;left:5px}#teacherAnswersPanel{inset:120px 6px 6px}.teacher-answer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
