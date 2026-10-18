@@ -129,6 +129,16 @@ const routes = [
  ['entry','a','i','j','d','e','vault']
 ];
 
+// Zes verhaalhoofdstukken. Elke route volgt dezelfde avonturen in een andere volgorde.
+const adventureStages=[
+ {name:'🌉 De oversteek van het ravijn',intro:'De stenen brug brokkelt af boven een bodemloze kloof. Herstel de machtenspreuk om veilig over te steken!',fail:'💥 De brug stort in! Je held valt in het ravijn, maar wordt door een magisch vangnet gered. Probeer opnieuw.',success:'✨ De brug licht op. Je bereikt veilig de overkant!'},
+ {name:'🌊 De waterval van vergeten machten',intro:'Achter het donderende water ligt een geheime doorgang. Ontcijfer de spreuk om de waterval te splijten.',fail:'🌊 De waterval sleurt je terug naar de oever. Herstel de spreuk!',success:'💧 Het water wijkt uiteen en onthult een verborgen trap!'},
+ {name:'🔥 De vuurproef van de drakenpoort',intro:'Een stenen draak blaast vuur over het pad. De juiste formule activeert het beschermschild.',fail:'🔥 Het schild breekt en de vlammen dwingen je achteruit!',success:'🛡️ Een gouden schild dooft de drakenvlammen!'},
+ {name:'🌀 Het portaal van de oneindigheid',intro:'Een draaiende magische poort verspert je weg. Alleen de juiste macht opent de doorgang.',fail:'🌀 Het portaal slingert je terug naar het begin van de poort!',success:'✨ Het portaal opent en je stapt een nieuwe wereld binnen!'},
+ {name:'🪨 De instortende kristalgrot',intro:'De grot trilt en kristallen vallen uit het plafond. Ontgrendel de juiste formule voordat het pad instort.',fail:'🪨 Een rotsblok verspert je weg. De kristallen herstellen zich voor een nieuwe poging.',success:'💎 De kristallen vormen een veilige doorgang!'},
+ {name:'🏰 De poort van de schatkamer',intro:'De laatste wachters bewaken de tempel. Ontcijfer de spreuk en open de gouden poort!',fail:'⚡ De tempelwachters sluiten de poort. Probeer de formule opnieuw.',success:'🏆 De gouden poort zwaait open!'}
+];
+function adventureStage(t){return adventureStages[Math.min(5,Math.max(0,t.step||0))];}
 const avatars=[["Vermenigvuldiging","×"],["Wortel","√"],["Verschil","−"],["Macht","ⁿ"],["Onbekende","x"],["Oneindigheid","∞"],["Nul","0"],["Verandering","Δ"]];
 const questions=[{"t":"De productspreuk","q":"Zet de woordgroepen in de juiste volgorde.","tokens":["elke factor","tot die macht.","Om een product","verheffen we","tot een macht te verheffen,"],"answer":[2,4,3,0,1]},{"t":"De quotiëntspreuk","q":"Zet de woordgroepen in de juiste volgorde.","tokens":["het deeltal en de deler","tot die macht.","Om een quotiënt","verheffen we","tot een macht te verheffen,"],"answer":[2,4,3,0,1]},{"t":"Het productzegel","q":"Zet de symbolen in de juiste volgorde.","tokens":["bⁿ","=","·","(a · b)ⁿ","aⁿ"],"answer":[3,1,4,2,0]},{"t":"Het quotiëntzegel","q":"Zet de symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=",":","(a : b)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De productpoort","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a : b)ⁿ = aⁿ : bⁿ","(a · b)ⁿ = aⁿ · bⁿ"],"answer":[1],"fullRule":"Om een product tot een macht te verheffen, verheffen we elke factor tot die macht."},{"t":"De quotiëntpoort","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a : b)ⁿ = aⁿ : bⁿ","(a · b)ⁿ = aⁿ · bⁿ"],"answer":[0],"fullRule":"Om een quotiënt tot een macht te verheffen, verheffen we het deeltal en de deler tot die macht."},{"t":"De x-y-inscriptie","q":"Zet de symbolen in de juiste volgorde.","tokens":["yⁿ","=","·","(x · y)ⁿ","xⁿ"],"answer":[3,1,4,2,0]},{"t":"De x-y-breuk","q":"Zet de symbolen in de juiste volgorde.","tokens":["xⁿ","yⁿ","=",":","(x : y)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De gouden spreuk","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a · b)ⁿ = aⁿ · bⁿ","(a : b)ⁿ = aⁿ : bⁿ"],"answer":[0],"fullRule":"Om een product tot een macht te verheffen, verheffen we elke factor tot die macht."},{"t":"De blauwe spreuk","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a · b)ⁿ = aⁿ · bⁿ","(a : b)ⁿ = aⁿ : bⁿ"],"answer":[1],"fullRule":"Om een quotiënt tot een macht te verheffen, verheffen we het deeltal en de deler tot die macht."},{"t":"De drie factoren","q":"Zet de symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=","cⁿ","·","(a · b · c)ⁿ","·"],"answer":[5,2,0,4,1,6,3]},{"t":"De laatste inscriptie","q":"Zet de symbolen in de juiste volgorde.","tokens":["(p : q)ᵐ","pᵐ","qᵐ","=",":"],"answer":[0,3,1,4,2]}];
 const duelQs=questions.slice(0,10);
@@ -687,9 +697,9 @@ async function handleRequest(r){
   if(selected.every((v,i)=>v===q.answer[i])){
    t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
    if(t.step===routes[t.route].length-1){t.finished=true;if(room==='SOLO'){t.finished=false;t.step=0;t.route=(t.route+1)%8;flash('Nieuwe oefenronde!');}}
-   flash(t.name+' opent een doorgang!');templeAudio.cue('correct');
+   flash(adventureStages[Math.max(0,t.step-1)]?.success||'Doorgang geopend!');templeAudio.cue('correct');
   }else{
-   t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback='❌ FOUT ANTWOORD! Probeer opnieuw.';
+   t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;
    flash('❌ Fout antwoord van '+t.name);templeAudio.cue('wrong');
   }
   t.progress=[];await writeState();return;
@@ -947,11 +957,11 @@ function renderStudent(){
  const t=state.teams?.[teamId];if(!t){$('myTeam').textContent='Team verwijderd';$('studentStatus').textContent='Dit team is door de leerkracht verwijderd.';$('questTitle').textContent='Aanmelding beëindigd';$('questText').textContent='Ga terug naar het startscherm en meld je opnieuw aan.';$('options').innerHTML='';$('numberBox').classList.add('hidden');return;}
  $('myTeam').textContent=t.name;
  $('myScore').textContent=t.score+' punten';
- $('myPosition').textContent=state.phase==='final'?'Vak '+t.finalPos+'/16':t.finished?'In de schatkamer':'Doorgang '+(t.step+1);
+ $('myPosition').textContent=state.phase==='final'?'Vak '+t.finalPos+'/16':t.finished?'In de schatkamer':adventureStage(t).name;
  const d=getActiveDuel(t),p=d?(d.progress?.[t.id]||[]):(t.progress||[]);
  const sig=[state.phase,t.solved,t.wrong,t.duel,t.pendingFrom,t.challengesStarted,t.avatar,t.finalPos,state.winner,p.join(','),Object.values(state.teams||{}).map(v=>[v.avatar,v.pendingFrom,v.duel].join('/')).join(',')].join(':');
  if(currentSignature===sig)return;const previousSignature=currentSignature;const previousWrong=Number(renderStudent.lastWrong??0);renderStudent.lastWrong=t.wrong||0;currentSignature=sig;
- $('feedback').textContent=t.wrong>previousWrong&&previousSignature&&state.phase==='playing'?'❌ FOUT ANTWOORD! Probeer opnieuw.':'';$('numberBox').classList.add('hidden');$('options').innerHTML='';
+ $('feedback').textContent=t.wrong>previousWrong&&previousSignature&&state.phase==='playing'?adventureStage(t).fail:'';$('numberBox').classList.add('hidden');$('options').innerHTML='';
  const title=$('questTitle'),txt=$('questText'),status=$('studentStatus');
  if(state.phase==='lobby'){status.textContent='Wachten op de leerkracht';title.textContent='Je team is aangemeld';txt.textContent='De avatarselectie start zodra alle teams er zijn.';return;}
  if(state.phase==='avatars'){
@@ -992,7 +1002,7 @@ function renderStudent(){
  }
  if(d){status.textContent='⚔ Duel';title.textContent='DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.q;tokenPuzzle(q,'duel',p);return;}
  if(t.finished){status.textContent='In de schatkamer';title.textContent='Wacht op de finale';txt.textContent='Jullie hebben '+t.score+' punten verzameld.';return;}
- status.textContent='+100 punten per juiste spreuk';const q=getQuestion(t);title.textContent=q.t;txt.textContent=q.fullRule||q.q;tokenPuzzle(q,'answer',p);
+ const stage=adventureStage(t);status.textContent='Hoofdstuk '+Math.min(6,(t.step||0)+1)+'/6 · +100 punten';const q=getQuestion(t);title.textContent=stage.name;txt.textContent=stage.intro+' '+(q.fullRule||q.q);tokenPuzzle(q,'answer',p);
 }
 function showNumber(kind) {
   $('numberBox').classList.remove('hidden');
