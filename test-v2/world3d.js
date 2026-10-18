@@ -305,6 +305,77 @@ function build(){
 
 build();
 
+// Visible, animated set pieces for EVERY mathematical adventure stage.
+// One set per route, aligned with each team's current checkpoint.
+const encounters=[];
+const encounterColors=[0x62dbff,0x45cfff,0xff7435,0x9b65ff,0x68f4ef,0xffd079];
+const encounterMaterials=encounterColors.map(c=>new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:1.2,transparent:true,opacity:.78,side:THREE.DoubleSide}));
+const stagePositions=[22.4,19.4,16.7,14.0,11.2,8.5];
+function encounterMesh(group,geo,material,x,y,z){
+ const mesh=new THREE.Mesh(geo,material);mesh.position.set(x,y,z);mesh.castShadow=true;group.add(mesh);return mesh;
+}
+for(let route=0;route<8;route++){
+ const theta=route*Math.PI/4;
+ const lane=new THREE.Group();lane.rotation.y=-theta;world.add(lane);
+ const stages=[];
+ for(let stage=0;stage<6;stage++){
+  const root=new THREE.Group();root.position.set(stagePositions[stage],3.3,0);lane.add(root);stages.push(root);
+  const magic=encounterMaterials[stage];
+  if(stage===0){
+   // Falling bridge planks are independently animated on wrong answers.
+   const planks=[];
+   for(let j=0;j<7;j++){
+    const plank=encounterMesh(root,new THREE.BoxGeometry(.46,.19,2.35),mat(0x6c4a32),j*.50-1.5,.16,0);
+    planks.push(plank);
+   }
+   root.userData.planks=planks;
+  }else if(stage===1){
+   // Cascading waterfall and a gate that parts to reveal a stairway.
+   const falls=[];
+   for(const side of [-1,1]){
+    const fall=encounterMesh(root,new THREE.PlaneGeometry(2.5,7.8),magic,0,2.2,side*1.2);
+    fall.rotation.y=Math.PI/2;falls.push(fall);
+   }
+   for(let j=0;j<5;j++)encounterMesh(root,new THREE.BoxGeometry(.65,.22,2.4),stone,-j*.65,-.05+j*.35,0);
+   root.userData.falls=falls;
+  }else if(stage===2){
+   // Dragon: wings, long neck, head, horns and an actual cone of fire.
+   const body=encounterMesh(root,new THREE.SphereGeometry(1.0,18,12),mat(0x552b32),-1,2.6,0);
+   body.scale.set(1.5,.8,.8);
+   const neck=encounterMesh(root,new THREE.CylinderGeometry(.36,.68,2.2,12),mat(0x743c3a),-.2,3.6,0);neck.rotation.z=-.48;
+   const head=encounterMesh(root,new THREE.ConeGeometry(.66,1.5,12),mat(0x8b4b41),.9,4.15,0);head.rotation.z=-Math.PI/2;
+   for(const side of [-1,1]){
+    const wing=encounterMesh(root,new THREE.ConeGeometry(1.7,3.6,3),mat(0x68303a,{side:THREE.DoubleSide}),-1.2,3.6,side*1.0);
+    wing.rotation.x=side*.6;wing.rotation.z=-.35;
+    encounterMesh(root,new THREE.ConeGeometry(.17,.8,8),gold,.9,4.65,side*.33).rotation.z=.45;
+   }
+   const flame=encounterMesh(root,new THREE.ConeGeometry(.75,4.0,18),new THREE.MeshBasicMaterial({color:0xff7927,transparent:true,opacity:.85,depthWrite:false}),3.1,4.0,0);
+   flame.rotation.z=Math.PI/2;root.userData.flame=flame;
+   const shield=encounterMesh(root,new THREE.SphereGeometry(2.1,32,20),new THREE.MeshStandardMaterial({color:0x78dfff,emissive:0x38baff,emissiveIntensity:1.3,transparent:true,opacity:.23,side:THREE.DoubleSide,depthWrite:false}),4.3,2.3,0);
+   root.userData.shield=shield;
+  }else if(stage===3){
+   const ring=encounterMesh(root,new THREE.TorusGeometry(2.3,.29,14,48),magic,0,2.3,0);
+   ring.rotation.y=Math.PI/2;root.userData.ring=ring;
+   const portal=encounterMesh(root,new THREE.CircleGeometry(2.05,48),new THREE.MeshBasicMaterial({color:0x895cff,transparent:true,opacity:.32,side:THREE.DoubleSide,depthWrite:false}),0,2.3,0);
+   portal.rotation.y=Math.PI/2;root.userData.portal=portal;
+  }else if(stage===4){
+   const crystals=[];
+   for(let j=0;j<12;j++){
+    const c=encounterMesh(root,new THREE.OctahedronGeometry(.45+(j%3)*.15,1),magic,(j%4-1.5)*1.0,.5+(j%3)*.5,(Math.floor(j/4)-1)*1.3);
+    c.rotation.z=j*.47;crystals.push(c);
+   }
+   root.userData.crystals=crystals;
+  }else{
+   for(const side of [-1,1])encounterMesh(root,new THREE.CylinderGeometry(.45,.6,6,12),stone,0,2.6,side*2.6);
+   encounterMesh(root,new THREE.BoxGeometry(1,1.0,6.4),gold,0,5.7,0);
+   const door=encounterMesh(root,new THREE.BoxGeometry(.35,4.5,4.3),mat(0x5c3f29,{metalness:.3}),0,2.4,0);
+   root.userData.door=door;
+   encounterMesh(root,new THREE.IcosahedronGeometry(.65,2),magic,.5,5.8,0);
+  }
+ }
+ encounters.push(stages);
+}
+
 function numberedTileLabel(n){
  const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
  x.fillStyle='rgba(12,24,30,.84)';x.fillRect(0,0,128,128);
@@ -515,6 +586,29 @@ export function draw3D(canvas,state,view,teamId,time){
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
  if(world.userData.falls)for(let i=0;i<world.userData.falls.length;i++){const f=world.userData.falls[i];f.material.opacity=.63+.12*Math.sin(time*.002+i);}
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=3.7+Math.sin(time*.0015)*.25;}
+ for(const t of teams){
+  if(state?.phase!=='playing')continue;
+  const stage=Math.min(5,t.step||0),root=encounters[t.route%8]?.[stage];
+  if(!root)continue;
+  const wrongAge=time-(avatars.get(t.id)?.userData.fallStarted||-100000);
+  const fail=wrongAge>=0&&wrongAge<2200;
+  const p=fail?wrongAge/2200:0;
+  if(stage===0&&root.userData.planks){
+   root.userData.planks.forEach((plank,i)=>{plank.rotation.z=fail?Math.min(1.2,p*2.0)*(i%2?1:-1):Math.sin(time*.002+i)*.025;plank.position.y=fail?-.2-p*9:.16+Math.sin(time*.001+i)*.045;});
+  }
+  if(stage===1&&root.userData.falls){
+   root.userData.falls.forEach((fall,i)=>{fall.material.opacity=.58+.14*Math.sin(time*.005+i);fall.position.z=(i?1:-1)*(1.2+.12*Math.sin(time*.002));});
+  }
+  if(stage===2){
+   const fire=root.userData.flame,shield=root.userData.shield;
+   fire.scale.set(1,1+.16*Math.sin(time*.008),1);
+   fire.material.opacity=.55+.3*Math.sin(time*.009)**2;
+   shield.visible=!fail;shield.scale.setScalar(1+.07*Math.sin(time*.006));
+  }
+  if(stage===3&&root.userData.ring)root.userData.ring.rotation.x=time*.0005;
+  if(stage===4&&root.userData.crystals)root.userData.crystals.forEach((c,i)=>{c.rotation.y=time*.0006+i;c.position.y=.5+(i%3)*.5+.15*Math.sin(time*.003+i);});
+  if(stage===5&&root.userData.door)root.userData.door.rotation.y=.07*Math.sin(time*.001);
+ }
  const delta=Math.min(soldierClock.getDelta(),.05);for(const mixer of soldierMixers.values())mixer.update(delta);renderer.render(scene,camera);frame++;const loading=document.getElementById('previewLoading');if(loading&&view==='welcome')loading.style.display='none';return true;
  }catch(err){if(frame<2)console.warn('3D view unavailable',err);return false;}
 }
