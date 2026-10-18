@@ -660,7 +660,7 @@ async function handleRequest(r){
   if(!Array.isArray(selected)||selected.length!==q.answer.length||selected.some(i=>!Number.isInteger(i)||i<0||i>=q.tokens.length)||new Set(selected).size!==selected.length)return;
   if(selected.every((v,i)=>v===q.answer[i])){
    t.score+=100;t.solved++;t.step=Math.min(routes[t.route%8].length-1,t.step+1);
-   if(t.step===routes[t.route%8].length-1){t.finished=true;if(room==='SOLO'){state.phase='ended';state.winner=t.id;state.finish=Date.now();flash('🏆 Gefeliciteerd! Je hebt alle zes avonturen voltooid en de schatkamer geopend!');}}
+   if(t.step===routes[t.route%8].length-1){t.finished=true;if(room==='SOLO'){state.phase='final';state.finalStarted=Date.now();state.finalQuestion=0;t.finalPos=1;t.finalAnswers=0;t.duel='';t.pendingFrom='';flash('⚡ Je hebt de zes avonturen voltooid! Nu begint de finale: los de finaleopgaven op en bereik vak 16!');}}
    flash(adventureStages[Math.max(0,t.step-1)]?.success||'Doorgang geopend!');templeAudio.cue('correct');
   }else{
    t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;if(t.step===0)t.step=0;
@@ -730,7 +730,7 @@ async function handleRequest(r){
    t.finalPos=previous+1;
    t.finalAnswers=(t.finalAnswers||0)+1;
    if(t.finalPos!==previous+1)return;
-   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');templeAudio.cue('win');}
+   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';state.finish=Date.now();t.score+=300;flash(room==='SOLO'?'🏆 Gelukt! Je hebt de finale gewonnen en de schatkamer geopend!':'🏆 '+t.name+' wint!');templeAudio.cue('win');}
    else flash('⚡ '+t.name+' bereikt vak '+t.finalPos);
   }else{t.wrong++;t.finalPos=Math.max(1,t.finalPos-1);flash('Fout finaleantwoord: '+t.name+' gaat één vak terug naar '+t.finalPos);}
   await writeState();
@@ -940,7 +940,7 @@ function renderStudent(){
    avatars.slice(0,13).forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i);b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
   }return;
  }
- if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent=room==='SOLO'?'🏆 Avontuur voltooid!':'Spel afgelopen';title.textContent=room==='SOLO'?'🏆 GELUKT! DE SCHATKAMER IS OPEN!':w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent=room==='SOLO'?'Fantastisch! Je hebt alle zes avonturen succesvol afgelegd, de machtenspreuken opgelost en de schatkamer geopend. Je eindscore: '+t.score+' punten. Klik op Menu om opnieuw te spelen.':'Winnaar: '+(w?.name||'Onbekend');return;}
+ if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent=room==='SOLO'?'🏆 Avontuur voltooid!':'Spel afgelopen';title.textContent=room==='SOLO'?'🏆 GELUKT! DE SCHATKAMER IS OPEN!':w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent=room==='SOLO'?'Fantastisch! Je hebt de zes avonturen én de finale met de rekenoefeningen succesvol voltooid en de schatkamer geopend. Je eindscore: '+t.score+' punten. Klik op Menu om opnieuw te spelen.':'Winnaar: '+(w?.name||'Onbekend');return;}
  if(state.phase==='final'){
   status.textContent='⚡ Finale · vak '+t.finalPos+'/16';
   if(d){title.textContent='⚔ DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.fullRule||q.q;tokenPuzzle(q,'duel',p);return;}
