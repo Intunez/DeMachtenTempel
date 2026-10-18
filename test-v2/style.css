@@ -152,3 +152,17 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 .fantasy-avatar-loading{width:100%;height:174px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border-radius:8px;background:radial-gradient(ellipse at 50% 65%,#355269,#0b1728 70%);color:#dfd2b0}
 .fantasy-avatar-loading-icon{font-size:58px;line-height:1;color:#e6c17b;text-shadow:0 0 20px #ffc66a80}
 .fantasy-avatar-loading small{font-size:11px;color:#d8d2c4}
+
+/* The playable 3D world remains on screen while students solve challenges. */
+#student .adventure-view{position:sticky;top:12px;align-self:start;z-index:4}
+#student .quest{padding:clamp(12px,1.7vw,20px)}
+#student .questicon{display:none}
+#student .quest h3{font-size:clamp(19px,2vw,24px);margin:5px 0 9px}
+#student .quest p{font-size:clamp(14px,1.3vw,17px);line-height:1.4}
+#student .options{gap:8px;margin-top:12px}
+#student .options button{min-height:46px}
+@media(max-width:850px){
+ #student .adventure-view{position:sticky;top:0;width:100%;z-index:5;box-shadow:0 6px 25px #000c}
+ #student .adventure-view canvas{max-height:34vh;min-height:175px;object-fit:cover}
+ #student .adventure-caption{font-size:9px;padding:5px 7px}
+}
