@@ -521,6 +521,7 @@ const soldierClock=new THREE.Clock();
 const soldierLoader=new GLTFLoader();
 soldierLoader.load('https://threejs.org/examples/models/gltf/Soldier.glb',gltf=>{
  soldierAsset=gltf;
+ portraitCache=null;
  for(const [id,g] of avatars)installDetailedCharacter(g,g.userData.avatarIndex||0,id);
 },undefined,e=>console.warn('Gedetailleerd 3D-personagemodel niet beschikbaar; vereenvoudigde reservefiguren blijven zichtbaar.',e));
 function installDetailedCharacter(group,index,id){
@@ -608,7 +609,6 @@ function avatar(id,index){let g=avatars.get(id);if(g)return g;g=new THREE.Group(
 let portraitCache=null;
 export function getFantasyPortraits(){
  if(portraitCache)return portraitCache;
- if(!soldierAsset)return null;
  const portraitScene=new THREE.Scene();portraitScene.background=new THREE.Color(0x15273a);
  portraitScene.add(new THREE.HemisphereLight(0xeaf1ff,0x343d55,2.2));
  const light=new THREE.DirectionalLight(0xffdcb5,3.8);light.position.set(-3,7,8);portraitScene.add(light);
@@ -619,7 +619,8 @@ export function getFantasyPortraits(){
  const portraits=[];
  for(let i=0;i<30;i++){
   const figure=new THREE.Group();portraitScene.add(figure);
-  installDetailedCharacter(figure,i,'portrait-'+i);
+  if(soldierAsset){installDetailedCharacter(figure,i,'portrait-'+i);}
+  else {character(figure,i);}
   portraitRenderer.render(portraitScene,cam);
   portraits.push(portraitRenderer.domElement.toDataURL('image/png'));
   portraitScene.remove(figure);
