@@ -854,10 +854,14 @@ export function draw3D(canvas,state,view,teamId,time){
  if(view==='student'&&state?.teams?.[teamId]){
  const own=state.teams[teamId],target=position(own,state.phase),figure=avatars.get(teamId);
  const failing=time-(figure?.userData.fallStarted||-10000);
- const direction=finalCourse.visible?new THREE.Vector3(0,0,1):new THREE.Vector3(target.x,0,target.z).normalize();
- const desired=target.clone().addScaledVector(direction,8.2).add(new THREE.Vector3(3.8,5.5,0));
+ // Three-quarter SIDE camera: show the hero's profile and the route ahead,
+ // rather than looking over the hero's shoulder into nearby scenery.
+ const yaw=finalCourse.visible?Math.PI:(figure?.rotation.y??Math.atan2(-target.x,-target.z));
+ const side=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+ const desired=target.clone().addScaledVector(side,13.5).addScaledVector(forward,-2.8).add(new THREE.Vector3(0,7.8,0));
  camera.position.lerp(desired,.07);
- const aim=target.clone().add(new THREE.Vector3(0,1.5,0));
+ const aim=target.clone().addScaledVector(forward,3.2).add(new THREE.Vector3(0,1.9,0));
  if(failing>=0&&failing<2200&&figure?.userData.fallStage===0)aim.y=figure.position.y+1;
  camera.lookAt(aim);
  }else if(finalCourse.visible){
