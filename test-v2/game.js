@@ -883,7 +883,7 @@ function render(){
  if(!state)return;
  if(view==='teacher'){
   const teams=Object.values(state.teams||{}).sort((a,b)=>b.score-a.score);
-  $('teamCount').textContent=teams.length+' / 8';
+  $('teamCount').textContent=teams.length+' / 30';
   $('scoreboard').innerHTML=teams.map(t=>'<div class="teamrow">'+avatarFace(t.avatar)+'<div><b>'+escapeHtml(t.name)+'</b><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.duel?'⚔ Duel':t.solved+' opdrachten opgelost')+'</small></div><span class="pts">'+t.score+'</span><button type="button" class="remove-team" data-remove-team="'+escapeHtml(t.id)+'" title="Team verwijderen" aria-label="Verwijder team '+escapeHtml(t.name)+'">✕</button></div>').join('');
   $('scoreboard').querySelectorAll('[data-remove-team]').forEach(btn=>btn.addEventListener('click',()=>removeTeamFromTeacher(btn.dataset.removeTeam).catch(e=>alert('Verwijderen mislukt: '+e.message))));
   $('phaseLabel').textContent=({lobby:'Wachten op teams',avatars:'Avatarselectie',playing:'De tempel is geopend',final:'⚡ Finale',ended:'🏆 Spel afgelopen'})[state.phase];
@@ -1069,7 +1069,7 @@ function drawWorld(canvas,time){
  if(!state)return;
  const teams=Object.values(state.teams||{});
  for(const t of teams){
-  const route=scenicRoutes[t.route]||scenicRoutes[0];
+  const route=scenicRoutes[t.route%8]||scenicRoutes[0];
   let position;
   if(state.phase==='final'||state.phase==='ended'){
    const p=Math.min(1,(t.finalPos||0)/16);
