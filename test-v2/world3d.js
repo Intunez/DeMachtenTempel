@@ -90,7 +90,11 @@ function build(){
  for(let k=0;k<tp.count;k++){const x=tp.getX(k),y=tp.getY(k),z=tp.getZ(k),a=Math.atan2(z,x);
   const jag=.55*Math.sin(a*17)+.4*Math.sin(a*37+1)+.2*Math.cos(a*71);
   const radial=Math.hypot(x,z),r=(radial>20?1:0);
-  tp.setXYZ(k,x+(x/(radial||1))*jag*r,y+(y>0?.32*Math.sin(x*.42)*Math.cos(z*.35):0),z+(z/(radial||1))*jag*r);
+  const az=Math.atan2(z,x),slice=Math.round(az/(Math.PI/4));
+  const offset=Math.atan2(Math.sin(az-slice*Math.PI/4),Math.cos(az-slice*Math.PI/4));
+  const inRavine=radial>17.4&&radial<27.3&&Math.abs(offset)<.083;
+  const cut=inRavine?Math.min(1,(radial-17.4)/1.3,(27.3-radial)/1.3,(Math.abs(.083-offset))/.018,(Math.abs(.083+offset))/.018):0;
+  tp.setXYZ(k,x+(x/(radial||1))*jag*r,y+(y>0?.32*Math.sin(x*.42)*Math.cos(z*.35):0)-Math.max(0,cut)*24,z+(z/(radial||1))*jag*r);
  }
  terrainGeo.computeVertexNormals();groupMesh(terrainGeo,moss,0,-.5,0);
  for(let i=0;i<80;i++){const a=i*2.399963,r=24+rand(i+21)*7,x=Math.cos(a)*r,z=Math.sin(a)*r;
@@ -522,6 +526,38 @@ function installDetailedCharacter(group,index,id){
  const fallback=group.userData.fallback;
  if(fallback)fallback.visible=false;
  group.userData.highDetail=model;
+ // Thirty distinctive silhouettes: real 3D fantasy accessories attached to the skinned body.
+ const role=index%10;
+ const armorColor=new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL((index*.137)%1,.52,.34),metalness:.65,roughness:.34});
+ const metal=new THREE.MeshStandardMaterial({color:0xd4b77c,metalness:.83,roughness:.24});
+ const addGear=(geo,m,x,y,z)=>{const part=new THREE.Mesh(geo,m);part.position.set(x,y,z);part.castShadow=true;group.add(part);return part;};
+ if(role===0||role===5){
+  const helm=addGear(new THREE.ConeGeometry(.39,.95,9),armorColor,0,3.06,0);
+  helm.rotation.z=role===5?.18:0;
+ }else if(role===1||role===6){
+  const crown=addGear(new THREE.TorusGeometry(.34,.075,9,12),metal,0,2.95,0);crown.rotation.x=Math.PI/2;
+  for(let j=0;j<5;j++)addGear(new THREE.ConeGeometry(.09,.45,6),metal,Math.sin(j*Math.PI*2/5)*.30,3.14,Math.cos(j*Math.PI*2/5)*.30);
+ }else if(role===2||role===7){
+  for(const side of [-1,1]){
+   const horn=addGear(new THREE.ConeGeometry(.13,.95,9),metal,side*.29,3.12,-.04);horn.rotation.z=-side*.28;
+  }
+ }else if(role===3||role===8){
+  const hood=addGear(new THREE.SphereGeometry(.47,16,12,0,Math.PI*2,0,Math.PI*.57),armorColor,0,2.83,-.05);
+  hood.scale.set(1,1.08,1.03);
+ }else{
+  const halo=addGear(new THREE.TorusGeometry(.47,.045,10,36),metal,0,3.36,0);halo.rotation.x=Math.PI/2;
+ }
+ if(index%3===0){
+  const staff=addGear(new THREE.CylinderGeometry(.045,.06,3.25,10),metal,.78,1.45,.12);
+  addGear(new THREE.OctahedronGeometry(.22,1),new THREE.MeshStandardMaterial({color:accentColor,emissive:accentColor,emissiveIntensity:1.8}),.78,3.12,.12);
+ }else if(index%3===1){
+  const blade=addGear(new THREE.ConeGeometry(.11,1.35,4),metal,.74,1.28,.25);blade.rotation.z=-.23;
+  addGear(new THREE.BoxGeometry(.54,.09,.16),armorColor,.74,.70,.25);
+ }else{
+  const shieldGear=addGear(new THREE.IcosahedronGeometry(.47,1),armorColor,-.68,1.52,.27);
+  shieldGear.scale.set(.82,1.22,.35);
+  addGear(new THREE.OctahedronGeometry(.14,1),metal,-.68,1.52,.46);
+ }
  // Wearable fantasy details: glowing mathematical crest, belt, cape and head ornament.
  const accentColor=[0xffd88c,0x7fffd0,0xffe2ae,0xffa77d,0x7eeaff,0xc7a4ff,0xffdc7d,0xff98b8][index%8];
  const crest=new THREE.Sprite(mathBadge(index));crest.position.set(0,1.6,.32);crest.scale.set(.52,.52,1);group.add(crest);
