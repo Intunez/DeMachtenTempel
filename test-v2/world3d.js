@@ -366,6 +366,52 @@ function character(g,i){
  else if(i===3){add(new THREE.BoxGeometry(.39,.39,.39),mat(0xf76842,{emissive:0x8b260c,emissiveIntensity:.7}),-.88,1.49,.32);}
  else{add(new THREE.TorusGeometry(.27,.06,8,24),trim,-.85,1.48,.36);}
 }
+// Actual skinned, textured glTF character asset with animation.
+// The procedural figures are used only if the external model cannot load.
+let soldierAsset=null;
+const soldierMixers=new Map();
+const soldierClock=new THREE.Clock();
+const soldierLoader=new GLTFLoader();
+soldierLoader.load('https://threejs.org/examples/models/gltf/Soldier.glb',gltf=>{
+ soldierAsset=gltf;
+ for(const [id,g] of avatars)installDetailedCharacter(g,g.userData.avatarIndex||0,id);
+},undefined,e=>console.warn('Gedetailleerd 3D-personagemodel niet beschikbaar; vereenvoudigde reservefiguren blijven zichtbaar.',e));
+function installDetailedCharacter(group,index,id){
+ if(!soldierAsset||group.userData.highDetail)return;
+ const model=soldierAsset.scene.clone(true);
+ model.traverse(o=>{
+  if(!o.isMesh)return;
+  o.castShadow=true;o.receiveShadow=true;
+  // Clone materials: one team's color must not change another team's outfit.
+  if(o.material){
+   o.material=o.material.clone();
+   if(o.material.color){
+    const tint=new THREE.Color([0x9ec4ff,0x9edbb3,0xe5c99c,0xf2a48e,0x83d6f0,0xc7a7e8,0xe7cb85,0xe8a2ca][index%8]);
+    o.material.color.lerp(tint,.16);
+   }
+  }
+ });
+ // Sample Soldier is human-scale (roughly 1.8m); scale up for the island.
+ model.scale.setScalar(1.55);
+ model.position.set(0,.03,0);
+ group.add(model);
+ const fallback=group.userData.fallback;
+ if(fallback)fallback.visible=false;
+ group.userData.highDetail=model;
+ // Wearable fantasy details: glowing mathematical crest, belt, cape and head ornament.
+ const accentColor=[0xffd88c,0x7fffd0,0xffe2ae,0xffa77d,0x7eeaff,0xc7a4ff,0xffdc7d,0xff98b8][index%8];
+ const crest=new THREE.Sprite(mathBadge(index));crest.position.set(0,1.6,.32);crest.scale.set(.52,.52,1);group.add(crest);
+ const capeMat=new THREE.MeshStandardMaterial({color:costumeColors[index%8],roughness:.87,side:THREE.DoubleSide});
+ const cape=new THREE.Mesh(new THREE.PlaneGeometry(.92,1.65,4,8),capeMat);
+ cape.position.set(0,1.45,-.26);cape.rotation.x=-.16;group.add(cape);
+ const shoulder=new THREE.Mesh(new THREE.TorusGeometry(.46,.075,10,32),new THREE.MeshStandardMaterial({color:0xdab777,metalness:.7,roughness:.3}));
+ shoulder.position.set(0,2.15,0);shoulder.rotation.x=Math.PI/2;group.add(shoulder);
+ if(soldierAsset.animations?.length){
+  const mixer=new THREE.AnimationMixer(model);
+  const clip=soldierAsset.animations.find(c=>/idle/i.test(c.name))||soldierAsset.animations[0];
+  mixer.clipAction(clip).play();soldierMixers.set(id,mixer);
+ }
+}
 const avatars=new Map();
 function nameLabel(name){
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
@@ -376,7 +422,7 @@ function nameLabel(name){
  sprite.position.y=4.2;sprite.scale.set(5.6,1.05,1);return sprite;
 }
 
-function avatar(id,index){let g=avatars.get(id);if(g)return g;g=new THREE.Group();character(g,index);g.userData.label=nameLabel('Team');g.add(g.userData.label);scene.add(g);avatars.set(id,g);return g;}
+function avatar(id,index){let g=avatars.get(id);if(g)return g;g=new THREE.Group();const fallback=new THREE.Group();character(fallback,index);g.add(fallback);g.userData.fallback=fallback;g.userData.avatarIndex=index;g.userData.label=nameLabel('Team');g.add(g.userData.label);scene.add(g);avatars.set(id,g);installDetailedCharacter(g,index,id);return g;}
 const lerp=(a,b,t)=>a.clone().lerp(b,Math.max(0,Math.min(1,t)));
 function position(team,phase){const path=routePoints[team.route%8]||routePoints[0];
  if(phase==='final'||phase==='ended'){const lane=((team.route||0)%8-3.5)*.94;const pos=Math.max(1,Math.min(16,team.finalPos||1));return new THREE.Vector3(lane,3.45,27-(pos-1)*1.22);}
@@ -390,13 +436,13 @@ export function draw3D(canvas,state,view,teamId,time){
  renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();
  finalCourse.visible=state?.phase==='final'||state?.phase==='ended';
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
- for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);}
+ for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);soldierMixers.delete(id);}
  for(const t of teams){const g=avatar(t.id,Number.isInteger(t.avatar)?t.avatar:t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
  if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(7.5)).add(new THREE.Vector3(0,4.3,0));camera.position.lerp(desired,.055);camera.lookAt(target.x*.48,6.7,target.z*.48);}
  else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
  if(world.userData.falls)for(let i=0;i<world.userData.falls.length;i++){const f=world.userData.falls[i];f.material.opacity=.63+.12*Math.sin(time*.002+i);}
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=3.7+Math.sin(time*.0015)*.25;}
- renderer.render(scene,camera);frame++;const loading=document.getElementById('previewLoading');if(loading&&view==='welcome')loading.style.display='none';return true;
+ const delta=Math.min(soldierClock.getDelta(),.05);for(const mixer of soldierMixers.values())mixer.update(delta);renderer.render(scene,camera);frame++;const loading=document.getElementById('previewLoading');if(loading&&view==='welcome')loading.style.display='none';return true;
  }catch(err){if(frame<2)console.warn('3D view unavailable',err);return false;}
 }
