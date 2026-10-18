@@ -724,7 +724,8 @@ async function handleRequest(r){
   if(!Number.isInteger(t.finalPos)||t.finalPos<1||t.finalPos>16)return;
   // Oude of dubbel ingestuurde antwoorden mogen geen extra vak opleveren.
   if(!Number.isInteger(Number(r.atPosition))||Number(r.atPosition)!==t.finalPos)return;
-  if(Number(r.answer??r.choice)===finaleChoices(finaleVraag(t)).correct){
+  t.liveFinalChoice=null;
+   if(Number(r.answer??r.choice)===finaleChoices(finaleVraag(t)).correct){
    const previous=t.finalPos;
    t.finalPos=previous+1;
    t.finalAnswers=(t.finalAnswers||0)+1;
