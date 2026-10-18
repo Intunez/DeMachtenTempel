@@ -145,6 +145,7 @@ const duelQs=questions.slice(0,10);
 const finalQs=[{"q":"(2a)^2","a":"4a^2","set":16},{"q":"(4c)^3","a":"64c^3","set":16},{"q":"(-ab)^2","a":"a^2b^2","set":16},{"q":"(-3c)^2","a":"9c^2","set":16},{"q":"(-2c)^3","a":"-8c^3","set":16},{"q":"(-2ab)^2","a":"4a^2b^2","set":16},{"q":"(2ac)^3","a":"8a^3c^3","set":16},{"q":"(a^2b)^2","a":"a^4b^2","set":16},{"q":"(-ab)^3","a":"-a^3b^3","set":16},{"q":"(-1/4 ac)^2","a":"1/16a^2c^2","set":16},{"q":"(2a^2b)^2","a":"4a^4b^2","set":17},{"q":"(4ac^4)^2","a":"16a^2c^8","set":17},{"q":"(10xy^2z^3)^2","a":"100x^2y^4z^6","set":17},{"q":"(-4/5 a^3b^4)^2","a":"16/25a^6b^8","set":17},{"q":"(-3x^2y^4)^3","a":"-27x^6y^12","set":17},{"q":"(2/3)^2","a":"4/9","set":19},{"q":"(-1/2)^3","a":"-1/8","set":19},{"q":"(4/5)^2","a":"16/25","set":19},{"q":"(-1/10)^3","a":"-1/1000","set":19},{"q":"(3/5)^(-2)","a":"25/9","set":19},{"q":"(1/3)^(-2)","a":"9","set":19},{"q":"(-3/5)^(-2)","a":"25/9","set":19},{"q":"(-1/3)^2","a":"1/9","set":19},{"q":"(4/5)^(-2)","a":"25/16","set":19},{"q":"(1/10)^(-3)","a":"1000","set":19},{"q":"(a/b)^2","a":"a^2/b^2","set":20},{"q":"(-x/2)^3","a":"-x^3/8","set":20},{"q":"(3/z^2)^2","a":"9/z^4","set":20},{"q":"(1/a)^4","a":"1/a^4","set":20},{"q":"(-c/2)^(-2)","a":"4/c^2","set":20},{"q":"(-x/y)^2","a":"x^2/y^2","set":20},{"q":"(a^2/b^3)^(-2)","a":"b^6/a^4","set":20},{"q":"(-3/y^3)^3","a":"-27/y^9","set":20},{"q":"(-1/ab)^2","a":"1/a^2b^2","set":20},{"q":"(x^2/y)^(-1)","a":"y/x^2","set":20},{"q":"(a/b)^m","a":"a^m/b^m","set":21},{"q":"(x/y)^(p+1)","a":"x^(p+1)/y^(p+1)","set":21},{"q":"(x/2)^(2+a)","a":"x^(2+a)/2^(2+a)","set":21},{"q":"(-3/2)^(2a)","a":"3^(2a)/2^(2a)","set":21},{"q":"(x^2/y)^(-m)","a":"y^m/x^(2m)","set":21}];
 function avatarFace(n){
  if(!Number.isInteger(n))return '<span class="avatar-pending">✧</span>';
+ if(worldError)return '<span class="avatar-pending" title="3D-weergave niet beschikbaar">'+avatars[n][1]+'</span>';
  if(fantasyPortraits?.[n])return '<img class="fantasy-3d-portrait" src="'+fantasyPortraits[n]+'" alt="" loading="lazy">';
  return '<span class="fantasy-avatar-loading" role="img" aria-label="3D-figuur wordt geladen"><span class="fantasy-avatar-loading-icon">✦</span><small>3D-figuur laden…</small></span>';
 }
@@ -340,25 +341,19 @@ function startSoloPractice(){
  $('connection').textContent='● Alleen oefenen · zonder spelcode';
  show('student');renderStudent();
 }
-function createDemo() {
+function createDemo(count=3) {
   online = false;
   demo = true;
   host = true;
   room = 'DEMO';
   state = newState();
 
-  [
-    'De Exponenten',
-    'De Draken',
-    'Team Bliksem',
-    'De Rekentijgers',
-    'De Breukbrekers',
-    'De Getallenhelden'
-  ].forEach((name,i)=>{const id=addTeam(name);state.teams[id].avatar=i;});
+  Array.from({length:Math.max(3,Math.min(30,count))},(_,i)=>'Testteam '+(i+1)).forEach((name,i)=>{const id=addTeam(name);state.teams[id].avatar=i;});
 
   openTeacher();
 
   $('demoControls').classList.remove('hidden');
+  mountDemoControls();
   $('connection').textContent = '● Demonstratiemodus';
 }
 
@@ -635,7 +630,7 @@ async function startGame(){
  if(!host||!state)return;
  const teams=Object.values(state.teams||{});
  if(state.phase==='lobby'){
-  if(teams.length<2){alert('Minstens 2 teams nodig.');return;}
+  if(teams.length<3){alert('Minstens 3 teams nodig.');return;}
   state.phase='avatars';flash('Alle teams mogen nu tegelijk een avatar kiezen.');
  }else if(state.phase==='avatars'){
   if(teams.some(t=>!Number.isInteger(t.avatar))){alert('Wacht tot alle teams gekozen hebben.');return;}
@@ -672,10 +667,11 @@ async function handleRequest(r){
  }
  if(r.action==='submitTokens'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
   const q=getQuestion(t),selected=r.sequence;
+  if(r.atSolved!==undefined&&(r.atSolved!==t.solved||r.atWrong!==t.wrong))return;
   if(!Array.isArray(selected)||selected.length!==q.answer.length||selected.some(i=>!Number.isInteger(i)||i<0||i>=q.tokens.length)||new Set(selected).size!==selected.length)return;
   if(selected.every((v,i)=>v===q.answer[i])){
    t.score+=100;t.solved++;t.step=Math.min(routes[t.route%8].length-1,t.step+1);
-   if(t.step===routes[t.route%8].length-1){t.finished=true;if(room==='SOLO'){t.finished=false;t.step=0;t.route=(t.route+1)%30;flash('Nieuwe oefenronde!');}}
+   if(t.step===routes[t.route%8].length-1){t.finished=true;if(room==='SOLO'){t.finished=false;t.step=0;t.route=(t.route+1)%8;flash('Nieuwe oefenronde!');}}
    flash(adventureStages[Math.max(0,t.step-1)]?.success||'Doorgang geopend!');templeAudio.cue('correct');
   }else{
    t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback=adventureStage(t).fail;if(t.step===0)t.step=0;
@@ -711,7 +707,7 @@ async function handleRequest(r){
  // A challenge starts immediately: opponents cannot refuse. Use the existing
  // Firebase-approved numeric 'answer' request for backwards-compatible rules.
  if((r.action==='challenge'||(r.action==='answer'&&r.challengeTarget===true))&&state.phase==='final'&&!state.winner){
-  const other=Object.values(state.teams).find(v=>v.route===n&&v.id!==t.id);
+  const other=Object.values(state.teams).find(v=>(Number.isInteger(v.slot)?v.slot:v.route)===n&&v.id!==t.id);
   if(!other||t.duel||other.duel||(t.challengesStarted||0)>=2||t.pendingFrom||other.pendingFrom)return;
   if(!Number.isInteger(t.finalPos)||!Number.isInteger(other.finalPos))return;
   const id='d'+(++state.duelNumber);
@@ -835,7 +831,7 @@ function mathExpressionHtml(expression){
    if(text[i]!=='^'){out+=escape(text[i]);continue;}
    let exp='',j=i+1;
    if(text[j]==='('){let depth=1;j++;while(j<text.length&&depth){if(text[j]==='(')depth++;else if(text[j]===')')depth--;if(depth)exp+=text[j];j++;}}
-   else{if(text[j]==='-'||text[j]==='+')exp+=text[j++];while(j<text.length&&/[a-zA-Z0-9]/.test(text[j]))exp+=text[j++];}
+   else{if(text[j]==='-'||text[j]==='+')exp+=text[j++];const pattern=/[0-9]/.test(text[j]||'')?/[0-9]/:/[a-zA-Z]/;while(j<text.length&&pattern.test(text[j]))exp+=text[j++];}
    out+='<sup>'+escape(exp)+'</sup>';i=j-1;
   }
   return out;
@@ -871,7 +867,7 @@ function render(){
   $('startBtn').textContent=state.phase==='lobby'?'🎭 Avatarselectie starten':state.phase==='avatars'?'▶ Start avontuur':'▶ Avontuur bezig';
   $('finalBtn').disabled=state.phase!=='playing';renderClock();
   $('overlay').classList.add('hidden');
-  const stage=$('liveStage');stage.classList.add('hidden');
+  const stage=$('liveStage');stage.classList.add('hidden');stage.classList.remove('race-summary');
   if(state.phase==='avatars'){
    stage.classList.remove('hidden');stage.innerHTML='<h2>🎭 KIES JULLIE AVATAR</h2><div class="avatargrid">'+teams.map(t=>'<div class="avatarcard">'+avatarFace(t.avatar)+'<b>'+escapeHtml(t.name)+'</b><small>'+(Number.isInteger(t.avatar)?'Figuur gekozen':'Kiest nog...')+'</small></div>').join('')+'</div>';
   }else if(state.phase==='playing'){
@@ -879,7 +875,7 @@ function render(){
    const d=Object.values(state.duels||{}).find(x=>!x.done);
    if(d){const q=duelQs[d.qIndex];stage.classList.remove('hidden');stage.innerHTML='<h2>⚔ LIVE DUEL</h2><p>'+escapeHtml(q.q)+'</p><div class="duelgrid">'+[d.a,d.b].map(id=>'<div class="duelteam"><h3>'+escapeHtml(state.teams[id]?.name||'Team')+'</h3><div class="tokenline">'+(d.progress?.[id]||[]).map(i=>'<span class="placed">'+escapeHtml(q.tokens[i])+'</span>').join('')+'</div></div>').join('')+'</div>';}
   }else if(['final','ended'].includes(state.phase)){
-   stage.classList.remove('hidden');stage.innerHTML='<div class="vault-race race-board"><div class="vault-race-heading"><span class="vault-crown">🏆</span><div><h2>DE RACE NAAR DE SCHATKAMER</h2><p>16 vakken · elk juist antwoord = één vak vooruit!</p></div></div><div class="race-board-scroll"><div class="race-board-lanes">'+teams.map((t,rank)=>{const pos=Math.max(0,Math.min(16,t.finalPos||0));return '<div class="race-board-row" style="--teamcolor:'+t.color+'"><div class="race-board-team"><span class="race-board-portrait">'+avatarFace(t.avatar)+'</span><strong>'+escapeHtml(t.name)+'</strong><small>'+pos+'/16</small></div><div class="race-board-track"><div class="race-board-start '+(pos===0?'occupied':'')+'">'+(pos===0?'<span class="race-board-runner">'+avatarFace(t.avatar)+'</span>':'⚑')+'</div>'+Array.from({length:16},(_,i)=>{const step=i+1;return '<div class="race-board-cell '+(step<pos?'passed ':'')+(step===pos?'occupied ':'')+(step===16?'last ':'')+'"><span class="race-board-number">'+step+'</span>'+(step===pos?'<span class="race-board-runner">'+avatarFace(t.avatar)+'</span>':'')+'</div>';}).join('')+'<div class="race-board-vault">🏰<span>SCHAT</span></div></div></div>';}).join('')+'</div></div><div class="race-board-legend">⚑ START <span>Elke tegel is één oefening</span> 🏰 SCHATKAMER</div></div>'+(Object.values(state.duels||{}).filter(d=>!d.done).map(d=>'<div class="final-duel"><h3>⚔ LIVE DUEL: '+escapeHtml(state.teams[d.a]?.name||'')+' tegen '+escapeHtml(state.teams[d.b]?.name||'')+'</h3><p>'+escapeHtml(duelQs[d.qIndex].q)+'</p>'+[d.a,d.b].map(id=>'<div><b>'+escapeHtml(state.teams[id]?.name||'')+'</b> · '+(d.progress?.[id]||[]).length+' / '+duelQs[d.qIndex].tokens.length+' onderdelen</div>').join('')+'</div>').join(''))+(state.winner?'<h2>🏆 '+escapeHtml(state.teams[state.winner]?.name||'')+' wint!</h2>':'');
+   stage.classList.remove('hidden');stage.classList.add('race-summary');stage.innerHTML='<details><summary>Stand van alle teams · '+teams.length+' teams</summary><div class="vault-race race-board"><div class="vault-race-heading"><span class="vault-crown">🏆</span><div><h2>DE RACE NAAR DE SCHATKAMER</h2><p>16 vakken · elk juist antwoord = één vak vooruit!</p></div></div><div class="race-board-scroll"><div class="race-board-lanes">'+teams.map((t,rank)=>{const pos=Math.max(0,Math.min(16,t.finalPos||0));return '<div class="race-board-row" style="--teamcolor:'+t.color+'"><div class="race-board-team"><span class="race-board-portrait">'+avatarFace(t.avatar)+'</span><strong>'+escapeHtml(t.name)+'</strong><small>'+pos+'/16</small></div><div class="race-board-track"><div class="race-board-start '+(pos===0?'occupied':'')+'">'+(pos===0?'<span class="race-board-runner">'+avatarFace(t.avatar)+'</span>':'⚑')+'</div>'+Array.from({length:16},(_,i)=>{const step=i+1;return '<div class="race-board-cell '+(step<pos?'passed ':'')+(step===pos?'occupied ':'')+(step===16?'last ':'')+'"><span class="race-board-number">'+step+'</span>'+(step===pos?'<span class="race-board-runner">'+avatarFace(t.avatar)+'</span>':'')+'</div>';}).join('')+'<div class="race-board-vault">🏰<span>SCHAT</span></div></div></div>';}).join('')+'</div></div><div class="race-board-legend">⚑ START <span>Elke tegel is één oefening</span> 🏰 SCHATKAMER</div></div>'+(Object.values(state.duels||{}).filter(d=>!d.done).map(d=>'<div class="final-duel"><h3>⚔ LIVE DUEL: '+escapeHtml(state.teams[d.a]?.name||'')+' tegen '+escapeHtml(state.teams[d.b]?.name||'')+'</h3><p>'+escapeHtml(duelQs[d.qIndex].q)+'</p>'+[d.a,d.b].map(id=>'<div><b>'+escapeHtml(state.teams[id]?.name||'')+'</b> · '+(d.progress?.[id]||[]).length+' / '+duelQs[d.qIndex].tokens.length+' onderdelen</div>').join('')+'</div>').join(''))+(state.winner?'<h2>🏆 '+escapeHtml(state.teams[state.winner]?.name||'')+' wint!</h2>':'')+'</details>';
   }
  }
  if(view==='student')renderStudent();
@@ -896,7 +892,7 @@ function tokenPuzzle(q,action,progress){
   const line=document.createElement('div');line.className='tokenline token-dropzone';
   line.setAttribute('aria-label','Samengestelde formule; sleep een stuk hierheen');
   line.ondragover=e=>e.preventDefault();
-  line.ondrop=e=>{e.preventDefault();const raw=e.dataTransfer.getData('text/plain');const i=Number(raw);if(!Number.isInteger(i))return;if(raw.startsWith('placed:'))return;if(!selected.includes(i)){selected.push(i);paint();}};
+  line.ondrop=e=>{e.preventDefault();const raw=e.dataTransfer.getData('text/plain');const i=Number(raw);if(!Number.isInteger(i)||i<0||i>=q.tokens.length)return;if(raw.startsWith('placed:'))return;if(!selected.includes(i)){selected.push(i);paint();}};
   selected.forEach((index,at)=>{
    const b=document.createElement('button');b.type='button';b.className='placed token-placed';
    b.textContent=q.tokens[index];b.title='Klik om dit stuk terug te leggen';b.draggable=true;
@@ -924,7 +920,7 @@ function tokenPuzzle(q,action,progress){
   check.disabled=selected.length!==q.answer.length;
   check.onclick=async()=>{
    check.disabled=true;
-   try{await sendRequest(kind==='duel'?'submitDuelTokens':'submitTokens',{sequence:[...selected]});if(!demo)$('feedback').textContent='Antwoord ingediend…';}
+   try{await sendRequest(kind==='duel'?'submitDuelTokens':'submitTokens',{sequence:[...selected],atSolved:state.teams[teamId].solved,atWrong:state.teams[teamId].wrong});if(!demo)$('feedback').textContent='Antwoord ingediend…';}
    catch(e){$('feedback').textContent=e.message;check.disabled=false;}
   };
   actions.appendChild(check);box.appendChild(actions);
@@ -940,7 +936,7 @@ function renderStudent(){
  const d=getActiveDuel(t),p=d?(d.progress?.[t.id]||[]):(t.progress||[]);
  const sig=[state.phase,t.solved,t.wrong,t.duel,t.pendingFrom,t.challengesStarted,t.avatar,t.finalPos,state.winner,p.join(','),Object.values(state.teams||{}).map(v=>[v.avatar,v.pendingFrom,v.duel].join('/')).join(',')].join(':');
  if(currentSignature===sig)return;const previousSignature=currentSignature;const previousWrong=Number(renderStudent.lastWrong??0);renderStudent.lastWrong=t.wrong||0;currentSignature=sig;
- $('feedback').textContent=t.wrong>previousWrong&&previousSignature&&state.phase==='playing'?adventureStage(t).fail:'';$('numberBox').classList.add('hidden');$('options').innerHTML='';
+ $('feedback').textContent=t.wrong>previousWrong&&previousSignature?(state.phase==='playing'?adventureStage(t).fail:'Nog niet juist. Probeer opnieuw.'):'';$('numberBox').classList.add('hidden');$('options').innerHTML='';
  const title=$('questTitle'),txt=$('questText'),status=$('studentStatus');
  if(state.phase==='lobby'){status.textContent='Wachten op de leerkracht';title.textContent='Je team is aangemeld';txt.textContent='De avatarselectie start zodra alle teams er zijn.';return;}
  if(state.phase==='avatars'){
@@ -968,7 +964,7 @@ function renderStudent(){
    button.innerHTML='<span class="finale-choice-letter">'+String.fromCharCode(65+index)+'</span><span class="math-exercise">'+mathExpressionHtml(answer)+'</span>';
    button.onclick=async()=>{
     grid.querySelectorAll('button').forEach(b=>b.disabled=true);
-    try{await sendRequest('final',{answer:index,atPosition:t.finalPos});$('feedback').textContent='Antwoord ontvangen…';}
+    try{await sendRequest('final',{answer:index,atPosition:t.finalPos});if(!demo)$('feedback').textContent='Antwoord ontvangen…';}
     catch(e){$('feedback').textContent=e.message;grid.querySelectorAll('button').forEach(b=>b.disabled=false);}
    };
    grid.appendChild(button);
@@ -976,7 +972,7 @@ function renderStudent(){
   $('options').appendChild(grid);
   if((t.challengesStarted||0)<2&&!Object.values(state.teams).some(v=>v.pendingFrom===t.id)){
    const area=document.createElement('div');area.className='challenge-area';area.innerHTML='<h4>⚔ Daag een team uit ('+(2-(t.challengesStarted||0))+' uitdagingen over)</h4><p>Het duel begint meteen. Het andere team kan niet weigeren. Win en ga twee vakken vooruit.</p>';
-   Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:v.route,challengeTarget:true});$('feedback').textContent='⚔ Uitdaging verstuurd. Het duel begint!';}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};area.appendChild(b);});$('options').appendChild(area);
+   Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:Number.isInteger(v.slot)?v.slot:v.route,challengeTarget:true});$('feedback').textContent='⚔ Uitdaging verstuurd. Het duel begint!';}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};area.appendChild(b);});$('options').appendChild(area);
   }return;
  }
  if(d){status.textContent='⚔ Duel';title.textContent='DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.q;tokenPuzzle(q,'duel',p);return;}
@@ -1095,21 +1091,21 @@ function drawStudentCamera(time){
  glow.addColorStop(0,'#ffffff00');glow.addColorStop(1,'#03101899');ctx.fillStyle=glow;ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0;
-import('./world3d.js?v=cc0forest20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
+let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0,worldError='';
+import('./world3d.js?v=tested20261018c').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>{worldError='De 3D-wereld kon niet starten. Controleer of WebGL beschikbaar is.';console.warn(worldError,error);const loading=$('previewLoading');if(loading){loading.textContent=worldError;loading.classList.add('world-error');}});
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
  const w=canvas.width,h=canvas.height;
  const grad=ctx.createLinearGradient(0,0,w,h);grad.addColorStop(0,'#0b2735');grad.addColorStop(.65,'#386373');grad.addColorStop(1,'#b0a07d');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
  ctx.textAlign='center';ctx.fillStyle='#f3dfb6';ctx.font='bold 40px Georgia,serif';ctx.fillText('DE MACHTENTEMPEL',w/2,h*.45);
- ctx.font='22px Georgia,serif';ctx.fillText('De magische wereld wordt geladen…',w/2,h*.53);
+ ctx.font='22px Georgia,serif';ctx.fillText(worldError?'Open het spel in een browser met WebGL.':'De magische wereld wordt geladen…',w/2,h*.53);
 }
 
 function animate(time) {
-  if(!fantasyPortraits&&getFantasyPortraits&&state?.phase==='avatars'&&time-portraitCheck>2000){
+  if(getFantasyPortraits&&state?.phase==='avatars'&&time-portraitCheck>2000){
    portraitCheck=time;
-   try{const portraits=getFantasyPortraits();if(portraits?.length===30){fantasyPortraits=portraits;currentSignature=null;render();}}catch(error){console.warn('3D-avatarportretten niet beschikbaar',error);getFantasyPortraits=null;}
+   try{const portraits=getFantasyPortraits();if(portraits?.length===30&&portraits!==fantasyPortraits){fantasyPortraits=portraits;currentSignature=null;render();}}catch(error){console.warn('3D-avatarportretten niet beschikbaar',error);getFantasyPortraits=null;}
   }
   if (view === 'teacher') {
     if(!draw3D||!draw3D($('worldCanvas'),state,'teacher',null,time))drawWorld($('worldCanvas'), time);
@@ -1196,3 +1192,20 @@ $('demoAnswer').onclick = async () => {
 if (configured) {
   $('connection').textContent = '● Online beschikbaar';
 }
+
+// Local-only, reproducible test sessions; never writes to Firebase.
+function mountDemoControls(){
+ const box=$('demoControls');
+ box.innerHTML='<strong>Lokale test · '+Object.keys(state.teams).length+' teams</strong><label>Volg een team <select id="demoTeam"></select></label><button id="demoStudent">Leerlingweergave</button><button id="demoCorrect">Juist antwoord</button><button id="demoWrong">Fout antwoord</button><label>Hoofdstuk <select id="demoChapter"></select></label>';
+ const select=$('demoTeam');
+ for(const t of Object.values(state.teams)){const o=document.createElement('option');o.value=t.id;o.textContent=t.name;select.appendChild(o);}
+ const chapters=$('demoChapter');adventureStages.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=c.name;chapters.appendChild(o);});
+ chapters.onchange=()=>{const t=state.teams[select.value];t.step=Number(chapters.value);t.finished=false;state.phase='playing';currentSignature='';render();};
+ $('demoStudent').onclick=()=>{teamId=select.value;currentSignature='';show('student');render();};
+ const answer=async correct=>{const t=state.teams[select.value];if(state.phase==='playing'){const q=getQuestion(t),sequence=[...q.answer];if(!correct){if(sequence.length===1)sequence[0]=(sequence[0]+1)%q.tokens.length;else sequence.reverse();}await handleRequest({action:'submitTokens',teamId:t.id,sequence});}else if(state.phase==='final'){const c=finaleChoices(finaleVraag(t)).correct;await handleRequest({action:'final',teamId:t.id,answer:correct?c:(c+1)%3,atPosition:t.finalPos});}};
+ $('demoCorrect').onclick=()=>answer(true);$('demoWrong').onclick=()=>answer(false);
+ let back=$('demoTeacher');if(!back){back=document.createElement('button');back.id='demoTeacher';back.textContent='Terug naar leerkracht';document.querySelector('header .headright').appendChild(back);}back.onclick=()=>{show('teacher');render();};
+}
+const demoLink=document.createElement('button');demoLink.className='ghost';demoLink.textContent='Test zonder spelcode';demoLink.id='localTestBtn';
+demoLink.onclick=()=>{let options=$('localTestOptions');if(options){options.remove();return;}options=document.createElement('div');options.id='localTestOptions';[3,8,30].forEach(count=>{const b=document.createElement('button');b.textContent=count+' teams';b.onclick=()=>createDemo(count);options.appendChild(b);});demoLink.after(options);};
+$('firebaseHelp').before(demoLink);
