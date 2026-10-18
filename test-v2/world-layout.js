@@ -4,11 +4,13 @@ export function teamSlot(team) {
  const value=Number.isInteger(team.slot)?team.slot:(team.route||0);
  return Math.max(0,Math.min(12,value));
 }
-export function teamPosition(team,phase) {
+export function teamPosition(team,phase,activeSlots=null) {
  const slot=teamSlot(team);
  if(phase==='final'||phase==='ended'){
   const step=Math.max(1,Math.min(RACE.squares,Number(team.finalPos)||1));
-  return {x:(slot-6)*RACE.laneWidth,y:RACE.floorY,z:RACE.originZ+RACE.startZ-(step-1)*RACE.stride};
+  const lane=Array.isArray(activeSlots)?Math.max(0,activeSlots.indexOf(slot)):slot;
+  const total=Array.isArray(activeSlots)?activeSlots.length:RACE.lanes;
+  return {x:(lane-(total-1)/2)*RACE.laneWidth,y:RACE.floorY,z:RACE.originZ+RACE.startZ-(step-1)*RACE.stride};
  }
  const route=((team.route||0)%8+8)%8,angle=route*Math.PI/4;
  const radius=25-Math.max(0,Math.min(6,Number(team.step)||0))*2.72;
