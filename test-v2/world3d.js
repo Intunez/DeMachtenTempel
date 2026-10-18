@@ -270,6 +270,32 @@ function character(g,i){
  add(new THREE.SphereGeometry(.45,20,12),hair,0,2.93,-.04).scale.set(1,.55,.95);
  const cloak=add(new THREE.ConeGeometry(.80,1.9,22,1,true),robe,0,1.36,-.28);cloak.rotation.z=Math.PI;
  add(new THREE.SphereGeometry(.12,12,10),trim,0,2.13,.41);
+ // Tailored details give each adventurer a distinct silhouette and richer material layering.
+ const silk=mat(costumeColors[i%8],{metalness:.12,roughness:.38,side:THREE.DoubleSide});
+ const silver=mat(0xe5e1d2,{metalness:.7,roughness:.27});
+ for(const side of [-1,1]){
+  const pauldron=add(new THREE.SphereGeometry(.33,20,14),i%2?trim:silver,side*.55,2.04,.03);
+  pauldron.scale.set(1,.47,1.25);
+  const cuff=add(new THREE.TorusGeometry(.18,.05,8,20),trim,side*.76,1.22,.05);cuff.rotation.x=Math.PI/2;
+  const hairLock=add(new THREE.CapsuleGeometry(.10,.36,4,12),hair,side*.34,2.66,-.10);
+  hairLock.rotation.z=side*.19;
+  const bootTrim=add(new THREE.TorusGeometry(.18,.04,8,20),trim,side*.24,.48,.08);bootTrim.rotation.x=Math.PI/2;
+ }
+ for(let k=0;k<7;k++){
+  const angle=k*Math.PI*2/7;
+  const seam=add(new THREE.CylinderGeometry(.018,.024,.82,6),i%2?trim:silver,Math.cos(angle)*.46,1.06,Math.sin(angle)*.46);
+  seam.rotation.z=-Math.cos(angle)*.13;
+ }
+ if(i===1||i===5){ // Elven circlet with side ornaments
+  const band=add(new THREE.TorusGeometry(.42,.045,8,32),trim,0,2.88,.02);band.rotation.x=Math.PI/2;
+  add(new THREE.OctahedronGeometry(.12,1),jewel,0,2.94,.39);
+ }else if(i===2||i===6){ // Armoured explorer
+  const crest=add(new THREE.BoxGeometry(.55,.15,.12),trim,0,3.07,0);
+  const visor=add(new THREE.TorusGeometry(.39,.055,8,28),silver,0,2.81,.03);visor.rotation.x=Math.PI/2;
+ }else if(i===3||i===7){ // Scholar with hood and ornament
+  const hood=add(new THREE.SphereGeometry(.51,24,16,0,Math.PI*2,0,Math.PI*.57),silk,0,2.81,-.11);
+  hood.scale.set(1.12,1.13,1.08);
+ }
  const mark=new THREE.Sprite(mathBadge(i));mark.position.set(0,1.82,.52);mark.scale.set(.56,.56,1);g.add(mark);
  if(i===0||i===1||i===4){
   const staff=add(new THREE.CylinderGeometry(.04,.06,2.6,10),boots,-.96,1.48,.12);staff.rotation.z=-.07;
