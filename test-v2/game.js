@@ -133,7 +133,33 @@ const avatars=[["Vermenigvuldiging","×"],["Wortel","√"],["Verschil","−"],["
 const questions=[{"t":"De productspreuk","q":"Zet de woordgroepen in de juiste volgorde.","tokens":["elke factor","tot die macht.","Om een product","verheffen we","tot een macht te verheffen,"],"answer":[2,4,3,0,1]},{"t":"De quotiëntspreuk","q":"Zet de woordgroepen in de juiste volgorde.","tokens":["het deeltal en de deler","tot die macht.","Om een quotiënt","verheffen we","tot een macht te verheffen,"],"answer":[2,4,3,0,1]},{"t":"Het productzegel","q":"Zet de symbolen in de juiste volgorde.","tokens":["bⁿ","=","·","(a · b)ⁿ","aⁿ"],"answer":[3,1,4,2,0]},{"t":"Het quotiëntzegel","q":"Zet de symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=",":","(a : b)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De productpoort","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a : b)ⁿ = aⁿ : bⁿ","(a · b)ⁿ = aⁿ · bⁿ"],"answer":[1],"fullRule":"Om een product tot een macht te verheffen, verheffen we elke factor tot die macht."},{"t":"De quotiëntpoort","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a : b)ⁿ = aⁿ : bⁿ","(a · b)ⁿ = aⁿ · bⁿ"],"answer":[0],"fullRule":"Om een quotiënt tot een macht te verheffen, verheffen we het deeltal en de deler tot die macht."},{"t":"De x-y-inscriptie","q":"Zet de symbolen in de juiste volgorde.","tokens":["yⁿ","=","·","(x · y)ⁿ","xⁿ"],"answer":[3,1,4,2,0]},{"t":"De x-y-breuk","q":"Zet de symbolen in de juiste volgorde.","tokens":["xⁿ","yⁿ","=",":","(x : y)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De gouden spreuk","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a · b)ⁿ = aⁿ · bⁿ","(a : b)ⁿ = aⁿ : bⁿ"],"answer":[0],"fullRule":"Om een product tot een macht te verheffen, verheffen we elke factor tot die macht."},{"t":"De blauwe spreuk","q":"Koppel de volledige spreuk aan de juiste volledige formule. Kies de formule.","tokens":["(a · b)ⁿ = aⁿ · bⁿ","(a : b)ⁿ = aⁿ : bⁿ"],"answer":[1],"fullRule":"Om een quotiënt tot een macht te verheffen, verheffen we het deeltal en de deler tot die macht."},{"t":"De drie factoren","q":"Zet de symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=","cⁿ","·","(a · b · c)ⁿ","·"],"answer":[5,2,0,4,1,6,3]},{"t":"De laatste inscriptie","q":"Zet de symbolen in de juiste volgorde.","tokens":["(p : q)ᵐ","pᵐ","qᵐ","=",":"],"answer":[0,3,1,4,2]}];
 const duelQs=questions.slice(0,10);
 const finalQs=[{"q":"(2a)^2","a":"4a^2","set":16},{"q":"(4c)^3","a":"64c^3","set":16},{"q":"(-ab)^2","a":"a^2b^2","set":16},{"q":"(-3c)^2","a":"9c^2","set":16},{"q":"(-2c)^3","a":"-8c^3","set":16},{"q":"(-2ab)^2","a":"4a^2b^2","set":16},{"q":"(2ac)^3","a":"8a^3c^3","set":16},{"q":"(a^2b)^2","a":"a^4b^2","set":16},{"q":"(-ab)^3","a":"-a^3b^3","set":16},{"q":"(-1/4 ac)^2","a":"1/16a^2c^2","set":16},{"q":"(2a^2b)^2","a":"4a^4b^2","set":17},{"q":"(4ac^4)^2","a":"16a^2c^8","set":17},{"q":"(10xy^2z^3)^2","a":"100x^2y^4z^6","set":17},{"q":"(-4/5 a^3b^4)^2","a":"16/25a^6b^8","set":17},{"q":"(-3x^2y^4)^3","a":"-27x^6y^12","set":17},{"q":"(2/3)^2","a":"4/9","set":19},{"q":"(-1/2)^3","a":"-1/8","set":19},{"q":"(4/5)^2","a":"16/25","set":19},{"q":"(-1/10)^3","a":"-1/1000","set":19},{"q":"(3/5)^(-2)","a":"25/9","set":19},{"q":"(1/3)^(-2)","a":"9","set":19},{"q":"(-3/5)^(-2)","a":"25/9","set":19},{"q":"(-1/3)^2","a":"1/9","set":19},{"q":"(4/5)^(-2)","a":"25/16","set":19},{"q":"(1/10)^(-3)","a":"1000","set":19},{"q":"(a/b)^2","a":"a^2/b^2","set":20},{"q":"(-x/2)^3","a":"-x^3/8","set":20},{"q":"(3/z^2)^2","a":"9/z^4","set":20},{"q":"(1/a)^4","a":"1/a^4","set":20},{"q":"(-c/2)^(-2)","a":"4/c^2","set":20},{"q":"(-x/y)^2","a":"x^2/y^2","set":20},{"q":"(a^2/b^3)^(-2)","a":"b^6/a^4","set":20},{"q":"(-3/y^3)^3","a":"-27/y^9","set":20},{"q":"(-1/ab)^2","a":"1/a^2b^2","set":20},{"q":"(x^2/y)^(-1)","a":"y/x^2","set":20},{"q":"(a/b)^m","a":"a^m/b^m","set":21},{"q":"(x/y)^(p+1)","a":"x^(p+1)/y^(p+1)","set":21},{"q":"(x/2)^(2+a)","a":"x^(2+a)/2^(2+a)","set":21},{"q":"(-3/2)^(2a)","a":"3^(2a)/2^(2a)","set":21},{"q":"(x^2/y)^(-m)","a":"y^m/x^(2m)","set":21}];
-function avatarFace(n){if(!Number.isInteger(n))return '◈';const symbols=['×','√','−','ⁿ','x','∞','0','Δ'];return '<span class="mathavatar hero-avatar" style="--av:'+colors[n]+'"><span class="hero-icon">'+symbols[n]+'</span></span>';}
+function avatarFace(n){
+ if(!Number.isInteger(n))return '<span class="avatar-pending">✧</span>';
+ const colors=['#2864b9','#398456','#e7c995','#c75537','#2e9ccc','#7650b7','#c79843','#ad376d'];
+ const hair=['#513324','#352a1f','#f5e6b8','#a64225','#1b6c83','#3a263e','#b78235','#8d244f'];
+ const skin=['#efbc95','#c88c64','#f3c7a7','#d39a72','#e3b18e','#b97c58','#e7b78e','#edb09b'];
+ const mark=['∞','x','aⁿ','÷','√','◇','△','∑'];
+ const c=colors[n],h=hair[n],face=skin[n],uid='avatar'+n;
+ return '<span class="fantasy-avatar" aria-hidden="true"><svg viewBox="0 0 180 240" xmlns="http://www.w3.org/2000/svg" role="img">'+
+ '<defs><linearGradient id="'+uid+'robe" x1="0" x2="1" y1="0" y2="1"><stop stop-color="'+c+'"/><stop offset="1" stop-color="#162336"/></linearGradient>'+
+ '<radialGradient id="'+uid+'glow"><stop stop-color="'+c+'" stop-opacity=".6"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></radialGradient></defs>'+
+ '<ellipse cx="90" cy="128" rx="80" ry="100" fill="url(#'+uid+'glow)"/>'+
+ '<path d="M47 147 Q19 168 13 225 L167 225 Q159 170 130 145Z" fill="url(#'+uid+'robe)" stroke="#d7b66c" stroke-width="2"/>'+
+ '<path d="M57 149 Q36 177 45 227 L137 227 Q142 180 121 148Z" fill="'+c+'" stroke="#d8bc82" stroke-width="2"/>'+
+ '<path d="M65 154 L91 210 L115 154" fill="#172e42" opacity=".75"/>'+
+ '<path d="M58 165 L46 202 M123 165 L135 202" stroke="#e5c17a" stroke-width="3" opacity=".8"/>'+
+ '<rect x="52" y="185" width="78" height="9" rx="3" fill="#51372b"/><rect x="83" y="183" width="16" height="13" rx="2" fill="#e8c780"/>'+
+ '<path d="M68 100 Q58 63 90 54 Q123 62 112 106 L111 130 Q105 147 90 149 Q73 147 68 129Z" fill="'+face+'"/>'+
+ '<path d="M64 104 Q47 65 73 49 Q100 31 122 57 Q134 76 117 109 L115 86 Q103 79 99 66 Q86 84 68 84Z" fill="'+h+'" stroke="#281f29" stroke-width="2"/>'+
+ '<path d="M67 83 Q75 53 98 58 Q122 60 122 82" fill="none" stroke="'+h+'" stroke-width="13" stroke-linecap="round"/>'+
+ '<ellipse cx="78" cy="110" rx="4" ry="5" fill="#263345"/><ellipse cx="102" cy="110" rx="4" ry="5" fill="#263345"/>'+
+ '<path d="M82 130 Q91 137 100 130" fill="none" stroke="#a45d54" stroke-width="2.5" stroke-linecap="round"/>'+
+ '<path d="M62 146 Q40 151 34 179 L49 184 L73 160 M118 160 L139 184 L153 178 Q145 151 118 146" fill="'+c+'" stroke="#ddbd7d" stroke-width="3"/>'+
+ '<circle cx="91" cy="168" r="17" fill="#182a41" stroke="#e5c37e" stroke-width="3"/>'+
+ '<text x="91" y="176" text-anchor="middle" font-size="'+(n===2?19:26)+'" font-weight="bold" fill="#ffe9a6" font-family="Georgia,serif">'+mark[n]+'</text>'+
+ (n===0||n===1||n===4?'<path d="M25 225 L31 85" stroke="#a7834d" stroke-width="7" stroke-linecap="round"/><circle cx="32" cy="76" r="16" fill="'+c+'" stroke="#e5c27a" stroke-width="4"/>':n===2||n===5?'<path d="M21 183 L58 177 L65 208 L27 215Z" fill="#664832" stroke="#e6c07b" stroke-width="3"/>':n===3?'<rect x="16" y="173" width="31" height="31" rx="5" fill="#ff704b" stroke="#e5b96c" stroke-width="3"/>':'<circle cx="28" cy="185" r="15" fill="none" stroke="#ffe1a2" stroke-width="5"/>')+
+ '</svg></span>';
+}
 function norm(v){return String(v).replace(/\s/g,'').replace(/[·×*]/g,'').replace(/−/g,'-').replace(/[{}]/g,'').replace(/:/g,'/').replace(/\^\(([^()]+)\)/g,'^$1');}
 function hash(v){let x=2166136261;for(const ch of norm(v)){x^=ch.charCodeAt(0);x=Math.imul(x,16777619);}return x>>>0;}
 function finaleVraag(t){return finalQs[((t.finalPos||0)+t.route*3)%finalQs.length];}
@@ -316,6 +342,16 @@ async function createOnline() {
   }
 }
 
+function startSoloPractice(){
+ online=false;demo=true;host=true;room='SOLO';state=newState();
+ const name=(window.prompt('Welke naam wil je gebruiken tijdens het oefenen?','Mijn avontuur')||'Mijn avontuur').trim().slice(0,22)||'Mijn avontuur';
+ teamId=addTeam(name);
+ state.phase='avatars';
+ state.event='Kies je eigen fantasyfiguur en begin met oefenen.';
+ currentSignature='';tokenDraft=null;
+ $('connection').textContent='● Alleen oefenen · zonder spelcode';
+ show('student');renderStudent();
+}
 function createDemo() {
   online = false;
   demo = true;
@@ -650,7 +686,7 @@ async function handleRequest(r){
  const n=Number(r.answer);
  if(r.action==='answer'&&state.phase==='avatars'){
   if(!Number.isInteger(n)||n<0||n>=8||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
-  t.avatar=n;flash(t.name+' heeft een figuur gekozen.');await writeState();return;
+  t.avatar=n;if(room==='SOLO'){state.phase='playing';state.started=Date.now();flash('Je oefenavontuur begint!');}else flash(t.name+' heeft een figuur gekozen.');await writeState();return;
  }
  if(r.action==='resetTokens'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
   t.progress=[];await writeState();return;
@@ -663,7 +699,7 @@ async function handleRequest(r){
   if(!Array.isArray(selected)||selected.length!==q.answer.length||selected.some(i=>!Number.isInteger(i)||i<0||i>=q.tokens.length)||new Set(selected).size!==selected.length)return;
   if(selected.every((v,i)=>v===q.answer[i])){
    t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
-   if(t.step===routes[t.route].length-1)t.finished=true;
+   if(t.step===routes[t.route].length-1){t.finished=true;if(room==='SOLO'){t.finished=false;t.step=0;t.route=(t.route+1)%8;flash('Nieuwe oefenronde!');}}
    flash(t.name+' opent een doorgang!');templeAudio.cue('correct');
   }else{
    t.wrong++;t.score=Math.max(0,t.score-10);t.lastFeedback='❌ FOUT ANTWOORD! Probeer opnieuw.';
@@ -1137,7 +1173,7 @@ $('homeBtn').onclick = () => {
   show('welcome');
 };
 
-$('demoBtn').onclick = createDemo;
+$('soloBtn').onclick = startSoloPractice;
 
 $('onlineBtn').onclick = () => {
   if (!configured) {
