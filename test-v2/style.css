@@ -247,3 +247,6 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 .teacher-answer-options{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .teacher-answer-options span{border:1px solid #627b86;border-radius:5px;padding:3px 5px;font-size:11px;line-height:1.3;background:#142a37}
 .teacher-answer-options .teacher-option-picked{background:#70501a;border-color:#ffcf69;color:#fff1bb}
+
+/* Overbodige cameratekst en instructietekst verbergen */
+#student .adventure-caption,#student .token-instruction,#student #questText:empty{display:none!important}
