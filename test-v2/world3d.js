@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 const THREE_COLORS=['#ffb563','#8cd9ff','#e4a5ff','#9ff2bf','#ffd68b','#f4a2cb','#d0ed87','#b3aaff'];
 const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*2.72;return new THREE.Vector3(Math.cos(angle)*radius,3.0,Math.sin(angle)*radius);});});
-const scene=new THREE.Scene();scene.background=new THREE.Color(0xa4c4c7);scene.fog=new THREE.FogExp2(0xa4c4c7,.0038);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xa4c4c7);scene.fog=new THREE.FogExp2(0xa4c4c7,.0025);
 const world=new THREE.Group();scene.add(world);
 scene.add(new THREE.HemisphereLight(0xd5e8ff,0x273e32,1.45));
 const sun=new THREE.DirectionalLight(0xffe5b5,3.9);sun.position.set(-22,40,24);scene.add(sun);
@@ -199,43 +199,53 @@ function numberedTileLabel(n){
  const o=new THREE.Mesh(new THREE.PlaneGeometry(1.05,1.05),new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,side:THREE.DoubleSide}));
  o.rotation.x=-Math.PI/2;return o;
 }
+// The finale is a vaulted causeway toward a treasure chamber, not a numbered spreadsheet.
 const finalCourse=new THREE.Group();world.add(finalCourse);
+const marble=mat(0x8b8576,{map:stoneTex,roughness:.92});
+const bronze=mat(0xd2a653,{metalness:.78,roughness:.24});
+const jewel=mat(0x79e5f3,{emissive:0x2b9ca7,emissiveIntensity:1.8,roughness:.15});
+function finalePart(geometry,material,x,y,z){
+ const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;finalCourse.add(o);return o;
+}
 for(let i=0;i<16;i++){
  const z=27-i*1.22;
- const tile=new THREE.Mesh(new THREE.BoxGeometry(8.7,.3,1.08),stone);
- tile.position.set(0,3.1,z);tile.castShadow=true;tile.receiveShadow=true;finalCourse.add(tile);
- const label=numberedTileLabel(i+1);label.position.set(0,3.27,z);finalCourse.add(label);
+ finalePart(new THREE.BoxGeometry(11.7,.38,1.18),marble,0,3.08,z);
  for(const side of [-1,1]){
-  const rim=new THREE.Mesh(new THREE.BoxGeometry(.22,.35,1.08),gold);
-  rim.position.set(side*4.5,3.15,z);finalCourse.add(rim);
+  finalePart(new THREE.BoxGeometry(.30,.6,1.18),bronze,side*6,3.43,z);
+  if(i%3===0){
+   finalePart(new THREE.CylinderGeometry(.35,.43,3.4,12),marble,side*6.55,5.1,z);
+   finalePart(new THREE.BoxGeometry(1.1,.42,1.1),bronze,side*6.55,6.9,z);
+   const flame=finalePart(new THREE.OctahedronGeometry(.35,1),jewel,side*6.55,7.5,z);
+  }
  }
 }
+const vault=new THREE.Group();vault.position.set(0,3.35,6.7);finalCourse.add(vault);
+const vaultMesh=(geo,m,x,y,z)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=true;vault.add(o);return o;};
+vaultMesh(new THREE.BoxGeometry(15,1,5),marble,0,0,0);
+for(const side of [-1,1]){
+ vaultMesh(new THREE.CylinderGeometry(1.15,1.45,11,16),marble,side*5.2,5.6,0);
+ vaultMesh(new THREE.BoxGeometry(3.1,.65,3.1),bronze,side*5.2,11.1,0);
+}
+vaultMesh(new THREE.BoxGeometry(13,2.4,3.1),marble,0,11.5,0);
+vaultMesh(new THREE.BoxGeometry(11,.45,3.5),bronze,0,12.9,0);
+vaultMesh(new THREE.BoxGeometry(7.1,8,.5),mat(0x202c36,{metalness:.45}),0,4.1,1.55);
+const gate=vaultMesh(new THREE.TorusGeometry(3.3,.36,16,64),bronze,0,5.2,1.95);gate.scale.y=1.22;
+vaultMesh(new THREE.IcosahedronGeometry(1.1,2),jewel,0,5.4,2.0);
+const crown=vaultMesh(new THREE.ConeGeometry(2.8,2.2,8),bronze,0,14.2,0);
 finalCourse.visible=false;
-
 const camera=new THREE.PerspectiveCamera(39,1,.1,400);camera.position.set(65,65,105);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;renderer.setClearColor(0xa4c4c7);
-// Actual textured glTF assets (not primitives): licensed Khronos sample assets.
-// They load asynchronously; the procedural scene remains playable if an asset fails.
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.setClearColor(0xa4c4c7);
+// Textured lantern models add architectural detail; failures never stop gameplay.
 const gltfLoader=new GLTFLoader();
 const assetBase='https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/';
-let humanModel=null,lanternModel=null;
-
-const loadModel=(name)=>gltfLoader.loadAsync(assetBase+name+'/glTF-Binary/'+name+'.glb');
-loadModel('CesiumMan').then(gltf=>{
- humanModel=gltf.scene;
- humanModel.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
- for(const g of avatars.values())replaceAvatarModel(g);
-}).catch(e=>console.warn('3D-personage niet geladen',e));
-loadModel('Lantern').then(gltf=>{
- lanternModel=gltf.scene;
- const positions=[[9,4,10],[-9,4,10],[10,4,-9],[-10,4,-9],[0,4,28],[0,4,-28]];
- positions.forEach(([x,y,z],i)=>{
-  const model=lanternModel.clone(true);model.position.set(x,y,z);model.scale.setScalar(2.1);
+gltfLoader.loadAsync(assetBase+'Lantern/glTF-Binary/Lantern.glb').then(gltf=>{
+ [[9,4,10],[-9,4,10],[10,4,-9],[-10,4,-9],[0,4,28],[0,4,-28]].forEach(([x,y,z])=>{
+  const model=gltf.scene.clone(true);model.position.set(x,y,z);model.scale.setScalar(2.1);
   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
   world.add(model);
  });
-}).catch(e=>console.warn('3D-lantaarn niet geladen',e));
+}).catch(e=>console.warn('3D-lantaarns niet geladen',e));
 const mathSymbols=['∞','x','aⁿ','÷','√','◇','△','∑'];
 const costumeColors=[0x2357ae,0x367448,0xf0e0b7,0xc34c29,0x2385b2,0x6841a0,0xc39138,0xb02b68];
 function mathBadge(i){
@@ -294,8 +304,8 @@ export function draw3D(canvas,state,view,teamId,time){
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
  for(const [id,g] of avatars)if(!ids.has(id)){scene.remove(g);if(g.userData.label){g.userData.label.material.map.dispose();g.userData.label.material.dispose();}avatars.delete(id);}
  for(const t of teams){const g=avatar(t.id,Number.isInteger(t.avatar)?t.avatar:t.route);if(g.userData.labelName!==t.name){g.remove(g.userData.label);g.userData.label.material.map.dispose();g.userData.label.material.dispose();g.userData.label=nameLabel(t.name);g.add(g.userData.label);g.userData.labelName=t.name;}const p=position(t,state?.phase);g.position.lerp(p,.07);g.position.y+=Math.sin(time*.002+t.route)*.004;g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
- if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(8)).add(new THREE.Vector3(0,6,0));camera.position.lerp(desired,.045);camera.lookAt(target.x, target.y+2.3,target.z);}
- else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(20,30,48),.035);camera.lookAt(0,3,17);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(64*distance,65*distance,104*distance),.055);camera.lookAt(0,0,0);}
+ if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(12)).add(new THREE.Vector3(0,9,0));camera.position.lerp(desired,.045);camera.lookAt(target.x, target.y+3.7,target.z);}
+ else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(58*distance,72*distance,110*distance),.055);camera.lookAt(0,0,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
  if(world.userData.falls)for(let i=0;i<world.userData.falls.length;i++){const f=world.userData.falls[i];f.material.opacity=.63+.12*Math.sin(time*.002+i);}
  if(world.userData.guardian){world.userData.guardian.userData.gem.rotation.y=time*.0006;world.userData.guardian.userData.gem.position.y=3.7+Math.sin(time*.0015)*.25;}
