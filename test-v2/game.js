@@ -391,7 +391,7 @@ function paintTeacherCycle(){
   const title=q?(q.q||q.question||q.fullRule||'Oefening'):'Wachten op oefening';
   const finalOptions=state.phase==='final'&&q?finaleChoices(q).options:[];
   const preview=state.phase==='final'&&Number.isInteger(t.liveFinalChoice)?'Aangeklikt: '+String.fromCharCode(65+t.liveFinalChoice)+' — '+(finalOptions[t.liveFinalChoice]||''):'';
-  return '<div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(progress.length?progress.map(x=>escapeHtml(String(x))).join(' · '):escapeHtml(preview||'Nog niets aangeklikt'))+'</div><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.solved+' opgelost')+'</small></div>';
+  return '<div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(progress.length?progress.map(x=>escapeHtml(String(x))).join(' · '):escapeHtml(preview||'Nog niets aangeklikt'))+'</div><div class="teacher-answer-options">'+(q?(state.phase==='final'?finalOptions.map((x,i)=>'<span class="'+(t.liveFinalChoice===i?'teacher-option-picked':'')+'">'+String.fromCharCode(65+i)+': '+escapeHtml(String(x))+'</span>').join(''):q.tokens.map((x,i)=>'<span class="'+((t.liveDraft||[]).includes(i)?'teacher-option-picked':'')+'">'+escapeHtml(String(x))+'</span>').join('')):'')+'</div><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.solved+' opgelost')+'</small></div>';
  }).join('')+'</div>';
 }
 function openTeacher() {
