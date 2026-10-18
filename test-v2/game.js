@@ -777,7 +777,7 @@ function triggerDuel(moved) {
 async function beginFinal(){
  if(!host||!state||state.phase!=='playing')return;
  state.phase='final';state.finalStarted=Date.now();state.finalQuestion=0;
- Object.values(state.teams||{}).sort((a,b)=>b.score-a.score||a.joined-b.joined).forEach((t,i)=>{t.duel='';t.pendingFrom='';t.challengesStarted=0;t.finalPos=Math.max(1,8-i);t.finalAnswers=0;});
+ Object.values(state.teams||{}).sort((a,b)=>b.score-a.score||a.joined-b.joined).forEach((t,i)=>{t.duel='';t.pendingFrom='';t.challengesStarted=0;t.finalPos=i===0?4:i===1?3:i===2?2:1;t.finalAnswers=0;});
  Object.values(state.duels||{}).forEach(d=>d.done=true);
  flash('⚡ Finale: de punten bepalen de voorsprong. Race naar vak 16!');await writeState();
 }
