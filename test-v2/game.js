@@ -98,7 +98,7 @@ function avatarFace(n){
 }
 function norm(v){return String(v).replace(/\s/g,'').replace(/[·×*]/g,'').replace(/−/g,'-').replace(/[{}]/g,'').replace(/:/g,'/').replace(/\^\(([^()]+)\)/g,'^$1');}
 function hash(v){let x=2166136261;for(const ch of norm(v)){x^=ch.charCodeAt(0);x=Math.imul(x,16777619);}return x>>>0;}
-function finaleVraag(t){return finalQs[((t.finalPos||0)+t.route*3)%finalQs.length];}
+function finaleVraag(t){return finalQs[((t.finalPos||0))%finalQs.length];}
 function finaleChoices(q){
  // Stable, reproducible alternatives; the host checks the chosen index.
  const correct=q.a;
@@ -618,7 +618,7 @@ async function startGame(){
 }
 function getQuestion(team) {
   return questions[
-    (team.solved + team.route * 2) % questions.length
+    team.solved % questions.length
   ];
 }
 
@@ -881,7 +881,7 @@ function tokenPuzzle(q,action,progress){
  const selected=tokenDraft.sequence;
  const paint=()=>{
   box.innerHTML=(q.fullRule?'<div class="full-rule">'+escapeHtml(q.fullRule)+'</div>':'')+
-   '<p class="token-instruction">Tik of sleep de stukken naar de antwoordbalk. Klik op een geplaatst stuk om het terug te leggen.</p>';
+   '';
   const line=document.createElement('div');line.className='tokenline token-dropzone';
   line.setAttribute('aria-label','Samengestelde formule; sleep een stuk hierheen');
   line.ondragover=e=>e.preventDefault();
