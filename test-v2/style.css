@@ -141,3 +141,10 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 #student .quest .finale-choice .math-exercise sup{font-size:.57em;line-height:0}
 #student .quest #feedback{font-size:clamp(14px,1.6vw,18px);line-height:1.5;overflow-wrap:anywhere;max-width:100%;margin:12px 0}
 @media(max-width:600px){#student .quest .finale-choice{padding:12px 9px;grid-template-columns:32px minmax(0,1fr)}#student .quest .finale-choice .math-exercise{font-size:clamp(21px,6vw,30px)!important}}
+
+/* Actual WebGL-rendered 3D character portraits replace flat cartoon drawings. */
+.avatargrid{grid-template-columns:repeat(auto-fill,minmax(142px,1fr));max-height:56vh;overflow-y:auto;gap:10px;padding:6px}
+.avatarcard{padding:7px;gap:5px;min-height:210px;overflow:hidden;background:linear-gradient(145deg,#1b2c3c,#0a1726);border:1px solid #b59b6b}
+.avatarcard .fantasy-3d-portrait{display:block;width:100%;max-width:174px;height:174px;object-fit:cover;object-position:center;border-radius:8px;box-shadow:0 8px 18px #0009}
+.avatarcard .avatar-name{font-size:12px;font-weight:700;color:#f4e3bd;text-align:center;line-height:1.25}
+.avatarcard:disabled{filter:grayscale(.85);opacity:.38}
