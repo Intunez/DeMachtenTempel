@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 const THREE_COLORS=['#ffb563','#8cd9ff','#e4a5ff','#9ff2bf','#ffd68b','#f4a2cb','#d0ed87','#b3aaff'];
 const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*2.72;return new THREE.Vector3(Math.cos(angle)*radius,3.0,Math.sin(angle)*radius);});});
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xa4c4c7);scene.fog=new THREE.FogExp2(0xa4c4c7,.0022);
@@ -378,7 +379,7 @@ soldierLoader.load('https://threejs.org/examples/models/gltf/Soldier.glb',gltf=>
 },undefined,e=>console.warn('Gedetailleerd 3D-personagemodel niet beschikbaar; vereenvoudigde reservefiguren blijven zichtbaar.',e));
 function installDetailedCharacter(group,index,id){
  if(!soldierAsset||group.userData.highDetail)return;
- const model=soldierAsset.scene.clone(true);
+ const model=cloneSkinned(soldierAsset.scene);
  model.traverse(o=>{
   if(!o.isMesh)return;
   o.castShadow=true;o.receiveShadow=true;
