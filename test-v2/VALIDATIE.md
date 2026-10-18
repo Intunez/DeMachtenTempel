@@ -19,6 +19,10 @@ De bestaande tree_pine.glb (17.220 bytes), tree_oak.glb (14.644 bytes) en rock_l
 
 Leerkracht → Test zonder spelcode → 3, 8 of 30 teams. Dit gebruikt geen Firebase. Het testpaneel laat een team, hoofdstuk, goed/fout antwoord en leerlingweergave kiezen. Met 'Terug naar leerkracht' keert het scherm terug. De bestaande online spelmodus blijft beschikbaar.
 
+## Controles op de gepubliceerde pagina
+
+De browser heeft de nieuwe versie daadwerkelijk geladen. Lokale sessies met 3, 8 en 30 teams zijn geopend. Voor 3 teams zijn avatarfase, avontuur en finale doorlopen. Met 30 teams zijn een echte woordpuzzel (+100 punten, volgend hoofdstuk), een fout antwoord (-10 punten, nieuwe poging), een correct finaleantwoord (vak 8 naar 9) en een duel met Testteam 17 gecontroleerd. De console bevestigt dat GPU-rendering in deze browser niet beschikbaar is. Dit zijn lokale sessies, geen Firebase-belastingstest.
+
 ## Nog niet aangetoond / niet af
 
 - De cloudbrowser kon geen WebGL-context maken. Er is geen visuele 3D-goedkeuring.

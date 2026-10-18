@@ -51,4 +51,5 @@ const c=api.addTeam('C');await api.startGame();await api.handleRequest({action:'
 assert.equal(api.mathExpressionHtml('4a^2b^2'),'4a<sup>2</sup>b<sup>2</sup>');
 assert.equal(api.mathExpressionHtml('x^(p+1)'),'x<sup>p+1</sup>');
 assert.ok(api.mathExpressionHtml('a^2/b^2').includes('math-fraction'));
+assert.ok(api.mathExpressionHtml('1/a^2b^2').includes('math-den">a<sup>2</sup>b<sup>2</sup>'));
 console.log('PASS minimum teams, exclusive avatars and algebraic typography');

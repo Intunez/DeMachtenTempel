@@ -837,7 +837,9 @@ function mathExpressionHtml(expression){
   return out;
  };
  // Each slash binds its adjacent numerator and denominator, including powers.
- const token='(?:\\([^()]*\\)|[+-]?(?:\\d+|[a-zA-Z]+))(?:\\^(?:\\([^()]*\\)|[+-]?[a-zA-Z0-9]+))?';
+ const power='(?:\\^(?:\\([^()]*\\)|[+-]?(?:\\d+|[a-zA-Z]+)))?';
+ const letters='[a-zA-Z]'+power+'(?:[a-zA-Z]'+power+')*';
+ const token='(?:\\([^()]*\\)|[+-]?(?:\\d+|'+letters+'))'+power;
  const fraction=new RegExp('('+token+')\\s*\\/\\s*('+token+')','g');
  let output='',last=0,match;
  while((match=fraction.exec(src))!==null){
@@ -971,7 +973,7 @@ function renderStudent(){
   });
   $('options').appendChild(grid);
   if((t.challengesStarted||0)<2&&!Object.values(state.teams).some(v=>v.pendingFrom===t.id)){
-   const area=document.createElement('div');area.className='challenge-area';area.innerHTML='<h4>⚔ Daag een team uit ('+(2-(t.challengesStarted||0))+' uitdagingen over)</h4><p>Het duel begint meteen. Het andere team kan niet weigeren. Win en ga twee vakken vooruit.</p>';
+   const area=document.createElement('details');area.className='challenge-area';area.innerHTML='<summary>⚔ Daag een team uit ('+(2-(t.challengesStarted||0))+' uitdagingen over)</summary><p>Het duel begint meteen. Het andere team kan niet weigeren. Win en ga twee vakken vooruit.</p>';
    Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:Number.isInteger(v.slot)?v.slot:v.route,challengeTarget:true});$('feedback').textContent='⚔ Uitdaging verstuurd. Het duel begint!';}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};area.appendChild(b);});$('options').appendChild(area);
   }return;
  }
@@ -1092,7 +1094,7 @@ function drawStudentCamera(time){
 }
 
 let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0,worldError='';
-import('./world3d.js?v=tested20261018c').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>{worldError='De 3D-wereld kon niet starten. Controleer of WebGL beschikbaar is.';console.warn(worldError,error);const loading=$('previewLoading');if(loading){loading.textContent=worldError;loading.classList.add('world-error');}});
+import('./world3d.js?v=tested20261018d').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>{worldError='De 3D-wereld kon niet starten. Controleer of WebGL beschikbaar is.';console.warn(worldError,error);const loading=$('previewLoading');if(loading){loading.textContent=worldError;loading.classList.add('world-error');}for(const frame of document.querySelectorAll('.worldframe,.adventure-view')){const warning=document.createElement('div');warning.className='world-warning';warning.textContent=worldError;frame.appendChild(warning);}currentSignature='';if(state)render();});
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;

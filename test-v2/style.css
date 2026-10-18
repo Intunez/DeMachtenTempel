@@ -223,3 +223,7 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 #persistentRoomCode{padding:7px 16px;margin:8px auto;border-width:1px!important;border-radius:9px;}
 #persistentRoomCode strong{font-size:26px;}
 @media(max-width:850px){#student .adventure-view{min-height:210px;height:36vh;aspect-ratio:auto;}#teacher .worldframe{height:62vh;min-height:340px;}.headright{flex-wrap:wrap;gap:5px;}#demoTeacher{font-size:10px;padding:7px;}}
+
+.challenge-area summary{cursor:pointer;color:#ffda92;font-weight:700;font-size:13px;}
+.world-warning{position:absolute;top:12px;left:12px;right:12px;z-index:7;padding:9px 12px;border:1px solid #c49b5e;border-radius:8px;background:#14202dec;color:#f8dfb5;font-size:12px;text-align:center;}
+.worldframe .world-warning{top:50px;}
