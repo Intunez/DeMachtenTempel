@@ -505,13 +505,13 @@ function finalePart(geometry,material,x,y,z){
  const o=new THREE.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;finalCourse.add(o);return o;
 }
 // Thirty parallel race lanes, each made of sixteen individual stone squares.
-const raceStone=new THREE.InstancedMesh(new THREE.BoxGeometry(RACE.laneWidth-.10,.34,RACE.stride-.12),marble,30*16);
+const raceStone=new THREE.InstancedMesh(new THREE.BoxGeometry(RACE.laneWidth-.10,.34,RACE.stride-.12),marble,RACE.lanes*RACE.squares);
 const tileTransform=new THREE.Object3D();
 const raceColors=[new THREE.Color(0x7c807b),new THREE.Color(0x989487)];
 let raceIndex=0;
-for(let lane=0;lane<30;lane++){
+for(let lane=0;lane<RACE.lanes;lane++){
  for(let step=0;step<16;step++){
-  const z=RACE.startZ-step*RACE.stride,x=(lane-14.5)*RACE.laneWidth;
+  const z=RACE.startZ-step*RACE.stride,x=(lane-(RACE.lanes-1)/2)*RACE.laneWidth;
   tileTransform.position.set(x,3.07,z);tileTransform.updateMatrix();
   raceStone.setMatrixAt(raceIndex,tileTransform.matrix);
   raceStone.setColorAt(raceIndex,raceColors[(lane+step)%2]);
@@ -522,14 +522,14 @@ for(let step=0;step<RACE.squares;step++){
  const label=numberedTileLabel(step+1);
  const labels=new THREE.InstancedMesh(label.geometry,label.material,RACE.lanes);
  for(let lane=0;lane<RACE.lanes;lane++){
-  tileTransform.position.set((lane-14.5)*RACE.laneWidth-.55,RACE.floorY+.015,RACE.startZ-step*RACE.stride+.7);
+  tileTransform.position.set((lane-(RACE.lanes-1)/2)*RACE.laneWidth-.55,RACE.floorY+.015,RACE.startZ-step*RACE.stride+.7);
   tileTransform.rotation.set(-Math.PI/2,0,0);tileTransform.scale.setScalar(.65);tileTransform.updateMatrix();labels.setMatrixAt(lane,tileTransform.matrix);
  }
  finalCourse.add(labels);
 }
 raceStone.castShadow=true;raceStone.receiveShadow=true;finalCourse.add(raceStone);
 for(const side of [-1,1]){
- const edge=side*(15*RACE.laneWidth+.65);
+ const edge=side*((RACE.lanes/2)*RACE.laneWidth+.65);
  for(let step=0;step<16;step+=3){
   const z=RACE.startZ-step*RACE.stride;
   finalePart(new THREE.CylinderGeometry(.35,.45,2.8,12),marble,edge,4.7,z);
@@ -557,7 +557,7 @@ for(let i=0;i<120;i++){coinTransform.position.set((rand(i+1200)-.5)*2.4,.8+rand(
 const victoryPositions=new Float32Array(180*3);for(let i=0;i<180;i++){victoryPositions[i*3]=(rand(i+1500)-.5)*18;victoryPositions[i*3+1]=rand(i+1600)*14;victoryPositions[i*3+2]=(rand(i+1700)-.5)*12;}
 const victoryGeometry=new THREE.BufferGeometry();victoryGeometry.setAttribute('position',new THREE.BufferAttribute(victoryPositions,3));
 const victory=new THREE.Points(victoryGeometry,new THREE.PointsMaterial({color:0xffd477,size:.19,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending}));victory.position.copy(vault.position);victory.visible=false;finalCourse.add(victory);
-for(const side of [-1,1]){const x=side*(15*RACE.laneWidth+.45);for(let j=0;j<9;j++){const z=RACE.startZ-j*5.6;finalePart(new THREE.BoxGeometry(.6,1.0,5.4),marble,x,3.6,z);}}
+for(const side of [-1,1]){const x=side*((RACE.lanes/2)*RACE.laneWidth+.45);for(let j=0;j<9;j++){const z=RACE.startZ-j*5.6;finalePart(new THREE.BoxGeometry(.6,1.0,5.4),marble,x,3.6,z);}}
 const crown=vaultMesh(new THREE.ConeGeometry(2.8,2.2,8),bronze,0,14.2,0);
 finalCourse.visible=false;
 const camera=new THREE.PerspectiveCamera(51,1,.1,400);camera.position.set(65,65,105);
