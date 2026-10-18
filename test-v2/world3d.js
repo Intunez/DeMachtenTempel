@@ -526,6 +526,7 @@ function installDetailedCharacter(group,index,id){
  const fallback=group.userData.fallback;
  if(fallback)fallback.visible=false;
  group.userData.highDetail=model;
+ const accentColor=[0xffd88c,0x7fffd0,0xffe2ae,0xffa77d,0x7eeaff,0xc7a4ff,0xffdc7d,0xff98b8][index%8];
  // Thirty distinctive silhouettes: real 3D fantasy accessories attached to the skinned body.
  const role=index%10;
  const armorColor=new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL((index*.137)%1,.52,.34),metalness:.65,roughness:.34});
@@ -559,7 +560,7 @@ function installDetailedCharacter(group,index,id){
   addGear(new THREE.OctahedronGeometry(.14,1),metal,-.68,1.52,.46);
  }
  // Wearable fantasy details: glowing mathematical crest, belt, cape and head ornament.
- const accentColor=[0xffd88c,0x7fffd0,0xffe2ae,0xffa77d,0x7eeaff,0xc7a4ff,0xffdc7d,0xff98b8][index%8];
+
  const crest=new THREE.Sprite(mathBadge(index));crest.position.set(0,1.6,.32);crest.scale.set(.52,.52,1);group.add(crest);
  const capeMat=new THREE.MeshStandardMaterial({color:costumeColors[index%8],roughness:.87,side:THREE.DoubleSide});
  const cape=new THREE.Mesh(new THREE.PlaneGeometry(.92,1.65,4,8),capeMat);
