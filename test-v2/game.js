@@ -363,7 +363,7 @@ function createDemo() {
 }
 
 function addTeam(name) {
-  const used=new Set(Object.values(state.teams||{}).map(t=>t.route));
+  const used=new Set(Object.values(state.teams||{}).map(t=>Number.isInteger(t.slot)?t.slot:t.route));
   const index=Array.from({length:30},(_,i)=>i).find(i=>!used.has(i));
   if(index===undefined)throw Error('Maximum 30 teams.');
 
@@ -375,6 +375,7 @@ function addTeam(name) {
     name: name.slice(0, 22),
     color: colors[index % 8],
     route: index % 8,
+    slot: index,
     step: 0,
     score: 0,
     progress: [],
@@ -1095,7 +1096,7 @@ function drawStudentCamera(time){
 }
 
 let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0;
-import('./world3d.js?v=adventurefix20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
+import('./world3d.js?v=avatarloadfix20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
