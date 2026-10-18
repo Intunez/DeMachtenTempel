@@ -1096,7 +1096,7 @@ function drawStudentCamera(time){
 }
 
 let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0;
-import('./world3d.js?v=cameraclear20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
+import('./world3d.js?v=cinematicpass20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
