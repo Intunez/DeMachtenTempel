@@ -242,3 +242,8 @@ body>.temple-audio-controls{position:fixed;right:16px;bottom:16px;z-index:2000;b
 #teacherAnswersPanel.teacher-answer-compact .teacher-answer-grid{grid-template-columns:repeat(auto-fit,minmax(135px,1fr))}
 #teacherAnswersPanel.teacher-answer-compact .teacher-answer-team{min-height:65px}
 @media(max-width:800px){#teacherCycleBar{top:75px;left:5px}#teacherAnswersPanel{inset:120px 6px 6px}.teacher-answer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.temple-audio-controls[hidden]{display:none!important}
+.teacher-answer-options{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.teacher-answer-options span{border:1px solid #627b86;border-radius:5px;padding:3px 5px;font-size:11px;line-height:1.3;background:#142a37}
+.teacher-answer-options .teacher-option-picked{background:#70501a;border-color:#ffcf69;color:#fff1bb}
