@@ -479,7 +479,7 @@ async function sendRequest(action, payload = {}) {
       at: Date.now()
     }
   ); } catch(error) {
-    if(/permission.denied/i.test(error.message||'')) throw Error('Firebase weigert het antwoord. De databankregels geven dit team geen schrijfrechten op rooms/'+room+'/requests. De leerkracht moet de Firebase Realtime Database-regels aanpassen; dit is geen fout in je antwoord.');
+    if(/permission.denied/i.test(error.message||'')) throw Error('Het antwoord kon niet worden doorgestuurd. Controleer de Firebase-toegangsregels en probeer opnieuw.');
     throw error;
   }
 }
@@ -767,7 +767,7 @@ async function handleRequest(r){
   if(!Number.isInteger(t.finalPos)||t.finalPos<1||t.finalPos>16)return;
   // Oude of dubbel ingestuurde antwoorden mogen geen extra vak opleveren.
   if(!Number.isInteger(Number(r.atPosition))||Number(r.atPosition)!==t.finalPos)return;
-  if(Number(r.choice)===finaleChoices(finaleVraag(t)).correct){
+  if(Number(r.answer??r.choice)===finaleChoices(finaleVraag(t)).correct){
    const previous=t.finalPos;
    t.finalPos=previous+1;
    t.finalAnswers=(t.finalAnswers||0)+1;
@@ -1000,7 +1000,7 @@ function renderStudent(){
    button.innerHTML='<span class="finale-choice-letter">'+String.fromCharCode(65+index)+'</span><span class="math-exercise">'+mathExpressionHtml(answer)+'</span>';
    button.onclick=async()=>{
     grid.querySelectorAll('button').forEach(b=>b.disabled=true);
-    try{await sendRequest('final',{choice:index,atPosition:t.finalPos});$('feedback').textContent='Antwoord ontvangen…';}
+    try{await sendRequest('final',{answer:index,atPosition:t.finalPos});$('feedback').textContent='Antwoord ontvangen…';}
     catch(e){$('feedback').textContent=e.message;grid.querySelectorAll('button').forEach(b=>b.disabled=false);}
    };
    grid.appendChild(button);
