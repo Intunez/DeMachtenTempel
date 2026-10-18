@@ -145,6 +145,7 @@ const duelQs=questions.slice(0,10);
 const finalQs=[{"q":"(2a)^2","a":"4a^2","set":16},{"q":"(4c)^3","a":"64c^3","set":16},{"q":"(-ab)^2","a":"a^2b^2","set":16},{"q":"(-3c)^2","a":"9c^2","set":16},{"q":"(-2c)^3","a":"-8c^3","set":16},{"q":"(-2ab)^2","a":"4a^2b^2","set":16},{"q":"(2ac)^3","a":"8a^3c^3","set":16},{"q":"(a^2b)^2","a":"a^4b^2","set":16},{"q":"(-ab)^3","a":"-a^3b^3","set":16},{"q":"(-1/4 ac)^2","a":"1/16a^2c^2","set":16},{"q":"(2a^2b)^2","a":"4a^4b^2","set":17},{"q":"(4ac^4)^2","a":"16a^2c^8","set":17},{"q":"(10xy^2z^3)^2","a":"100x^2y^4z^6","set":17},{"q":"(-4/5 a^3b^4)^2","a":"16/25a^6b^8","set":17},{"q":"(-3x^2y^4)^3","a":"-27x^6y^12","set":17},{"q":"(2/3)^2","a":"4/9","set":19},{"q":"(-1/2)^3","a":"-1/8","set":19},{"q":"(4/5)^2","a":"16/25","set":19},{"q":"(-1/10)^3","a":"-1/1000","set":19},{"q":"(3/5)^(-2)","a":"25/9","set":19},{"q":"(1/3)^(-2)","a":"9","set":19},{"q":"(-3/5)^(-2)","a":"25/9","set":19},{"q":"(-1/3)^2","a":"1/9","set":19},{"q":"(4/5)^(-2)","a":"25/16","set":19},{"q":"(1/10)^(-3)","a":"1000","set":19},{"q":"(a/b)^2","a":"a^2/b^2","set":20},{"q":"(-x/2)^3","a":"-x^3/8","set":20},{"q":"(3/z^2)^2","a":"9/z^4","set":20},{"q":"(1/a)^4","a":"1/a^4","set":20},{"q":"(-c/2)^(-2)","a":"4/c^2","set":20},{"q":"(-x/y)^2","a":"x^2/y^2","set":20},{"q":"(a^2/b^3)^(-2)","a":"b^6/a^4","set":20},{"q":"(-3/y^3)^3","a":"-27/y^9","set":20},{"q":"(-1/ab)^2","a":"1/a^2b^2","set":20},{"q":"(x^2/y)^(-1)","a":"y/x^2","set":20},{"q":"(a/b)^m","a":"a^m/b^m","set":21},{"q":"(x/y)^(p+1)","a":"x^(p+1)/y^(p+1)","set":21},{"q":"(x/2)^(2+a)","a":"x^(2+a)/2^(2+a)","set":21},{"q":"(-3/2)^(2a)","a":"3^(2a)/2^(2a)","set":21},{"q":"(x^2/y)^(-m)","a":"y^m/x^(2m)","set":21}];
 function avatarFace(n){
  if(!Number.isInteger(n))return '<span class="avatar-pending">✧</span>';
+ if(fantasyPortraits?.[n])return '<img class="fantasy-3d-portrait" src="'+fantasyPortraits[n]+'" alt="" loading="lazy">';
  const colors=['#2864b9','#398456','#e7c995','#c75537','#2e9ccc','#7650b7','#c79843','#ad376d'];
  const hair=['#513324','#352a1f','#f5e6b8','#a64225','#1b6c83','#3a263e','#b78235','#8d244f'];
  const skin=['#efbc95','#c88c64','#f3c7a7','#d39a72','#e3b18e','#b97c58','#e7b78e','#edb09b'];
@@ -1116,8 +1117,8 @@ function drawStudentCamera(time){
  glow.addColorStop(0,'#ffffff00');glow.addColorStop(1,'#03101899');ctx.fillStyle=glow;ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-let draw3D=null;
-import('./world3d.js?v=ravinecarved20261018').then(module=>{draw3D=module.draw3D;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
+let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0;
+import('./world3d.js?v=actual3dportraits20261018').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>console.warn('3D-weergave niet beschikbaar; 2D-reserveweergave actief.',error));
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;
@@ -1128,6 +1129,10 @@ function drawWelcomeFallback(canvas,time){
 }
 
 function animate(time) {
+  if(!fantasyPortraits&&getFantasyPortraits&&state?.phase==='avatars'&&time-portraitCheck>2000){
+   portraitCheck=time;
+   try{const portraits=getFantasyPortraits();if(portraits?.length===30){fantasyPortraits=portraits;render();}}catch(error){console.warn('3D-avatarportretten niet beschikbaar',error);getFantasyPortraits=null;}
+  }
   if (view === 'teacher') {
     if(!draw3D||!draw3D($('worldCanvas'),state,'teacher',null,time))drawWorld($('worldCanvas'), time);
   } else if (view === 'welcome') {
