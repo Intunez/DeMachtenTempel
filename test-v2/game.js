@@ -732,20 +732,16 @@ async function handleRequest(r){
    t.progress=[];
   }await writeState();return;
  }
- if(r.action==='challenge'&&state.phase==='final'&&!state.winner){
+ // A challenge starts immediately: opponents cannot refuse. Use the existing
+ // Firebase-approved numeric 'answer' request for backwards-compatible rules.
+ if((r.action==='challenge'||(r.action==='answer'&&r.challengeTarget===true))&&state.phase==='final'&&!state.winner){
   const other=Object.values(state.teams).find(v=>v.route===n&&v.id!==t.id);
-  if(!other||t.duel||other.duel||(t.challengesStarted||0)>=2||Object.values(state.teams).some(v=>v.pendingFrom===t.id)||t.pendingFrom||other.pendingFrom)return;
-  other.pendingFrom=t.id;flash('⚔ '+t.name+' daagt '+other.name+' uit!');await writeState();return;
- }
- if((r.action==='accept'||r.action==='decline')&&state.phase==='final'){
-  const challenger=state.teams[t.pendingFrom];if(!challenger)return;
-  t.pendingFrom='';
-  if(r.action==='accept'&&!t.duel&&!challenger.duel){
-   const id='d'+(++state.duelNumber);
-   state.duels[id]={id,a:challenger.id,b:t.id,qIndex:(state.duelNumber-1)%duelQs.length,done:false,winner:'',progress:{[challenger.id]:[],[t.id]:[]}};
-   t.duel=id;challenger.duel=id;challenger.challengesStarted=(challenger.challengesStarted||0)+1;
-   flash('⚔ Duel: '+challenger.name+' tegen '+t.name);templeAudio.cue('duel');
-  }else flash(t.name+' weigert de uitdaging.');
+  if(!other||t.duel||other.duel||(t.challengesStarted||0)>=2||t.pendingFrom||other.pendingFrom)return;
+  if(!Number.isInteger(t.finalPos)||!Number.isInteger(other.finalPos))return;
+  const id='d'+(++state.duelNumber);
+  state.duels[id]={id,a:t.id,b:other.id,qIndex:(state.duelNumber-1)%duelQs.length,done:false,winner:'',progress:{[t.id]:[],[other.id]:[]}};
+  t.duel=id;other.duel=id;t.challengesStarted=(t.challengesStarted||0)+1;
+  flash('⚔ Duel: '+t.name+' tegen '+other.name);templeAudio.cue('duel');
   await writeState();return;
  }
  if(r.action==='duel'&&state.phase==='final'&&!state.winner){
@@ -1007,8 +1003,8 @@ function renderStudent(){
   });
   $('options').appendChild(grid);
   if((t.challengesStarted||0)<2&&!Object.values(state.teams).some(v=>v.pendingFrom===t.id)){
-   const area=document.createElement('div');area.className='challenge-area';area.innerHTML='<h4>⚔ Optioneel: daag een team uit ('+(2-(t.challengesStarted||0))+' over)</h4><p>Win twee vakken. Het andere team mag weigeren.</p>';
-   Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=()=>sendRequest('challenge',{answer:v.route}).catch(e=>$('feedback').textContent=e.message);area.appendChild(b);});$('options').appendChild(area);
+   const area=document.createElement('div');area.className='challenge-area';area.innerHTML='<h4>⚔ Daag een team uit ('+(2-(t.challengesStarted||0))+' uitdagingen over)</h4><p>Het duel begint meteen. Het andere team kan niet weigeren. Win en ga twee vakken vooruit.</p>';
+   Object.values(state.teams).filter(v=>v.id!==t.id&&!v.duel&&!v.pendingFrom).forEach(v=>{const b=document.createElement('button');b.textContent='⚔ '+v.name+' · vak '+v.finalPos;b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:v.route,challengeTarget:true});$('feedback').textContent='⚔ Uitdaging verstuurd. Het duel begint!';}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};area.appendChild(b);});$('options').appendChild(area);
   }return;
  }
  if(d){status.textContent='⚔ Duel';title.textContent='DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.q;tokenPuzzle(q,'duel',p);return;}
