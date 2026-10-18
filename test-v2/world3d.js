@@ -171,6 +171,58 @@ function build(){
  const cloak=new THREE.Mesh(new THREE.ConeGeometry(1.1,3.3,12),mat(0x263947));guardian.add(cloak);
  const head=new THREE.Mesh(new THREE.IcosahedronGeometry(.85,2),mat(0x738b91,{metalness:.45}));head.position.y=2;guardian.add(head);
  const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.62),crystal);gem.position.set(0,3.7,0);guardian.add(gem);guardian.userData.gem=gem;world.add(guardian);world.userData.guardian=guardian;
+ // The first challenge takes place on a narrow, unstable bridge over a clearly
+ // visible abyss. Each of the eight team approaches has its own ravine section.
+ const abyssBlack=new THREE.MeshStandardMaterial({color:0x071019,roughness:1,side:THREE.DoubleSide});
+ const abyssRock=new THREE.MeshStandardMaterial({color:0x303e40,map:rockTex,roughness:1,side:THREE.DoubleSide});
+ const plankWood=new THREE.MeshStandardMaterial({color:0x75513a,roughness:.92});
+ const ropeMat=new THREE.MeshStandardMaterial({color:0xd1b48a,roughness:1});
+ const ravineGroups=[];
+ for(let route=0;route<8;route++){
+  const angle=route*Math.PI/4;
+  const bridge=new THREE.Group();
+  bridge.rotation.y=-angle;
+  world.add(bridge);ravineGroups.push(bridge);
+  // Local +X is the outward direction: span the outer rim (r=25) to r=19.
+  const make=(geo,m,x,y,z)=>{
+   const mesh=new THREE.Mesh(geo,m);mesh.position.set(x,y,z);
+   mesh.castShadow=true;mesh.receiveShadow=true;bridge.add(mesh);return mesh;
+  };
+  // Black fissure with steep jagged walls descending well below the island.
+  make(new THREE.PlaneGeometry(8.7,9.4),abyssBlack,22.4,3.20,0).rotation.x=-Math.PI/2;
+  for(const side of [-1,1]){
+   const wall=make(new THREE.BoxGeometry(8.7,16,1.05),abyssRock,22.4,-5.0,side*4.35);
+   for(let j=0;j<10;j++){
+    const shard=make(new THREE.ConeGeometry(.65+rand(route*17+j)*.85,3.8+rand(route*19+j)*5,6),rock,
+      18.4+j*.87,-5.8-rand(j+route)*2,side*(3.55+rand(j+route*8)*.65));
+    shard.rotation.z=(rand(j*3+route)-.5)*.45;
+   }
+  }
+  // A winding footbridge: uneven individual planks, two ropes and upright posts.
+  for(let j=0;j<13;j++){
+   const x=18.0+j*.72;
+   const plank=make(new THREE.BoxGeometry(.67,.20,2.25),plankWood,x,3.40,.10*Math.sin(j*.85));
+   plank.rotation.y=(rand(j+route*31)-.5)*.09;
+   plank.rotation.z=(rand(j+route*13)-.5)*.075;
+   if(j%3===0){
+    for(const side of [-1,1]){
+     make(new THREE.CylinderGeometry(.065,.08,1.45,8),plankWood,x,4.1,side*1.12);
+    }
+   }
+  }
+  for(const side of [-1,1]){
+   const points=[];
+   for(let j=0;j<=30;j++){
+    const x=18+j*.31;
+    points.push(new THREE.Vector3(x,4.7-.24*Math.sin(j/30*Math.PI),side*1.12));
+   }
+   make(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),44,.045,7,false),ropeMat,0,0,0);
+  }
+  // Blue depth haze makes the gulf legible from the student's camera.
+  const haze=make(new THREE.PlaneGeometry(7.8,8.0),new THREE.MeshBasicMaterial({color:0x28617b,transparent:true,opacity:.23,depthWrite:false,side:THREE.DoubleSide}),22.4,-1.8,0);
+  haze.rotation.x=-Math.PI/2;
+ }
+ world.userData.ravineGroups=ravineGroups;
  // Grand approach: illuminated carved walkway, portals and suspended ruins.
  const approach=new THREE.Group();world.add(approach);
  const buildPart=(geo,material,x,y,z,parent=approach)=>{const o=new THREE.Mesh(geo,material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;};
@@ -458,7 +510,7 @@ export function draw3D(canvas,state,view,teamId,time){
   g.position.y+=Math.sin(time*.002+t.route)*.004;
  }
  g.rotation.y=Math.atan2(-g.position.x,-g.position.z);}
- if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const desired=target.clone().add(direction.multiplyScalar(7.5)).add(new THREE.Vector3(0,4.3,0));camera.position.lerp(desired,.055);camera.lookAt(target.x*.48,6.7,target.z*.48);}
+ if(view==='student'&&state?.teams?.[teamId]){const target=position(state.teams[teamId],state.phase);const direction=target.clone().normalize();if(direction.length()<.1)direction.set(0,0,1);const onBridge=state.phase==='playing'&&(state.teams[teamId].step||0)===0;const desired=target.clone().add(direction.multiplyScalar(onBridge?8.2:7.5)).add(new THREE.Vector3(0,onBridge?6.0:4.3,0));camera.position.lerp(desired,.055);const aim=onBridge?target.clone().multiplyScalar(.80):new THREE.Vector3(target.x*.48,6.7,target.z*.48);if(onBridge)aim.y=1.7;camera.lookAt(aim);}
  else if(state?.phase==='final'||state?.phase==='ended'){camera.position.lerp(new THREE.Vector3(17,19,49),.035);camera.lookAt(0,6,16);}else{const wide=width/height;const distance=wide<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
  if(world.userData.falls)for(let i=0;i<world.userData.falls.length;i++){const f=world.userData.falls[i];f.material.opacity=.63+.12*Math.sin(time*.002+i);}
