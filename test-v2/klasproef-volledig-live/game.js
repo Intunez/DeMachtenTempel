@@ -405,8 +405,7 @@ function paintTeacherCycle(){
   const t=watchedTeam();
   if(!t){panel.hidden=true;return;}
   const q=!t.finished?getQuestion(t):null;
-  const live=liveDrafts.get(t.id);
-  const selectedIndices=live&&live.solved===t.solved?live.sequence:(Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]));
+  const selectedIndices=Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]);
   
   panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
   name.textContent='LIVE · '+t.name;
