@@ -737,7 +737,7 @@ function nameLabel(name){
  ctx.strokeText(title,256,49,465);ctx.fillStyle='#fff0ce';ctx.fillText(title,256,49,465);
  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:true,transparent:true}));
- sprite.position.y=3.75;sprite.scale.set(3.2,.6,1);return sprite;
+ sprite.position.y=4.2;sprite.scale.set(5.2,1,1);return sprite;
 }
 
 function avatar(id,index){let g=avatars.get(id);if(g)return g;g=new THREE.Group();const fallback=new THREE.Group();character(fallback,index);g.add(fallback);g.userData.fallback=fallback;g.userData.avatarIndex=index;g.userData.label=null;scene.add(g);avatars.set(id,g);installDetailedCharacter(g,index,id);return g;}
@@ -882,9 +882,18 @@ export function draw3D(canvas,state,view,teamId,time){
  if(failing>=0&&failing<2200&&figure?.userData.fallStage===0)aim.y=figure.position.y+1;
  camera.lookAt(aim);
  }else if(finalCourse.visible){
- const center=RACE.originZ+RACE.startZ-7.5*RACE.stride;
- const factor=Math.max(1,1.6/(width/height));
- camera.position.lerp(new THREE.Vector3(10,53*factor,center+62*factor),.055);camera.lookAt(0,4,center-2);
+ // Teacher finale: frame the actual racers instead of the entire 16-square course.
+ const racers=teams.filter(t=>Number.isInteger(t.avatar));
+ const points=racers.map(t=>position(t,state.phase));
+ const focus=points.length?points.reduce((sum,p)=>sum.add(p),new THREE.Vector3()).multiplyScalar(1/points.length):new THREE.Vector3(0,3,RACE.originZ+RACE.startZ);
+ const minZ=points.length?Math.min(...points.map(p=>p.z)):focus.z;
+ const maxZ=points.length?Math.max(...points.map(p=>p.z)):focus.z;
+ const spread=Math.max(0,maxZ-minZ);
+ const wide=width/height<1.35?1.22:1;
+ const distance=Math.min(52,Math.max(20,22+spread*.58))*wide;
+ const desired=new THREE.Vector3(focus.x+distance*.18,focus.y+distance*.65,focus.z+distance);
+ camera.position.lerp(desired,.09);
+ camera.lookAt(focus.x,focus.y+2,focus.z);
  }else{const distance=width/height<1.35?1.22:1;camera.position.lerp(new THREE.Vector3(34*distance,40*distance,87*distance),.055);camera.lookAt(0,7,0);}
  for(let i=0;i<clouds.length;i++)clouds[i].position.x+=Math.sin(time*.00011+i)*.002;
  if(world.userData.waterTexture)world.userData.waterTexture.offset.y=-(time*.00023%1);
