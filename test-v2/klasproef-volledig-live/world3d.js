@@ -562,7 +562,7 @@ for(const side of [-1,1]){const x=side*((RACE.lanes/2)*RACE.laneWidth+.45);for(l
 const crown=vaultMesh(new THREE.ConeGeometry(2.8,2.2,8),bronze,0,14.2,0);
 finalCourse.visible=false;
 const camera=new THREE.PerspectiveCamera(51,1,.1,400);camera.position.set(65,65,105);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.bias=-.0003;sun.shadow.normalBias=.035;sun.shadow.camera.far=250;scene.add(sun.target);sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.setClearColor(0xa4c4c7);
 // Textured lantern models add architectural detail; failures never stop gameplay.
 const gltfLoader=new GLTFLoader();
