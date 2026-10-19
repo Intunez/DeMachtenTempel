@@ -1143,7 +1143,8 @@ function animate(time) {
       out.width=420;out.height=310;
       const c=out.getContext('2d');
       c.fillStyle='#091824';c.fillRect(0,0,out.width,out.height);
-      c.drawImage(source,0,0,420,198);
+      const actualCanvas=source.parentElement?.querySelector('canvas:not(#studentWorld)')||source;
+      c.drawImage(actualCanvas,0,0,420,198);
       c.fillStyle='#152c38';c.fillRect(0,198,420,112);
       c.fillStyle='#f9d58c';c.font='bold 17px sans-serif';
       c.fillText(($('questTitle')?.textContent||'Opdracht').slice(0,42),12,220);
@@ -1153,7 +1154,7 @@ function animate(time) {
       const buttons=[...$('options').querySelectorAll('button')].filter(b=>b.offsetParent!==null);
       buttons.slice(0,4).forEach((b,i)=>{c.fillStyle='#f9d58c';c.fillText((i+1)+'. '+(b.textContent||'').trim().slice(0,48),12,275+i*12);});
       sendRequest('liveFrame',{image:out.toDataURL('image/jpeg',.27),phase:state.phase}).catch(e=>console.warn('Livebeeld niet verzonden',e));
-    }catch(e){console.warn('Livebeeld mislukt',e);}
+    }catch(e){console.warn('Livebeeld mislukt',e);$('studentStatus').title='Live meekijken: '+e.message;}
   }
   requestAnimationFrame(animate);
 }
