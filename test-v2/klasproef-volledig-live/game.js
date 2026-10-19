@@ -414,7 +414,7 @@ function paintTeacherCycle(){
   const tokens=q?.tokens||[];
   panel.innerHTML='<h3 class="live-team-heading">'+escapeHtml(t.name)+'</h3>'+
    '<small>'+escapeHtml(String(title))+'</small>'+
-   '<div class="teacher-answer-draft">'+(selectedIndices.length?selectedIndices.map(i=>escapeHtml(String(q?.tokens?.[i]||''))).join(' · '):'Nog niets aangeklikt')+'</div>'+
+   '<div class="teacher-answer-draft"><div class="live-order-title">Samengestelde volgorde (live)</div><div class="live-order-line">'+(selectedIndices.length?selectedIndices.map((i,pos)=>'<span class="live-placed-token"><b>'+(pos+1)+'</b> '+escapeHtml(String(q?.tokens?.[i]||''))+'</span>').join(''):'<span class="live-empty">Nog niets geplaatst</span>')+'</div></div>'+
    '<div class="teacher-answer-options">'+tokens.map((x,i)=>'<span class="'+(selectedIndices.includes(i)?'teacher-option-picked':'')+'">'+escapeHtml(String(x))+'</span>').join('')+'</div>';
   return;
  }
