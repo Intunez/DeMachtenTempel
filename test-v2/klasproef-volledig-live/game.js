@@ -679,7 +679,7 @@ async function handleRequest(r){
  if(!host||!state)return;const t=state.teams?.[r.teamId];if(!t)return;
  const n=Number(r.answer);
  if(r.action==='answer'&&state.phase==='avatars'){
-  if(!Number.isInteger(n)||n<0||n>=13||Number.isInteger(t.avatar))return;
+  if(!Number.isInteger(n)||n<0||n>=avatars.length||Number.isInteger(t.avatar))return;
   t.avatar=n;if(room==='SOLO'){state.phase='playing';state.started=Date.now();flash('Je oefenavontuur begint!');}else flash(t.name+' heeft een figuur gekozen.');await writeState();return;
  }
  if(r.action==='answer'&&r.liveOnly===true&&state.phase==='playing'){
@@ -992,7 +992,7 @@ function renderStudent(){
   status.textContent='Alle teams kiezen tegelijk';title.textContent=Number.isInteger(t.avatar)?'Jullie figuur is gekozen':'Kies je figuur';txt.textContent='Kies je favoriete avatar. Meerdere teams mogen dezelfde avatar gebruiken; jullie teamnaam blijft uniek.';
   if(!Number.isInteger(t.avatar)){
    const grid=document.createElement('div');grid.className='avatargrid';
-   avatars.slice(0,13).forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.innerHTML=avatarFace(i);b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;$('feedback').textContent='Avatar wordt geregistreerd…';try{await sendRequest('answer',{answer:i});setTimeout(()=>{if(state?.phase==='avatars'&&!Number.isInteger(state.teams?.[teamId]?.avatar)){$('feedback').textContent='Nog geen bevestiging ontvangen. Wacht even op de bevestiging. Als die uitblijft, vraag de leerkracht om hulp.';currentSignature='';renderStudent();}},3500);}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
+   avatars.forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.innerHTML=avatarFace(i);b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;$('feedback').textContent='Avatar wordt geregistreerd…';try{await sendRequest('answer',{answer:i});setTimeout(()=>{if(state?.phase==='avatars'&&!Number.isInteger(state.teams?.[teamId]?.avatar)){$('feedback').textContent='Nog geen bevestiging ontvangen. Wacht even op de bevestiging. Als die uitblijft, vraag de leerkracht om hulp.';currentSignature='';renderStudent();}},3500);}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
   }return;
  }
  if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent=room==='SOLO'?'🏆 Avontuur voltooid!':'Spel afgelopen';title.textContent=room==='SOLO'?'🏆 GELUKT! DE SCHATKAMER IS OPEN!':w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent=room==='SOLO'?'Fantastisch! Je hebt de zes avonturen én de finale met de rekenoefeningen succesvol voltooid en de schatkamer geopend. Je eindscore: '+t.score+' punten. Klik op Menu om opnieuw te spelen.':'Winnaar: '+(w?.name||'Onbekend');return;}
