@@ -675,6 +675,14 @@ async function handleRequest(r){
   if(!Number.isInteger(n)||n<0||n>=13||Number.isInteger(t.avatar))return;
   t.avatar=n;if(room==='SOLO'){state.phase='playing';state.started=Date.now();flash('Je oefenavontuur begint!');}else flash(t.name+' heeft een figuur gekozen.');await writeState();return;
  }
+ if(r.action==='answer'&&r.liveOnly===true&&state.phase==='playing'){
+   const q=getQuestion(t),seq=r.liveSequence;
+   if(Array.isArray(seq)&&seq.length<=q.tokens.length&&r.atSolved===t.solved&&seq.every(i=>Number.isInteger(i)&&i>=0&&i<q.tokens.length)&&new Set(seq).size===seq.length){
+     t.liveDraft=[...seq];
+     await writeState();
+   }
+   return;
+ }
  if(r.action==='liveDraft'&&['playing','final'].includes(state.phase)){
    if(!Array.isArray(r.sequence)||r.sequence.length>16)return;
    const q=state.phase==='playing'?getQuestion(t):getActiveDuel(t)?duelQs[getActiveDuel(t).qIndex]:null;
@@ -912,7 +920,7 @@ function render(){
 }
 let tokenDraft=null;
 function tokenPuzzle(q,action,progress){
- const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing')sendRequest('liveDraft',{sequence:[...selected],atSolved:state.teams[teamId].solved}).catch(error=>{console.warn('Live keuze niet verzonden',error);$('feedback').textContent='Live doormelden mislukt: '+error.message;});};
+ const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing')sendRequest('answer',{answer:selected.length?selected[selected.length-1]:0,liveSequence:[...selected],atSolved:state.teams[teamId].solved,liveOnly:true}).catch(error=>{console.warn('Live keuze niet verzonden',error);$('feedback').textContent='Live doormelden mislukt: '+error.message;});};
  const box=$('options'),kind=action==='duel'?'duel':'adventure';
  const key=kind+':'+(kind==='duel'?(getActiveDuel(state.teams[teamId])?.id||''):((state.teams[teamId]?.solved||0)+':'+(state.teams[teamId]?.route||0)))+':'+(state.teams[teamId]?.wrong||0);
  if(!tokenDraft||tokenDraft.key!==key)tokenDraft={key,sequence:[]};
