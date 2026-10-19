@@ -384,27 +384,28 @@ function mountTeacherCycle(){
  setInterval(()=>{if(view==='teacher'&&state?.phase==='playing')paintTeacherCycle();},1000);
  paintTeacherCycle();
 }
+function watchedTeam(){
+ if(state?.phase!=='playing')return null;
+ const teams=Object.values(state.teams||{}).sort((a,b)=>(a.slot||0)-(b.slot||0));
+ return teams.length?teams[Math.floor(Math.max(0,Date.now()-(state.started||Date.now()))/15000)%teams.length]:null;
+}
 function paintTeacherCycle(){
  const panel=document.getElementById('teacherAnswersPanel'),name=document.getElementById('teacherCycleName');
  if(!panel||!state)return;
  if(state.phase==='playing'){
-  const teams=Object.values(state.teams||{}).sort((a,b)=>(a.slot||0)-(b.slot||0));
-  if(!teams.length){panel.hidden=true;return;}
-  const elapsed=Math.max(0,Date.now()-(state.started||Date.now()));
-  const index=Math.floor(elapsed/15000)%teams.length;
-  const t=teams[index],q=!t.finished?getQuestion(t):null;
+  const t=watchedTeam();
+  if(!t){panel.hidden=true;return;}
+  const q=!t.finished?getQuestion(t):null;
   const selectedIndices=Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]);
-  const remaining=15-Math.floor(elapsed%15000/1000);
-  const frame=liveFrames.get(t.id);
-  const fresh=frame&&Date.now()-frame.at<12000;
-  const fallbackWorld=$('worldCanvas');
+  const remaining=15-Math.floor(Math.max(0,Date.now()-(state.started||Date.now()))%15000/1000);
   panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
   name.textContent='Live: '+t.name+' · '+remaining+' s';
   const title=q?(q.q||q.question||q.fullRule||'Oefening'):'Avontuur voltooid';
   const tokens=q?.tokens||[];
-  panel.innerHTML='<h3>LIVE SPELBEELD · '+escapeHtml(t.name)+' · volgend team over '+remaining+' s</h3>'+
-   (fresh?'<img alt="Live spelbeeld van '+escapeHtml(t.name)+'" style="width:100%;max-height:55vh;object-fit:contain;background:#081821;border-radius:12px" src="'+frame.image+'">':'<div style="display:grid;gap:8px"><p>Live leerlingbeeld nog niet ontvangen. Hieronder de gedeelde wereld (niet de leerlingcamera).</p><img style="width:100%;max-height:32vh;object-fit:contain" src="'+(fallbackWorld?.toDataURL?.('image/jpeg',.3)||'')+'"></div>')+
-   '<div class="teacher-answer-grid"><div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(selectedIndices.length?selectedIndices.map(i=>escapeHtml(String(q?.tokens?.[i]||''))).join(' · '):'Nog niets aangeklikt')+'</div><div class="teacher-answer-options">'+tokens.map((x,i)=>'<span class="'+(selectedIndices.includes(i)?'teacher-option-picked':'')+'">'+escapeHtml(String(x))+'</span>').join('')+'</div></div></div>';
+  panel.innerHTML='<h3>LIVE · '+escapeHtml(t.name)+' · volgend team over '+remaining+' s</h3>'+
+   '<small>'+escapeHtml(String(title))+'</small>'+
+   '<div class="teacher-answer-draft">'+(selectedIndices.length?selectedIndices.map(i=>escapeHtml(String(q?.tokens?.[i]||''))).join(' · '):'Nog niets aangeklikt')+'</div>'+
+   '<div class="teacher-answer-options">'+tokens.map((x,i)=>'<span class="'+(selectedIndices.includes(i)?'teacher-option-picked':'')+'">'+escapeHtml(String(x))+'</span>').join('')+'</div>';
   return;
  }
  panel.classList.remove('teacher-answer-focus');
@@ -1129,7 +1130,8 @@ function animate(time) {
    try{const portraits=getFantasyPortraits();if(portraits?.length===30&&portraits!==fantasyPortraits){fantasyPortraits=portraits;currentSignature=null;render();}}catch(error){console.warn('3D-avatarportretten niet beschikbaar',error);getFantasyPortraits=null;}
   }
   if (view === 'teacher') {
-    if(!draw3D||!draw3D($('worldCanvas'),state,'teacher',null,time))drawWorld($('worldCanvas'), time);
+    const watched=watchedTeam();
+    if(!draw3D||!draw3D($('worldCanvas'),state,watched?'student':'teacher',watched?.id||null,time))drawWorld($('worldCanvas'), time);
   } else if (view === 'welcome') {
     if(!draw3D||!draw3D($('previewCanvas'),null,'welcome',null,time))drawWelcomeFallback($('previewCanvas'),time);
   } else if (view === 'student') {
