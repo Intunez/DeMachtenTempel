@@ -611,7 +611,7 @@ async function startGame(){
   if(teams.length<3){alert('Minstens 3 teams nodig.');return;}
   state.phase='avatars';flash('Alle teams mogen nu tegelijk een avatar kiezen.');
  }else if(state.phase==='avatars'){
-  if(teams.some(t=>!Number.isInteger(t.avatar))){alert('Wacht tot alle teams gekozen hebben.');return;}
+  const missing=teams.filter(t=>!Number.isInteger(t.avatar));if(missing.length){alert('Deze teams moeten nog een avatar kiezen: '+missing.map(t=>t.name).join(', ')+'. Laat hen op hun computer de avatarselectie vernieuwen.');return;}
   state.phase='playing';state.started=Date.now();flash('De poorten openen!');
  }else return;
  await writeState();
@@ -935,9 +935,10 @@ function renderStudent(){
  if(state.phase==='avatars'){
   status.textContent='Alle teams kiezen tegelijk';title.textContent=Number.isInteger(t.avatar)?'Jullie figuur is gekozen':'Kies je figuur';txt.textContent='Wie het eerst kiest, krijgt de avatar.';
   if(!Number.isInteger(t.avatar)){
+   const refresh=document.createElement('button');refresh.type='button';refresh.textContent='↻ Avatarselectie vernieuwen';refresh.className='secondary';refresh.onclick=()=>{currentSignature='';renderStudent();};$('options').appendChild(refresh);
    const taken=new Set(Object.values(state.teams||{}).map(v=>v.avatar));
    const grid=document.createElement('div');grid.className='avatargrid';
-   avatars.slice(0,13).forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i);b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
+   avatars.slice(0,13).forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i);b.setAttribute('aria-label',a[0]);b.onclick=async()=>{b.disabled=true;$('feedback').textContent='Avatar wordt geregistreerd…';try{await sendRequest('answer',{answer:i});setTimeout(()=>{if(state?.phase==='avatars'&&!Number.isInteger(state.teams?.[teamId]?.avatar)){$('feedback').textContent='Nog geen bevestiging ontvangen. Klik op Avatarselectie vernieuwen en probeer een beschikbare avatar.';currentSignature='';renderStudent();}},3500);}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
   }return;
  }
  if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent=room==='SOLO'?'🏆 Avontuur voltooid!':'Spel afgelopen';title.textContent=room==='SOLO'?'🏆 GELUKT! DE SCHATKAMER IS OPEN!':w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent=room==='SOLO'?'Fantastisch! Je hebt de zes avonturen én de finale met de rekenoefeningen succesvol voltooid en de schatkamer geopend. Je eindscore: '+t.score+' punten. Klik op Menu om opnieuw te spelen.':'Winnaar: '+(w?.name||'Onbekend');return;}
