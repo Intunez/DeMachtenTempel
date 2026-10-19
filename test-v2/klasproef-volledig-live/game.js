@@ -31,6 +31,7 @@ let view = 'welcome';
 let currentSignature = '';
 let requestQueue = Promise.resolve();
 const liveFrames = new Map();
+const liveDrafts = new Map();
 let lastLiveFrameAt=0;
 
 
@@ -270,6 +271,12 @@ async function createOnline() {
             if(request.action==='liveFrame' && typeof request.image==='string' && request.image.length<110000 && /^data:image\/jpeg;base64,/.test(request.image)) {
               liveFrames.set(request.teamId,{image:request.image,at:Date.now(),phase:request.phase});
               if(view==='teacher')paintTeacherCycle();
+            } else if(request.action==='liveDraft' && state?.phase==='playing') {
+              const t=state.teams?.[request.teamId],q=t&&!t.finished?getQuestion(t):null;
+              if(q&&Array.isArray(request.sequence)&&request.atSolved===t.solved&&request.sequence.every(i=>Number.isInteger(i)&&i>=0&&i<q.tokens.length)){
+                liveDrafts.set(t.id,{sequence:[...request.sequence],at:Date.now(),solved:t.solved});
+                if(view==='teacher')paintTeacherCycle();
+              }
             } else if(request.action!=='liveFrame') await handleRequest(request);
           }
 
@@ -396,7 +403,8 @@ function paintTeacherCycle(){
   const t=watchedTeam();
   if(!t){panel.hidden=true;return;}
   const q=!t.finished?getQuestion(t):null;
-  const selectedIndices=Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]);
+  const draft=liveDrafts.get(t.id);
+  const selectedIndices=draft&&draft.solved===t.solved?draft.sequence:(Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]));
   const remaining=15-Math.floor(Math.max(0,Date.now()-(state.started||Date.now()))%15000/1000);
   panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
   name.textContent='Live: '+t.name+' · '+remaining+' s';
@@ -904,7 +912,7 @@ function render(){
 }
 let tokenDraft=null;
 function tokenPuzzle(q,action,progress){
- const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing')sendRequest('liveDraft',{sequence:[...selected],atSolved:state.teams[teamId].solved}).catch(error=>{$('feedback').textContent='Live meekijken kon deze keuze niet doorsturen: '+error.message;console.warn(error);});};
+ const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing')sendRequest('liveDraft',{sequence:[...selected],atSolved:state.teams[teamId].solved}).catch(error=>{console.warn('Live keuze niet verzonden',error);});};
  const box=$('options'),kind=action==='duel'?'duel':'adventure';
  const key=kind+':'+(kind==='duel'?(getActiveDuel(state.teams[teamId])?.id||''):((state.teams[teamId]?.solved||0)+':'+(state.teams[teamId]?.route||0)))+':'+(state.teams[teamId]?.wrong||0);
  if(!tokenDraft||tokenDraft.key!==key)tokenDraft={key,sequence:[]};
@@ -1138,26 +1146,7 @@ function animate(time) {
     if(!draw3D||!draw3D($('studentWorld'),state,'student',teamId,time))drawStudentCamera(time);
   }
 
-  if(view==='student' && online && !host && state?.phase==='playing' && time-lastLiveFrameAt>3500){
-    lastLiveFrameAt=time;
-    try{
-      const source=$('studentWorld'),out=document.createElement('canvas');
-      out.width=420;out.height=310;
-      const c=out.getContext('2d');
-      c.fillStyle='#091824';c.fillRect(0,0,out.width,out.height);
-      const actualCanvas=source.parentElement?.querySelector('canvas:not(#studentWorld)')||source;
-      c.drawImage(actualCanvas,0,0,420,198);
-      c.fillStyle='#152c38';c.fillRect(0,198,420,112);
-      c.fillStyle='#f9d58c';c.font='bold 17px sans-serif';
-      c.fillText(($('questTitle')?.textContent||'Opdracht').slice(0,42),12,220);
-      c.fillStyle='#fff';c.font='13px sans-serif';
-      const lines=($('questText')?.textContent||'').match(/.{1,75}(?:\\s|$)/g)||[];
-      lines.slice(0,2).forEach((line,i)=>c.fillText(line.trim(),12,240+i*15));
-      const buttons=[...$('options').querySelectorAll('button')].filter(b=>b.offsetParent!==null);
-      buttons.slice(0,4).forEach((b,i)=>{c.fillStyle='#f9d58c';c.fillText((i+1)+'. '+(b.textContent||'').trim().slice(0,48),12,275+i*12);});
-      sendRequest('liveFrame',{image:out.toDataURL('image/jpeg',.27),phase:state.phase}).catch(e=>console.warn('Livebeeld niet verzonden',e));
-    }catch(e){console.warn('Livebeeld mislukt',e);$('studentStatus').title='Live meekijken: '+e.message;}
-  }
+
   requestAnimationFrame(animate);
 }
 
