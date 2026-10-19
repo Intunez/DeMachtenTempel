@@ -405,6 +405,12 @@ function paintTeacherCycle(){
   const t=watchedTeam();
   if(!t){panel.hidden=true;return;}
   const q=!t.finished?getQuestion(t):null;
+  if(t.finished){
+    panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
+    name.textContent='LIVE · '+t.name;
+    panel.innerHTML='<h3 class="live-team-heading">'+escapeHtml(t.name)+'</h3><div class="live-finale-wait"><strong>🏆 In de schatkamer!</strong><p>Dit team heeft de zes avonturen voltooid en wacht op de finale.</p></div>';
+    return;
+  }
   const selectedIndices=Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]);
   
   panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
