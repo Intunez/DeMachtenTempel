@@ -32,6 +32,7 @@ let currentSignature = '';
 let requestQueue = Promise.resolve();
 const liveFrames = new Map();
 const liveDrafts = new Map();
+let liveChoicesUnsub=null;
 let lastLiveFrameAt=0;
 
 
@@ -404,7 +405,8 @@ function paintTeacherCycle(){
   const t=watchedTeam();
   if(!t){panel.hidden=true;return;}
   const q=!t.finished?getQuestion(t):null;
-  const selectedIndices=Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]);
+  const live=liveDrafts.get(t.id);
+  const selectedIndices=live&&live.solved===t.solved?live.sequence:(Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]));
   
   panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
   name.textContent='LIVE · '+t.name;
@@ -434,6 +436,16 @@ function paintTeacherCycle(){
 }
 function openTeacher() {
   show('teacher');
+  if(online&&!demo){
+    if(liveChoicesUnsub)liveChoicesUnsub();
+    liveChoicesUnsub=firebase.onValue(firebase.ref(db,roomPath('liveChoices')),snapshot=>{
+      const data=snapshot.val()||{};
+      for(const [id,value] of Object.entries(data)){
+        if(Array.isArray(value?.sequence))liveDrafts.set(id,{sequence:value.sequence,solved:value.solved,at:value.at});
+      }
+      if(view==='teacher')paintTeacherCycle();
+    },error=>console.error('Live keuzes ontvangen mislukt',error));
+  }
 
   showRoomCode();mountTeacherCycle();
   $('demoControls').classList.toggle('hidden', !demo);
@@ -920,7 +932,7 @@ function render(){
 }
 let tokenDraft=null;
 function tokenPuzzle(q,action,progress){
- const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing')sendRequest('answer',{answer:selected.length?selected[selected.length-1]:0,liveSequence:[...selected],atSolved:state.teams[teamId].solved,liveOnly:true}).catch(error=>{console.warn('Live keuze niet verzonden',error);$('feedback').textContent='Live doormelden mislukt: '+error.message;});};
+ const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing'&&teamId){firebase.set(firebase.ref(db,roomPath('liveChoices/'+teamId)),{sequence:[...selected],solved:state.teams[teamId].solved,at:Date.now()}).catch(error=>{console.error('Live keuze Firebase',error);$('feedback').textContent='Live keuzes doorsturen mislukt: '+error.message;});}};
  const box=$('options'),kind=action==='duel'?'duel':'adventure';
  const key=kind+':'+(kind==='duel'?(getActiveDuel(state.teams[teamId])?.id||''):((state.teams[teamId]?.solved||0)+':'+(state.teams[teamId]?.route||0)))+':'+(state.teams[teamId]?.wrong||0);
  if(!tokenDraft||tokenDraft.key!==key)tokenDraft={key,sequence:[]};
