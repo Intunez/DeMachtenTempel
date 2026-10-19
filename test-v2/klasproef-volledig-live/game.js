@@ -414,8 +414,8 @@ function paintTeacherCycle(){
   const tokens=q?.tokens||[];
   panel.innerHTML='<h3 class="live-team-heading">'+escapeHtml(t.name)+'</h3>'+
    '<small>'+escapeHtml(String(title))+'</small>'+
-   '<div class="teacher-answer-draft"><div class="live-order-title">Samengestelde volgorde (live)</div><div class="live-order-line">'+(selectedIndices.length?selectedIndices.map((i,pos)=>'<span class="live-placed-token"><b>'+(pos+1)+'</b> '+escapeHtml(String(q?.tokens?.[i]||''))+'</span>').join(''):'<span class="live-empty">Nog niets geplaatst</span>')+'</div></div>'+
-   '<div class="teacher-answer-options">'+tokens.map((x,i)=>'<span class="'+(selectedIndices.includes(i)?'teacher-option-picked':'')+'">'+escapeHtml(String(x))+'</span>').join('')+'</div>';
+   '<div class="teacher-answer-draft"><div class="live-order-line">'+(selectedIndices.length?selectedIndices.map(i=>'<span class="live-placed-token">'+escapeHtml(String(q?.tokens?.[i]||''))+'</span>').join(''):'<span class="live-empty">Sleep of klik hier de formule samen</span>')+'</div></div>'+
+   '<div class="teacher-answer-options">'+tokens.map((x,i)=>selectedIndices.includes(i)?'':'<span class="live-source-token">'+escapeHtml(String(x))+'</span>').join('')+'</div>';
   return;
  }
  panel.classList.remove('teacher-answer-focus');
