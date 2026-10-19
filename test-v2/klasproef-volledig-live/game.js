@@ -397,12 +397,13 @@ function paintTeacherCycle(){
   const remaining=15-Math.floor(elapsed%15000/1000);
   const frame=liveFrames.get(t.id);
   const fresh=frame&&Date.now()-frame.at<12000;
+  const fallbackWorld=$('worldCanvas');
   panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
   name.textContent='Live: '+t.name+' · '+remaining+' s';
   const title=q?(q.q||q.question||q.fullRule||'Oefening'):'Avontuur voltooid';
   const tokens=q?.tokens||[];
   panel.innerHTML='<h3>LIVE SPELBEELD · '+escapeHtml(t.name)+' · volgend team over '+remaining+' s</h3>'+
-   (fresh?'<img alt="Live spelbeeld van '+escapeHtml(t.name)+'" style="width:100%;max-height:55vh;object-fit:contain;background:#081821;border-radius:12px" src="'+frame.image+'">':'<p>Wachten op live spelbeeld van deze leerling…</p>')+
+   (fresh?'<img alt="Live spelbeeld van '+escapeHtml(t.name)+'" style="width:100%;max-height:55vh;object-fit:contain;background:#081821;border-radius:12px" src="'+frame.image+'">':'<div style="display:grid;gap:8px"><p>Live leerlingbeeld nog niet ontvangen. Hieronder de gedeelde wereld (niet de leerlingcamera).</p><img style="width:100%;max-height:32vh;object-fit:contain" src="'+(fallbackWorld?.toDataURL?.('image/jpeg',.3)||'')+'"></div>')+
    '<div class="teacher-answer-grid"><div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(selectedIndices.length?selectedIndices.map(i=>escapeHtml(String(q?.tokens?.[i]||''))).join(' · '):'Nog niets aangeklikt')+'</div><div class="teacher-answer-options">'+tokens.map((x,i)=>'<span class="'+(selectedIndices.includes(i)?'teacher-option-picked':'')+'">'+escapeHtml(String(x))+'</span>').join('')+'</div></div></div>';
   return;
  }
@@ -1135,23 +1136,23 @@ function animate(time) {
     if(!draw3D||!draw3D($('studentWorld'),state,'student',teamId,time))drawStudentCamera(time);
   }
 
-  if(view==='student' && online && !host && state?.phase==='playing' && time-lastLiveFrameAt>2500){
+  if(view==='student' && online && !host && state?.phase==='playing' && time-lastLiveFrameAt>3500){
     lastLiveFrameAt=time;
     try{
       const source=$('studentWorld'),out=document.createElement('canvas');
-      out.width=560;out.height=410;
+      out.width=420;out.height=310;
       const c=out.getContext('2d');
       c.fillStyle='#091824';c.fillRect(0,0,out.width,out.height);
-      c.drawImage(source,0,0,560,263);
-      c.fillStyle='#152c38';c.fillRect(0,263,560,147);
+      c.drawImage(source,0,0,420,198);
+      c.fillStyle='#152c38';c.fillRect(0,198,420,112);
       c.fillStyle='#f9d58c';c.font='bold 17px sans-serif';
-      c.fillText(($('questTitle')?.textContent||'Opdracht').slice(0,55),12,289);
+      c.fillText(($('questTitle')?.textContent||'Opdracht').slice(0,42),12,220);
       c.fillStyle='#fff';c.font='13px sans-serif';
       const lines=($('questText')?.textContent||'').match(/.{1,75}(?:\\s|$)/g)||[];
-      lines.slice(0,2).forEach((line,i)=>c.fillText(line.trim(),12,310+i*17));
+      lines.slice(0,2).forEach((line,i)=>c.fillText(line.trim(),12,240+i*15));
       const buttons=[...$('options').querySelectorAll('button')].filter(b=>b.offsetParent!==null);
-      buttons.slice(0,4).forEach((b,i)=>{c.fillStyle='#f9d58c';c.fillText((i+1)+'. '+(b.textContent||'').trim().slice(0,67),12,351+i*15);});
-      sendRequest('liveFrame',{image:out.toDataURL('image/jpeg',.45),phase:state.phase}).catch(e=>console.warn('Livebeeld niet verzonden',e));
+      buttons.slice(0,4).forEach((b,i)=>{c.fillStyle='#f9d58c';c.fillText((i+1)+'. '+(b.textContent||'').trim().slice(0,48),12,275+i*12);});
+      sendRequest('liveFrame',{image:out.toDataURL('image/jpeg',.27),phase:state.phase}).catch(e=>console.warn('Livebeeld niet verzonden',e));
     }catch(e){console.warn('Livebeeld mislukt',e);}
   }
   requestAnimationFrame(animate);
