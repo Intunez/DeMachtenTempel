@@ -401,6 +401,16 @@ function watchedTeam(){
 function paintTeacherCycle(){
  const panel=document.getElementById('teacherAnswersPanel'),name=document.getElementById('teacherCycleName');
  if(!panel||!state)return;
+ if(state.phase==='final'){
+   panel.hidden=true;
+   panel.className='teacher-answer-panel';
+   name.textContent='';
+   const bar=document.getElementById('teacherCycleBar');
+   if(bar)bar.hidden=true;
+   return;
+ }
+ const bar=document.getElementById('teacherCycleBar');
+ if(bar)bar.hidden=false;
  if(state.phase==='playing'){
   const t=watchedTeam();
   if(!t){panel.hidden=true;return;}
