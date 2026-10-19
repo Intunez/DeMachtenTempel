@@ -219,6 +219,7 @@ function subscribeState() {
   duels: value.duels || {}
 };
         render();
+        if(view==='teacher')paintTeacherCycle();
       }
     },
     error => {
@@ -388,13 +389,14 @@ function paintTeacherCycle(){
   const elapsed=Math.max(0,Date.now()-(state.started||Date.now()));
   const index=Math.floor(elapsed/15000)%teams.length;
   const t=teams[index],q=!t.finished?getQuestion(t):null;
-  const progress=(t.liveDraft||t.progress||[]).map(i=>q?.tokens?.[i]).filter(Boolean);
+  const selectedIndices=Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]);
+  const progress=selectedIndices.map(i=>q?.tokens?.[i]).filter(Boolean);
   const remaining=15-Math.floor(elapsed%15000/1000);
   panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
   name.textContent='Live: '+t.name+' · '+remaining+' s';
   const title=q?(q.q||q.question||q.fullRule||'Oefening'):'Avontuur voltooid';
   const tokens=q?.tokens||[];
-  panel.innerHTML='<h3>LIVE MEEKIJKEN · '+escapeHtml(t.name)+' · volgende team over '+remaining+' s</h3><div class="teacher-answer-grid"><div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(progress.length?progress.map(x=>escapeHtml(String(x))).join(' · '):'Nog niets aangeklikt')+'</div><div class="teacher-answer-options">'+tokens.map((x,i)=>'<span class="'+((t.liveDraft||[]).includes(i)?'teacher-option-picked':'')+'">'+escapeHtml(String(x))+'</span>').join('')+'</div><small>'+t.solved+' oefeningen opgelost</small></div></div>';
+  panel.innerHTML='<h3>LIVE MEEKIJKEN · '+escapeHtml(t.name)+' · volgende team over '+remaining+' s</h3><div class="teacher-answer-grid"><div class="teacher-answer-team"><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(String(title))+'</small><div class="teacher-answer-draft">'+(progress.length?progress.map(x=>escapeHtml(String(x))).join(' · '):'Nog niets aangeklikt')+'</div><div class="teacher-answer-options">'+tokens.map((x,i)=>'<span class="'+(selectedIndices.includes(i)?'teacher-option-picked':'')+'">'+escapeHtml(String(x))+'</span>').join('')+'</div><small>'+t.solved+' oefeningen opgelost</small></div></div>';
   return;
  }
  panel.classList.remove('teacher-answer-focus');
@@ -893,7 +895,7 @@ function render(){
 }
 let tokenDraft=null;
 function tokenPuzzle(q,action,progress){
- const publishDraft=()=>{if(room!=='SOLO'&&online)sendRequest('liveDraft',{sequence:[...selected],atSolved:state.teams[teamId].solved}).catch(console.warn);};
+ const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing')sendRequest('liveDraft',{sequence:[...selected],atSolved:state.teams[teamId].solved}).catch(error=>{$('feedback').textContent='Live meekijken kon deze keuze niet doorsturen: '+error.message;console.warn(error);});};
  const box=$('options'),kind=action==='duel'?'duel':'adventure';
  const key=kind+':'+(kind==='duel'?(getActiveDuel(state.teams[teamId])?.id||''):((state.teams[teamId]?.solved||0)+':'+(state.teams[teamId]?.route||0)))+':'+(state.teams[teamId]?.wrong||0);
  if(!tokenDraft||tokenDraft.key!==key)tokenDraft={key,sequence:[]};
