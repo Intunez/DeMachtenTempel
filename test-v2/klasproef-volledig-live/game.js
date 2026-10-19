@@ -436,16 +436,6 @@ function paintTeacherCycle(){
 }
 function openTeacher() {
   show('teacher');
-  if(online&&!demo){
-    if(liveChoicesUnsub)liveChoicesUnsub();
-    liveChoicesUnsub=firebase.onValue(firebase.ref(db,roomPath('liveChoices')),snapshot=>{
-      const data=snapshot.val()||{};
-      for(const [id,value] of Object.entries(data)){
-        if(Array.isArray(value?.sequence))liveDrafts.set(id,{sequence:value.sequence,solved:value.solved,at:value.at});
-      }
-      if(view==='teacher')paintTeacherCycle();
-    },error=>console.error('Live keuzes ontvangen mislukt',error));
-  }
 
   showRoomCode();mountTeacherCycle();
   $('demoControls').classList.toggle('hidden', !demo);
@@ -932,7 +922,10 @@ function render(){
 }
 let tokenDraft=null;
 function tokenPuzzle(q,action,progress){
- const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing'&&teamId){firebase.set(firebase.ref(db,roomPath('liveChoices/'+teamId)),{sequence:[...selected],solved:state.teams[teamId].solved,at:Date.now()}).catch(error=>{console.error('Live keuze Firebase',error);$('feedback').textContent='Live keuzes doorsturen mislukt: '+error.message;});}};
+ const publishDraft=()=>{if(room!=='SOLO'&&online&&state?.phase==='playing'&&teamId){
+  sendRequest('answer',{answer:0,liveOnly:true,liveSequence:[...selected],atSolved:state.teams[teamId].solved})
+   .catch(error=>{console.error('Live keuze via spelverzoeken',error);$('feedback').textContent='Live keuzes doorsturen mislukt: '+error.message;});
+}};
  const box=$('options'),kind=action==='duel'?'duel':'adventure';
  const key=kind+':'+(kind==='duel'?(getActiveDuel(state.teams[teamId])?.id||''):((state.teams[teamId]?.solved||0)+':'+(state.teams[teamId]?.route||0)))+':'+(state.teams[teamId]?.wrong||0);
  if(!tokenDraft||tokenDraft.key!==key)tokenDraft={key,sequence:[]};
