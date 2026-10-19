@@ -40,7 +40,7 @@ const templeAudio=(()=>{
  const player=new Audio('./muziek%20spel.mp3');
  player.loop=true;player.preload='auto';player.volume=.75;
  let enabled=false;
- function update(){const wrap=document.querySelector('.temple-audio-controls');if(wrap){const allowed=view==='teacher'||(view==='student'&&room==='SOLO');wrap.hidden=!allowed;if(!allowed&&enabled){player.pause();enabled=false;}}const b=document.getElementById('templeMusicToggle');if(b){b.textContent=enabled?'♫ Muziek aan':'♪ Muziek uit';b.setAttribute('aria-pressed',String(enabled));}}
+ function update(){const wrap=document.querySelector('.temple-audio-controls');if(wrap){const allowed=view==='student'&&room==='SOLO';wrap.hidden=!allowed;if(!allowed&&enabled){player.pause();enabled=false;}}const b=document.getElementById('templeMusicToggle');if(b){b.textContent=enabled?'♫ Muziek aan':'♪ Muziek uit';b.setAttribute('aria-pressed',String(enabled));}}
  async function toggle(){if(enabled){player.pause();enabled=false;update();return;}try{await player.play();enabled=true;update();}catch(e){console.warn('MP3 kan niet afspelen',e);const b=document.getElementById('templeMusicToggle');if(b){b.title='MP3 nog niet beschikbaar op de website';b.textContent='♫ Muziek niet beschikbaar';}}}
  function setVolume(v){player.volume=Math.max(0,Math.min(1,Number(v)/100));}
  function mount(){if(document.getElementById('templeMusicToggle'))return;
@@ -272,10 +272,10 @@ async function createOnline() {
               liveFrames.set(request.teamId,{image:request.image,at:Date.now(),phase:request.phase});
               if(view==='teacher')paintTeacherCycle();
             } else if(request.action==='liveDraft' && state?.phase==='playing') {
-              const t=state.teams?.[request.teamId],q=t&&!t.finished?getQuestion(t):null;
-              if(q&&Array.isArray(request.sequence)&&request.atSolved===t.solved&&request.sequence.every(i=>Number.isInteger(i)&&i>=0&&i<q.tokens.length)){
-                liveDrafts.set(t.id,{sequence:[...request.sequence],at:Date.now(),solved:t.solved});
-                t.liveDraft=[...request.sequence];
+              await handleRequest(request);
+              const updated=state.teams?.[request.teamId];
+              if(updated&&Array.isArray(updated.liveDraft)){
+                liveDrafts.set(updated.id,{sequence:[...updated.liveDraft],at:Date.now(),solved:updated.solved});
                 if(view==='teacher')paintTeacherCycle();
               }
             } else if(request.action!=='liveFrame') await handleRequest(request);
@@ -404,8 +404,7 @@ function paintTeacherCycle(){
   const t=watchedTeam();
   if(!t){panel.hidden=true;return;}
   const q=!t.finished?getQuestion(t):null;
-  const draft=liveDrafts.get(t.id);
-  const selectedIndices=draft&&draft.solved===t.solved?draft.sequence:(Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]));
+  const selectedIndices=Array.isArray(t.liveDraft)?t.liveDraft:(t.progress||[]);
   
   panel.hidden=false;panel.className='teacher-answer-panel teacher-answer-focus';
   name.textContent='LIVE · '+t.name;
