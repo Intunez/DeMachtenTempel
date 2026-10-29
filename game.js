@@ -58,102 +58,14 @@ const routes = [
   ['entry', 'a', 'i', 'j', 'd', 'e', 'vault']
 ];
 
-const questions = [
-  {
-    t: 'De brug van het product',
-    q: 'Welke formule is juist?',
-    o: [
-      '(a · b)ⁿ = aⁿ · bⁿ',
-      '(a · b)ⁿ = aⁿ + bⁿ',
-      '(a · b)ⁿ = a · bⁿ'
-    ],
-    a: 0
-  },
-  {
-    t: 'Het geheim van het quotiënt',
-    q: 'Welke formule is juist? (b ≠ 0)',
-    o: [
-      '(a / b)ⁿ = a / bⁿ',
-      '(a / b)ⁿ = aⁿ / bⁿ',
-      '(a / b)ⁿ = aⁿ / b'
-    ],
-    a: 1
-  },
-  {
-    t: 'De stenen poort',
-    q: '(2 · 3)² = ?',
-    o: ['2² · 3²', '2² + 3²', '2 · 3²'],
-    a: 0
-  },
-  {
-    t: 'De magische bron',
-    q: '(8 / 2)³ = ?',
-    o: ['8³ / 2', '8³ / 2³', '8 / 2³'],
-    a: 1
-  },
-  {
-    t: 'De vervloekte inscriptie',
-    q: 'Welke uitspraak klopt?',
-    o: [
-      'Je verheft bij een product alleen de eerste factor.',
-      'Je verheft bij een product elke factor tot die macht.',
-      'Je telt de exponenten van de factoren op.'
-    ],
-    a: 1
-  },
-  {
-    t: 'De wachters van de breuk',
-    q: '(a / b)⁴ = ?',
-    o: ['a⁴ / b⁴', 'a⁴ / b', 'a / b⁴'],
-    a: 0
-  },
-  {
-    t: 'Het kristallen pad',
-    q: '(5 · 2)³ = ?',
-    o: ['5³ + 2³', '5³ · 2', '5³ · 2³'],
-    a: 2
-  },
-  {
-    t: 'De verborgen sleutel',
-    q: '(12 / 3)² = ?',
-    o: ['12² / 3²', '12² / 3', '12 / 3²'],
-    a: 0
-  },
-  {
-    t: 'De magische spreuk',
-    q: 'Welke regel hoort bij (x · y)ⁿ?',
-    o: [
-      'Macht van een quotiënt',
-      'Macht van een product',
-      'Macht van een som'
-    ],
-    a: 1
-  },
-  {
-    t: 'De laatste doorgang',
-    q: 'Welke uitwerking is fout?',
-    o: [
-      '(3 · 4)² = 3² · 4²',
-      '(6 / 2)³ = 6³ / 2³',
-      '(3 · 4)² = 3² · 4'
-    ],
-    a: 2
-  }
-];
-
-const duelQs = [
-  { q: 'DUEL! Bereken (2 · 4)²', a: 64 },
-  { q: 'DUEL! Bereken (12 / 3)²', a: 16 },
-  { q: 'DUEL! Bereken (3 · 2)³', a: 216 },
-  { q: 'DUEL! Bereken (18 / 3)²', a: 36 }
-];
-
-const finalQs = [
-  { q: 'FINALE! Bereken (3 · 4)²', a: 144 },
-  { q: 'FINALE! Bereken (24 / 6)³', a: 64 },
-  { q: 'FINALE! Bereken (2 · 5)³', a: 1000 },
-  { q: 'FINALE! Bereken (18 / 3)³', a: 216 }
-];
+const avatars=[["Xander","×"],["Rex","√"],["Nox","−"],["Vex","ⁿ"],["Axel","x"],["Nova","∞"],["Zero","0"],["Delta","Δ"]];
+const questions=[{"t":"De productspreuk","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["Om een product","verheffen we","tot die macht.","tot een macht te verheffen,","elke factor"],"answer":[0,3,1,4,2]},{"t":"De quotiëntspreuk","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["het deeltal en de deler","Om een quotiënt","verheffen we","tot die macht.","tot een macht te verheffen,"],"answer":[1,4,2,0,3]},{"t":"Het productzegel","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["bⁿ","=","·","(a · b)ⁿ","aⁿ"],"answer":[3,1,4,2,0]},{"t":"Het quotiëntzegel","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=","/","(a / b)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De factorpoort","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["afzonderlijk","Bij de macht van een product","elke factor","tot die macht.","verheffen we"],"answer":[1,4,2,0,3]},{"t":"De breukpoort","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["verheffen we","afzonderlijk","Bij de macht van een quotiënt","het deeltal en de deler","tot die macht."],"answer":[2,0,3,1,4]},{"t":"De x-y-inscriptie","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["yⁿ","=","·","(x · y)ⁿ","xⁿ"],"answer":[3,1,4,2,0]},{"t":"De x-y-breuk","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["xⁿ","yⁿ","=","/","(x / y)ⁿ"],"answer":[4,2,0,3,1]},{"t":"De koppeling","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["Macht van een product","(a · b)ⁿ = aⁿ · bⁿ","→"],"answer":[0,2,1]},{"t":"De tweede koppeling","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["→","Macht van een quotiënt","(a / b)ⁿ = aⁿ / bⁿ"],"answer":[1,0,2]},{"t":"De drie factoren","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["aⁿ","bⁿ","=","cⁿ","·","(a · b · c)ⁿ","·"],"answer":[5,2,0,4,1,6,3]},{"t":"De laatste inscriptie","q":"Zet de woorden of symbolen in de juiste volgorde.","tokens":["(p / q)ᵐ","pᵐ","qᵐ","=","/"],"answer":[0,3,1,4,2]}];
+const duelQs=questions.slice(0,8);
+const finalQs=[{"q":"(2a)^2","a":"4a^2","set":16},{"q":"(4c)^3","a":"64c^3","set":16},{"q":"(-ab)^2","a":"a^2b^2","set":16},{"q":"(-3c)^2","a":"9c^2","set":16},{"q":"(-2c)^3","a":"-8c^3","set":16},{"q":"(-2ab)^2","a":"4a^2b^2","set":16},{"q":"(2ac)^3","a":"8a^3c^3","set":16},{"q":"(2a^2b)^2","a":"4a^4b^2","set":17},{"q":"(4ac^4)^2","a":"16a^2c^8","set":17},{"q":"(10xy^2z^3)^2","a":"100x^2y^4z^6","set":17},{"q":"(2ab^2)^4","a":"16a^4b^8","set":17},{"q":"(x·y)^k","a":"x^ky^k","set":18},{"q":"(r^2·s)^m","a":"r^(2m)s^m","set":18},{"q":"(2/3)^2","a":"4/9","set":19},{"q":"(-1/2)^3","a":"-1/8","set":19},{"q":"(4/5)^2","a":"16/25","set":19},{"q":"(-1/10)^3","a":"-1/1000","set":19},{"q":"(3/5)^(-2)","a":"25/9","set":19},{"q":"(a/b)^2","a":"a^2/b^2","set":20},{"q":"(-x/2)^3","a":"-x^3/8","set":20},{"q":"(3/x)^2","a":"9/x^2","set":20},{"q":"(x/y)^2","a":"x^2/y^2","set":20},{"q":"(a/b)^m","a":"a^m/b^m","set":21},{"q":"(x/y)^(-m)","a":"y^m/x^m","set":21}];
+function avatarFace(n){if(!Number.isInteger(n))return '◈';return '<span class="mathavatar" style="--av:'+colors[n]+'"><span class="hair">▰</span><span class="eyes">• •</span><span class="mouth">⌣</span><span class="mathsymbol">'+avatars[n][1]+'</span></span>';}
+function norm(v){return String(v).toLowerCase().replace(/\s/g,'').replace(/[·×*]/g,'').replace(/−/g,'-').replace(/[{}]/g,'').replace(/\^\(([^()]+)\)/g,'^$1');}
+function hash(v){let x=2166136261;for(const ch of norm(v)){x^=ch.charCodeAt(0);x=Math.imul(x,16777619);}return x>>>0;}
+function finaleVraag(t){return finalQs[((t.finalPos||0)+t.route*3)%finalQs.length];}
 
 const randomId = () =>
   Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -343,6 +255,8 @@ function addTeam(name) {
     route: index % 8,
     step: 0,
     score: 0,
+    progress: [],
+    finalPos: 0,
     solved: 0,
     wrong: 0,
     duel: '',
@@ -569,22 +483,18 @@ function listenJoins() {
   );
 }
 
-async function startGame() {
-  if (!host || state.phase !== 'lobby') return;
-
-  if (Object.keys(state.teams || {}).length < 2) {
-    alert('Er zijn minstens 2 teams nodig.');
-    return;
-  }
-
-  state.phase = 'playing';
-  state.started = Date.now();
-
-  flash('De poorten openen! Los de opdrachten op.');
-
-  await writeState();
+async function startGame(){
+ if(!host||!state)return;
+ const teams=Object.values(state.teams||{});
+ if(state.phase==='lobby'){
+  if(teams.length<2){alert('Minstens 2 teams nodig.');return;}
+  state.phase='avatars';flash('Alle teams mogen nu tegelijk een avatar kiezen.');
+ }else if(state.phase==='avatars'){
+  if(teams.some(t=>!Number.isInteger(t.avatar))){alert('Wacht tot alle teams gekozen hebben.');return;}
+  state.phase='playing';state.started=Date.now();flash('De poorten openen!');
+ }else return;
+ await writeState();
 }
-
 function getQuestion(team) {
   return questions[
     (team.solved + team.route * 2) % questions.length
@@ -599,105 +509,48 @@ function getActiveDuel(team) {
       : null;
 }
 
-async function handleRequest(request) {
-  if (!host || !state) return;
-
-  const team = state.teams?.[request.teamId];
-  if (!team) return;
-
-  if (
-    request.action === 'answer' &&
-    state.phase === 'playing' &&
-    !getActiveDuel(team) &&
-    !team.finished
-  ) {
-    const question = getQuestion(team);
-
-    if (Number(request.answer) === question.a) {
-      team.score += 100;
-      team.solved++;
-
-      team.step = Math.min(
-        routes[team.route].length - 1,
-        team.step + 1
-      );
-
-      flash('✦ ' + team.name + ' opent een doorgang!');
-
-      if (team.step === routes[team.route].length - 1) {
-        team.finished = true;
-        flash('✦ ' + team.name + ' bereikt de schatkamer!');
-      } else {
-        triggerDuel(team);
-      }
-
-    } else {
-      team.wrong++;
-      team.score = Math.max(0, team.score - 10);
-      flash('Een spreuk mislukt bij ' + team.name + '.');
-    }
-
-    await writeState();
-
-  } else if (
-    request.action === 'duel' &&
-    state.phase === 'playing'
-  ) {
-    const duel = getActiveDuel(team);
-
-    if (!duel || duel.winner) return;
-
-    if (Number(request.answer) === duelQs[duel.qIndex].a) {
-      duel.winner = team.id;
-      duel.done = true;
-
-      const other = state.teams[
-        duel.a === team.id ? duel.b : duel.a
-      ];
-
-      team.score += 150;
-      team.duel = '';
-
-      if (other) other.duel = '';
-
-      flash(
-        '⚔ ' + team.name +
-        ' wint het duel! +150 punten'
-      );
-
-    } else {
-      team.wrong++;
-      team.score = Math.max(0, team.score - 10);
-    }
-
-    await writeState();
-
-  } else if (
-    request.action === 'final' &&
-    state.phase === 'final' &&
-    !state.winner
-  ) {
-    if (
-      Number(request.answer) ===
-      finalQs[state.finalQuestion].a
-    ) {
-      state.winner = team.id;
-      state.phase = 'ended';
-      team.score += 300;
-
-      flash(
-        '🏆 ' + team.name +
-        ' wint DE MACHTENTEMPEL!'
-      );
-
-    } else {
-      team.wrong++;
-    }
-
-    await writeState();
-  }
+async function handleRequest(r){
+ if(!host||!state)return;const t=state.teams?.[r.teamId];if(!t)return;
+ const n=Number(r.answer);
+ if(r.action==='answer'&&state.phase==='avatars'){
+  if(!Number.isInteger(n)||n<0||n>=8||Number.isInteger(t.avatar)||Object.values(state.teams).some(v=>v.avatar===n))return;
+  t.avatar=n;flash(t.name+' kiest '+avatars[n][0]);await writeState();return;
+ }
+ if(r.action==='answer'&&state.phase==='playing'&&!getActiveDuel(t)&&!t.finished){
+  const q=getQuestion(t),p=t.progress||[];
+  if(!Number.isInteger(n)||n<0||n>=q.tokens.length||p.includes(n))return;
+  p.push(n);t.progress=p;
+  if(p.length===q.answer.length){
+   if(p.every((v,i)=>v===q.answer[i])){
+    t.score+=100;t.solved++;t.step=Math.min(routes[t.route].length-1,t.step+1);
+    flash(t.name+' opent een doorgang!');
+    if(t.step===routes[t.route].length-1)t.finished=true;else triggerDuel(t);
+   }else{t.wrong++;t.score=Math.max(0,t.score-10);flash('Spreuk mislukt bij '+t.name);}
+   t.progress=[];
+  }await writeState();return;
+ }
+ if(r.action==='duel'&&state.phase==='playing'){
+  const d=getActiveDuel(t);if(!d||d.winner)return;
+  const q=duelQs[d.qIndex],p=d.progress?.[t.id]||[];
+  if(!Number.isInteger(n)||n<0||n>=q.tokens.length||p.includes(n))return;
+  p.push(n);d.progress[t.id]=p;
+  if(p.length===q.answer.length){
+   if(p.every((v,i)=>v===q.answer[i])){
+    d.winner=t.id;d.done=true;t.score+=150;t.duel='';
+    const other=state.teams[d.a===t.id?d.b:d.a];if(other)other.duel='';
+    flash('⚔ '+t.name+' wint het duel! +150 punten');
+   }else{t.wrong++;t.score=Math.max(0,t.score-10);d.progress[t.id]=[];}
+  }await writeState();return;
+ }
+ if(r.action==='final'&&state.phase==='final'&&!state.winner){
+  if(n===hash(finaleVraag(t).a)){
+   t.finalPos=(t.finalPos||0)+1;
+   if(t.finalPos>=16){state.winner=t.id;state.phase='ended';t.score+=300;flash('🏆 '+t.name+' wint!');}
+   else flash('⚡ '+t.name+' bereikt vak '+t.finalPos);
+  }else{t.wrong++;flash('Fout finaleantwoord bij '+t.name);}
+  await writeState();
+ }
 }
-
 function triggerDuel(moved) {
   const node = routes[moved.route][moved.step];
 
@@ -721,7 +574,8 @@ function triggerDuel(moved) {
     b: opponent.id,
     qIndex: (state.duelNumber - 1) % duelQs.length,
     done: false,
-    winner: ''
+    winner: '',
+    progress: {[moved.id]:[],[opponent.id]:[]}
   };
 
   moved.duel = id;
@@ -735,30 +589,13 @@ function triggerDuel(moved) {
   );
 }
 
-async function beginFinal() {
-  if (!host || !state || state.phase !== 'playing') return;
-
-  state.phase = 'final';
-
-  state.finalQuestion = Math.floor(
-    Math.random() * finalQs.length
-  );
-
-  Object.values(state.teams).forEach(team => {
-    team.duel = '';
-  });
-
-  Object.values(state.duels).forEach(duel => {
-    duel.done = true;
-  });
-
-  flash(
-    '⚡ DE FINALE! Iedereen krijgt dezelfde eindopdracht.'
-  );
-
-  await writeState();
+async function beginFinal(){
+ if(!host||!state||state.phase!=='playing')return;
+ state.phase='final';state.finalQuestion=0;
+ Object.values(state.teams||{}).sort((a,b)=>b.score-a.score||a.joined-b.joined).forEach((t,i)=>{t.duel='';t.finalPos=Math.max(1,8-i);});
+ Object.values(state.duels||{}).forEach(d=>d.done=true);
+ flash('⚡ Finale: de punten bepalen de voorsprong. Race naar vak 16!');await writeState();
 }
-
 function renderClock() {
   if (!state || view !== 'teacher') return;
 
@@ -798,219 +635,64 @@ function showOverlay(message) {
   $('overlay').classList.remove('hidden');
 }
 
-function render() {
-  if (!state) return;
-
-  if (view === 'teacher') {
-    const teams = Object.values(state.teams || {})
-      .sort((a, b) => b.score - a.score);
-
-    $('teamCount').textContent = teams.length + ' / 8';
-
-    $('scoreboard').innerHTML = teams.map(team => `
-      <div class="teamrow">
-        <span class="teamdot"
-          style="background:${team.color};color:${team.color}">
-        </span>
-        <div>
-          <b>${escapeHtml(team.name)}</b>
-          <small>${
-            team.duel
-              ? '⚔ In duel'
-              : team.finished
-                ? '✦ Schatkamer'
-                : team.solved + ' opdrachten opgelost'
-          }</small>
-        </div>
-        <span class="pts">${team.score}</span>
-      </div>
-    `).join('');
-
-    $('phaseLabel').textContent = ({
-      lobby: 'Wachten op teams',
-      playing: 'De tempel is geopend',
-      final: '⚡ FINALE',
-      ended: '🏆 SPEL AFGELOPEN'
-    })[state.phase];
-
-    $('eventLabel').textContent = state.event || '';
-
-    $('startBtn').disabled = state.phase !== 'lobby';
-    $('finalBtn').disabled = state.phase !== 'playing';
-
-    renderClock();
-
-    if (state.phase === 'final') {
-      showOverlay(
-        '⚡ DE FINALE ⚡\n' +
-        'Wie lost de laatste macht het snelst op?'
-      );
-
-    } else if (state.phase === 'ended') {
-      const winner = state.teams[state.winner];
-
-      showOverlay(
-        '🏆 DE SCHAT IS GEOPEND! 🏆\n' +
-        (winner?.name || 'Een team') + ' wint!'
-      );
-
-    } else {
-      $('overlay').classList.add('hidden');
-    }
+function render(){
+ if(!state)return;
+ if(view==='teacher'){
+  const teams=Object.values(state.teams||{}).sort((a,b)=>b.score-a.score);
+  $('teamCount').textContent=teams.length+' / 8';
+  $('scoreboard').innerHTML=teams.map(t=>'<div class="teamrow">'+avatarFace(t.avatar)+'<div><b>'+escapeHtml(t.name)+'</b><small>'+(state.phase==='final'?'Vak '+t.finalPos+'/16':t.duel?'⚔ Duel':t.solved+' opdrachten opgelost')+'</small></div><span class="pts">'+t.score+'</span></div>').join('');
+  $('phaseLabel').textContent=({lobby:'Wachten op teams',avatars:'Avatarselectie',playing:'De tempel is geopend',final:'⚡ Finale',ended:'🏆 Spel afgelopen'})[state.phase];
+  $('eventLabel').textContent=state.event||'';
+  $('startBtn').disabled=!['lobby','avatars'].includes(state.phase);
+  $('startBtn').textContent=state.phase==='lobby'?'🎭 Avatarselectie starten':state.phase==='avatars'?'▶ Start avontuur':'▶ Avontuur bezig';
+  $('finalBtn').disabled=state.phase!=='playing';renderClock();
+  $('overlay').classList.add('hidden');
+  const stage=$('liveStage');stage.classList.add('hidden');
+  if(state.phase==='avatars'){
+   stage.classList.remove('hidden');stage.innerHTML='<h2>🎭 KIES JULLIE AVATAR</h2><div class="avatargrid">'+teams.map(t=>'<div class="avatarcard">'+avatarFace(t.avatar)+'<b>'+escapeHtml(t.name)+'</b><small>'+(Number.isInteger(t.avatar)?avatars[t.avatar][0]:'Kiest nog...')+'</small></div>').join('')+'</div>';
+  }else if(state.phase==='playing'){
+   const d=Object.values(state.duels||{}).find(x=>!x.done);
+   if(d){const q=duelQs[d.qIndex];stage.classList.remove('hidden');stage.innerHTML='<h2>⚔ LIVE DUEL</h2><p>'+escapeHtml(q.q)+'</p><div class="duelgrid">'+[d.a,d.b].map(id=>'<div class="duelteam"><h3>'+escapeHtml(state.teams[id]?.name||'Team')+'</h3><div class="tokenline">'+(d.progress?.[id]||[]).map(i=>'<span class="placed">'+escapeHtml(q.tokens[i])+'</span>').join('')+'</div></div>').join('')+'</div>';}
+  }else if(['final','ended'].includes(state.phase)){
+   stage.classList.remove('hidden');stage.innerHTML='<h2>🏆 RACE NAAR DE SCHATKAMER</h2>'+teams.map(t=>'<div class="raceline"><b>'+escapeHtml(t.name)+'</b><div class="racebar"><div style="width:'+((t.finalPos||0)/16*100)+'%;background:'+t.color+'"></div></div><span>'+t.finalPos+'/16</span></div>').join('')+(state.winner?'<h2>🏆 '+escapeHtml(state.teams[state.winner]?.name||'')+' wint!</h2>':'');
   }
-
-  if (view === 'student') {
-    renderStudent();
-  }
+ }
+ if(view==='student')renderStudent();
 }
-
-function renderStudent() {
-  const team = state.teams?.[teamId];
-  if (!team) return;
-
-  $('myTeam').textContent = team.name;
-  $('myScore').textContent = team.score + ' punten';
-
-  $('myPosition').textContent = team.finished
-    ? 'In de schatkamer'
-    : `Doorgang ${team.step + 1} van ${
-        routes[team.route].length
-      }`;
-
-  const duel = getActiveDuel(team);
-
-  const signature = [
-    state.phase,
-    team.solved,
-    team.wrong,
-    team.duel,
-    state.finalQuestion,
-    state.winner
-  ].join(':');
-
-  if (currentSignature === signature) return;
-
-  currentSignature = signature;
-
-  $('feedback').textContent = '';
-  $('numberBox').classList.add('hidden');
-  $('options').innerHTML = '';
-
-  const title = $('questTitle');
-  const questionText = $('questText');
-  const status = $('studentStatus');
-
-  if (state.phase === 'lobby') {
-    status.textContent = 'Wachten op de leerkracht';
-    title.textContent = 'Je avonturier is klaar';
-    questionText.textContent =
-      'Zodra het spel start, verschijnen hier opdrachten.';
-    return;
-  }
-
-  if (state.phase === 'ended') {
-    const winner = state.teams[state.winner];
-
-    status.textContent = 'Spel afgelopen';
-
-    title.textContent =
-      winner?.id === team.id
-        ? '🏆 JULLIE WINNEN!'
-        : 'De schat is geopend';
-
-    questionText.textContent =
-      'Winnaar: ' +
-      (winner?.name || 'Onbekend') +
-      '. Jullie score: ' +
-      team.score +
-      ' punten.';
-
-    return;
-  }
-
-  if (state.phase === 'final') {
-    status.textContent =
-      '⚡ Finale · antwoord zo snel mogelijk';
-
-    title.textContent = 'DE LAATSTE SPREUK';
-    questionText.textContent =
-      finalQs[state.finalQuestion].q;
-
-    showNumber('final');
-    return;
-  }
-
-  if (duel) {
-    const other = state.teams[
-      duel.a === team.id ? duel.b : duel.a
-    ];
-
-    status.textContent =
-      '⚔ Duel tegen ' +
-      (other?.name || 'een team');
-
-    title.textContent = '⚔ MAGISCH DUEL';
-    questionText.textContent = duelQs[duel.qIndex].q;
-
-    showNumber('duel');
-    return;
-  }
-
-  if (team.finished) {
-    status.textContent = 'Je hebt de schatkamer bereikt';
-    title.textContent = '✦ De gouden poort';
-
-    questionText.textContent =
-      'Wacht op de gezamenlijke finale. ' +
-      'Je verzamelde ' +
-      team.score +
-      ' punten.';
-
-    return;
-  }
-
-  status.textContent =
-    'Verken de tempel · +100 punten per juiste spreuk';
-
-  const question = getQuestion(team);
-
-  title.textContent = question.t;
-  questionText.textContent = question.q;
-
-  question.o.forEach((option, index) => {
-    const button = document.createElement('button');
-    button.textContent = option;
-
-    button.onclick = async () => {
-      const buttons = document.querySelectorAll(
-        '#options button'
-      );
-
-      buttons.forEach(b => {
-        b.disabled = true;
-      });
-
-      $('feedback').textContent =
-        'Spreuk wordt gecontroleerd...';
-
-      try {
-        await sendRequest('answer', {
-          answer: index
-        });
-
-      } catch (error) {
-        $('feedback').textContent = error.message;
-
-        buttons.forEach(b => {
-          b.disabled = false;
-        });
-      }
-    };
-
-    $('options').appendChild(button);
-  });
+function tokenPuzzle(q,action,progress){
+ const box=$('options');box.innerHTML='<div class="tokenline">'+progress.map(i=>'<span class="placed">'+escapeHtml(q.tokens[i])+'</span>').join('')+'</div>';
+ const choices=document.createElement('div');choices.className='tokenchoices';
+ q.tokens.forEach((word,i)=>{if(progress.includes(i))return;const b=document.createElement('button');b.textContent=word;b.onclick=async()=>{b.disabled=true;try{await sendRequest(action,{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};choices.appendChild(b);});box.appendChild(choices);
 }
-
+function renderStudent(){
+ const t=state.teams?.[teamId];if(!t)return;
+ $('myTeam').textContent=t.name+(Number.isInteger(t.avatar)?' · '+avatars[t.avatar][0]:'');
+ $('myScore').textContent=t.score+' punten';
+ $('myPosition').textContent=state.phase==='final'?'Vak '+t.finalPos+'/16':t.finished?'In de schatkamer':'Doorgang '+(t.step+1);
+ const d=getActiveDuel(t),p=d?(d.progress?.[t.id]||[]):(t.progress||[]);
+ const sig=[state.phase,t.solved,t.wrong,t.duel,t.avatar,t.finalPos,state.winner,p.join(','),Object.values(state.teams||{}).map(v=>v.avatar).join(',')].join(':');
+ if(currentSignature===sig)return;currentSignature=sig;
+ $('feedback').textContent='';$('numberBox').classList.add('hidden');$('options').innerHTML='';
+ const title=$('questTitle'),txt=$('questText'),status=$('studentStatus');
+ if(state.phase==='lobby'){status.textContent='Wachten op de leerkracht';title.textContent='Je team is aangemeld';txt.textContent='De avatarselectie start zodra alle teams er zijn.';return;}
+ if(state.phase==='avatars'){
+  status.textContent='Alle teams kiezen tegelijk';title.textContent=Number.isInteger(t.avatar)?'Jullie zijn '+avatars[t.avatar][0]:'Kies je avatar';txt.textContent='Wie het eerst kiest, krijgt de avatar.';
+  if(!Number.isInteger(t.avatar)){
+   const taken=new Set(Object.values(state.teams||{}).map(v=>v.avatar));
+   const grid=document.createElement('div');grid.className='avatargrid';
+   avatars.forEach((a,i)=>{const b=document.createElement('button');b.className='avatarcard';b.disabled=taken.has(i);b.innerHTML=avatarFace(i)+'<b>'+a[0]+'</b>';b.onclick=async()=>{b.disabled=true;try{await sendRequest('answer',{answer:i});}catch(e){$('feedback').textContent=e.message;b.disabled=false;}};grid.appendChild(b);});$('options').appendChild(grid);
+  }return;
+ }
+ if(state.phase==='ended'){const w=state.teams[state.winner];status.textContent='Spel afgelopen';title.textContent=w?.id===t.id?'🏆 JULLIE WINNEN!':'De schat is geopend';txt.textContent='Winnaar: '+(w?.name||'Onbekend');return;}
+ if(state.phase==='final'){
+  status.textContent='⚡ Finale · vak '+t.finalPos+'/16';title.textContent='DE LAATSTE RACE';const q=finaleVraag(t);txt.textContent='Werk uit (oefenreeks '+q.set+'): '+q.q;
+  $('numberBox').classList.remove('hidden');$('numberInput').type='text';$('numberInput').placeholder='Bijv. 4a^2b^2';$('numberInput').value='';
+  $('numberSubmit').onclick=async()=>{const v=$('numberInput').value.trim();if(!v){$('feedback').textContent='Vul een antwoord in.';return;}$('numberSubmit').disabled=true;try{await sendRequest('final',{answer:hash(v)});$('feedback').textContent='Antwoord ingestuurd!';}catch(e){$('feedback').textContent=e.message;}finally{$('numberSubmit').disabled=false;}};return;
+ }
+ if(d){status.textContent='⚔ Duel';title.textContent='DUEL tegen '+(state.teams[d.a===t.id?d.b:d.a]?.name||'');const q=duelQs[d.qIndex];txt.textContent=q.q;tokenPuzzle(q,'duel',p);return;}
+ if(t.finished){status.textContent='In de schatkamer';title.textContent='Wacht op de finale';txt.textContent='Jullie hebben '+t.score+' punten verzameld.';return;}
+ status.textContent='+100 punten per juiste spreuk';const q=getQuestion(t);title.textContent=q.t;txt.textContent=q.q;tokenPuzzle(q,'answer',p);
+}
 function showNumber(kind) {
   $('numberBox').classList.remove('hidden');
   $('numberInput').value = '';
