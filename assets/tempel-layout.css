@@ -1,0 +1,177 @@
+/* Visual theme shared by the original game and the current 3D edition. */
+:root {
+  --temple-gold: #e8bd73;
+  --temple-pale: #ffe3a5;
+  --temple-edge: #9a7443;
+  --temple-panel: #100e20;
+  --temple-art: url("tempel-portaal.webp");
+}
+
+body {
+  background: radial-gradient(ellipse at 75% 0%, #32204d, #121120 48%, #080811 90%);
+  color: #fff5e4;
+}
+
+#app > header {
+  background: #0c0a16;
+  border-bottom: 1px solid var(--temple-edge);
+}
+
+#app .brand strong,
+#app .sigil,
+#app .eyebrow {
+  color: var(--temple-pale);
+}
+
+#app .welcome {
+  position: relative;
+  isolation: isolate;
+  max-width: 1510px;
+  min-height: min(760px, 85svh);
+  margin: 22px auto;
+  padding: clamp(20px, 4vw, 64px);
+  width: calc(100% - 32px);
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+  gap: clamp(20px, 4vw, 56px);
+  align-items: end;
+  border: 1px solid var(--temple-edge);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #0b071536 12%, #0b071580 49%, #0b0715e8 100%),
+    var(--temple-art) 50% 44% / cover, #251a37;
+  box-shadow: 0 24px 72px #0009, inset 0 0 30px #05030c99;
+}
+
+#app .hero {
+  padding: clamp(18px, 3vw, 36px);
+  background: linear-gradient(145deg, #171126f7, #0b0916ee);
+  border: 1px solid var(--temple-edge);
+  border-block-start: 2px solid var(--temple-gold);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px #05020eb3;
+}
+
+#app .hero h1 {
+  margin: 0 0 12px;
+  font: 800 clamp(26px, 3.7vw, 60px)/1.1 Cinzel, Georgia, serif;
+  color: var(--temple-pale);
+  text-shadow: 0 3px 12px #000;
+  overflow-wrap: anywhere;
+}
+
+#app .hero h1 em {
+  color: inherit;
+}
+
+#app .hero .eyebrow {
+  margin-bottom: .75rem;
+}
+
+#app .heroactions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+#app .heroactions button {
+  min-height: 48px;
+  width: 100%;
+  text-align: start;
+}
+
+#app .preview {
+  min-width: 0;
+  box-shadow: 0 12px 45px #05020eba;
+}
+
+#app .panel,
+#app .studenthead,
+#app .quest,
+#app .gamegrid > aside,
+#app .worldframe,
+#app .adventure-view,
+#app .preview {
+  border-color: var(--temple-edge);
+}
+
+#app .panel,
+#app .quest,
+#app .studenthead,
+#app .gamegrid > aside {
+  background: linear-gradient(150deg, #21182e, var(--temple-panel) 70%);
+  border: 1px solid var(--temple-edge);
+}
+
+#app .panel {
+  width: min(620px, calc(100% - 32px));
+}
+
+#app .studenthead {
+  padding: 16px 20px;
+  border-radius: 12px;
+}
+
+#app .studenthead h2,
+#app .panel h2,
+#app .topbar h2,
+#app .quest h3,
+#app .asidehead h3 {
+  color: var(--temple-pale);
+}
+
+#app .quest {
+  margin-top: 14px;
+  border-top: 2px solid var(--temple-gold);
+}
+
+#app .worldhud span,
+#app .session > div,
+#app .overlay {
+  border-color: var(--temple-edge);
+  background: #120e21ee;
+  color: var(--temple-pale);
+}
+
+#app .heroactions button:not(.primary),
+#app .quest .options button:not(.primary),
+#app .session button.ghost {
+  color: #fff5e4;
+  background: #2b2040;
+  border: 1px solid #9c7a58;
+}
+
+#app .heroactions button:not(.primary):hover,
+#app .quest .options button:not(.primary):hover,
+#app .session button.ghost:hover {
+  background: #442e61;
+}
+
+#app .primary {
+  background: linear-gradient(135deg, #c38d41, #f5d78f);
+  border-color: var(--temple-pale);
+  color: #1b1220;
+}
+
+#app button:focus-visible,
+#app input:focus-visible {
+  outline: 2px solid var(--temple-pale);
+  outline-offset: 3px;
+}
+
+#app #teacher #teacherAnswersPanel.teacher-answer-focus {
+  background: #100d20f7;
+  border-color: var(--temple-edge);
+}
+
+@media (max-width: 760px) {
+  #app .welcome {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: auto;
+    padding: 14px;
+    padding-top: clamp(68px, 20vw, 146px);
+    background-position: center, 60% 0;
+  }
+
+  #app .studenthead {
+    padding: 12px;
+  }
+}
