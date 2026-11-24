@@ -7,7 +7,7 @@ const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return A
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xa4c4c7);scene.fog=new THREE.FogExp2(0xa4c4c7,.0022);
 const world=new THREE.Group();scene.add(world);
 scene.add(new THREE.HemisphereLight(0xc9b5ff,0x211532,1.35));
-const sun=new THREE.DirectionalLight(0xffd5a2,2.85);sun.position.set(-22,40,24);scene.add(sun);
+const sun=new THREE.DirectionalLight(0xffba72,3.15);sun.position.set(-22,40,24);scene.add(sun);
 const accent=new THREE.PointLight(0x9964ff,45,35);accent.position.set(0,11,0);scene.add(accent);
 const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.88,...extra});
 const rock=mat(0x58645f),moss=mat(0x496b4e),stone=mat(0x9c9582),gold=mat(0xc9a76e),dark=mat(0x334744),water=mat(0x55d6e9,{metalness:.1,roughness:.3,transparent:true,opacity:.76}),crystal=mat(0x77eaff,{emissive:0x2dbbc5,emissiveIntensity:1.5,metalness:.25,roughness:.15});
@@ -77,8 +77,10 @@ function cinematicBackdrop(){
  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
  const sky=new THREE.Mesh(new THREE.SphereGeometry(230,48,24),new THREE.MeshBasicMaterial({map:tex,side:THREE.BackSide,depthWrite:false,fog:false}));
  sky.rotation.y=.5;scene.add(sky);scene.background=new THREE.Color(0x241637);scene.fog=new THREE.FogExp2(0x372452,.006);
+ return sky;
 }
-cinematicBackdrop();
+const sky=cinematicBackdrop();
+const opaqueSky=scene.background;
 
 const clouds=[];
 function addAtmosphere(){
@@ -202,7 +204,7 @@ function build(){
   }
   const gateR=26.8,gx=Math.cos(a)*gateR,gz=Math.sin(a)*gateR;
   const gate=new THREE.Group();gate.position.set(gx,2.9,gz);gate.rotation.y=Math.PI/2-a;
-  const jamb=mat(0x797188,{map:rockTex});
+  const jamb=mat(0x887c85,{map:rockTex});
   for(const side of [-1,1]){
    const x=side*1.73;
    groupMesh(new THREE.BoxGeometry(1.16,.35,1.23),jamb,x,.18,0,gate);
@@ -542,8 +544,8 @@ for(const side of [-1,1]){const x=side*((RACE.lanes/2)*RACE.laneWidth+.45);for(l
 const crown=vaultMesh(new THREE.ConeGeometry(2.8,2.2,8),bronze,0,14.2,0);
 finalCourse.visible=false;
 const camera=new THREE.PerspectiveCamera(51,1,.1,400);camera.position.set(65,65,105);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.bias=-.0003;sun.shadow.normalBias=.035;sun.shadow.camera.far=250;scene.add(sun.target);sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.setClearColor(0xa4c4c7);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;sun.castShadow=true;sun.shadow.bias=-.0003;sun.shadow.normalBias=.035;sun.shadow.camera.far=250;scene.add(sun.target);sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-42;sun.shadow.camera.right=42;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-42;renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.setClearColor(0x130d1e,0);
 // Textured lantern models add architectural detail; failures never stop gameplay.
 const gltfLoader=new GLTFLoader();
 const assetBase='https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/';
@@ -756,7 +758,11 @@ export function draw3D(canvas,state,view,teamId,time){
  if(lastCanvas!==canvas){if(lastCanvas)lastCanvas.style.visibility='';const parent=canvas.parentElement;if(!parent)return false;renderer.domElement.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';parent.style.position='relative';parent.insertBefore(renderer.domElement,canvas);canvas.style.visibility='hidden';lastCanvas=canvas;}
  const width=Math.max(1,canvas.clientWidth||canvas.width),height=Math.max(1,canvas.clientHeight||canvas.height);
  if(renderer.domElement.width!==Math.floor(width*renderer.getPixelRatio())||renderer.domElement.height!==Math.floor(height*renderer.getPixelRatio())){renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();}
- finalCourse.visible=state?.phase==='final'||state?.phase==='ended';world.visible=!finalCourse.visible;scene.fog.density=finalCourse.visible?.002:.006;
+ finalCourse.visible=state?.phase==='final'||state?.phase==='ended';world.visible=!finalCourse.visible;
+ const illustratedBackdrop=view==='student'&&!finalCourse.visible;
+ sky.visible=!illustratedBackdrop;
+ scene.background=illustratedBackdrop?null:opaqueSky;
+ scene.fog.density=finalCourse.visible?.002:.006;
  sun.position.z=24+(finalCourse.visible?RACE.originZ:0);sun.target.position.z=finalCourse.visible?RACE.originZ:0;
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
   if(finalCourse.visible){
@@ -857,13 +863,15 @@ export function draw3D(canvas,state,view,teamId,time){
  const sceneGeometry=finalCourse.visible?finalCourse:world;
  const direction=desired.clone().sub(eye);
  const ray=new THREE.Raycaster(eye,direction.clone().normalize(),.4,direction.length());
- const blocked=ray.intersectObject(sceneGeometry,true).some(({object})=>
+ const blocker=ray.intersectObject(sceneGeometry,true).find(({object})=>
   object.visible&&object.isMesh&&!object.material?.transparent);
- if(blocked){
-  desired.addScaledVector(shoulder,-1.55).addScaledVector(forward,1.7);
-  desired.y+=2.1;
+ if(blocker){
+  const clearance=Math.max(1.7,blocker.distance-.65);
+  desired.copy(eye).addScaledVector(ray.ray.direction,clearance);
+  camera.position.copy(desired);
+ }else{
+  camera.position.lerp(desired,.14);
  }
- camera.position.lerp(desired,.18);
  if(failing>=0&&failing<2200&&figure?.userData.fallStage===0)aim.y=figure.position.y+1;
  camera.lookAt(aim);
  }else if(finalCourse.visible){
