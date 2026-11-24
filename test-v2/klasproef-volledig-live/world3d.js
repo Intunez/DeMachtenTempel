@@ -6,9 +6,9 @@ const THREE_COLORS=['#ffb563','#8cd9ff','#e4a5ff','#9ff2bf','#ffd68b','#f4a2cb',
 const routePoints=Array.from({length:8},(_,i)=>{const angle=i*Math.PI/4;return Array.from({length:7},(_,j)=>{const radius=25-j*2.72;return new THREE.Vector3(Math.cos(angle)*radius,3.0,Math.sin(angle)*radius);});});
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xa4c4c7);scene.fog=new THREE.FogExp2(0xa4c4c7,.0022);
 const world=new THREE.Group();scene.add(world);
-scene.add(new THREE.HemisphereLight(0xd5e8ff,0x273e32,1.45));
-const sun=new THREE.DirectionalLight(0xffe5b5,3.9);sun.position.set(-22,40,24);scene.add(sun);
-const accent=new THREE.PointLight(0x64f9ef,32,35);accent.position.set(0,11,0);scene.add(accent);
+scene.add(new THREE.HemisphereLight(0xc9b5ff,0x211532,1.35));
+const sun=new THREE.DirectionalLight(0xffd5a2,2.85);sun.position.set(-22,40,24);scene.add(sun);
+const accent=new THREE.PointLight(0x9964ff,45,35);accent.position.set(0,11,0);scene.add(accent);
 const mat=(color,extra={})=>new THREE.MeshStandardMaterial({color,roughness:.88,...extra});
 const rock=mat(0x58645f),moss=mat(0x496b4e),stone=mat(0x9c9582),gold=mat(0xc9a76e),dark=mat(0x334744),water=mat(0x55d6e9,{metalness:.1,roughness:.3,transparent:true,opacity:.76}),crystal=mat(0x77eaff,{emissive:0x2dbbc5,emissiveIntensity:1.5,metalness:.25,roughness:.15});
 const cylinder=(r1,r2,h,m,x,y,z,n=8)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,n),m);o.position.set(x,y,z);o.castShadow=true;world.add(o);return o;};
@@ -31,7 +31,7 @@ function stoneTexture(base,seed=1){
  }
  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t;
 }
-const stoneTex=stoneTexture('#99958a',21),rockTex=stoneTexture('#737c74',31),mossTex=stoneTexture('#526e50',51);
+const stoneTex=stoneTexture('#8d8392',21),rockTex=stoneTexture('#504a65',31),mossTex=stoneTexture('#3f574c',51);
 rock.map=rockTex;rock.color.set(0xffffff);rock.needsUpdate=true;
 moss.map=mossTex;moss.color.set(0xffffff);moss.needsUpdate=true;
 stone.map=stoneTex;stone.color.set(0xffffff);stone.needsUpdate=true;
@@ -51,32 +51,39 @@ photoTexture('terrain/grasslight-big.jpg',6,texture=>{
  moss.map=texture;moss.color.set(0xb9c6ac);moss.roughness=1;moss.needsUpdate=true;
 });
 photoTexture('brick_diffuse.jpg',3,texture=>{
- stone.map=texture;stone.color.set(0xb3aa98);stone.roughness=.96;stone.needsUpdate=true;
+ stone.map=texture;stone.color.set(0xa197a8);stone.roughness=.96;stone.needsUpdate=true;
 });
 
 function cinematicBackdrop(){
  const c=document.createElement('canvas');c.width=1024;c.height=512;const x=c.getContext('2d');
  const gradient=x.createLinearGradient(0,0,0,512);
- gradient.addColorStop(0,'#14273c');gradient.addColorStop(.4,'#657f9a');gradient.addColorStop(.72,'#d7a883');gradient.addColorStop(1,'#a6a8a5');
+ gradient.addColorStop(0,'#090619');gradient.addColorStop(.4,'#28164b');gradient.addColorStop(.72,'#623983');gradient.addColorStop(1,'#1b1232');
  x.fillStyle=gradient;x.fillRect(0,0,1024,512);
- const glow=x.createRadialGradient(750,310,3,750,310,230);
- glow.addColorStop(0,'rgba(255,246,212,.85)');glow.addColorStop(.4,'rgba(255,203,145,.26)');glow.addColorStop(1,'rgba(255,180,110,0)');
+ for(let i=0;i<360;i++){
+  const starX=rand(i*3+101)*1024,starY=70+rand(i*3+102)*230;
+  x.globalAlpha=.18+rand(i*3+103)*.64;
+  x.fillStyle='#ebd5ff';
+  x.fillRect(starX,starY,i%29===0?2:1,i%29===0?2:1);
+ }
+ x.globalAlpha=1;
+ const glow=x.createRadialGradient(750,295,3,750,295,260);
+ glow.addColorStop(0,'rgba(227,176,255,.85)');glow.addColorStop(.4,'rgba(170,74,255,.48)');glow.addColorStop(1,'rgba(117,43,225,0)');
  x.fillStyle=glow;x.fillRect(0,0,1024,512);
  for(let layer=0;layer<4;layer++){
   const base=345+layer*43;x.beginPath();x.moveTo(0,512);
   for(let px=0;px<=1024;px+=8)x.lineTo(px,base+Math.sin(px*.012+layer*1.8)*27+Math.sin(px*.037+layer*2)*13+Math.sin(px*.083+layer)*7);
-  x.lineTo(1024,512);x.closePath();x.fillStyle=['#758590','#607482','#475e6c','#334d5b'][layer];x.fill();
+  x.lineTo(1024,512);x.closePath();x.fillStyle=['#443260','#36264e','#2b2043','#20172f'][layer];x.fill();
  }
  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
  const sky=new THREE.Mesh(new THREE.SphereGeometry(230,48,24),new THREE.MeshBasicMaterial({map:tex,side:THREE.BackSide,depthWrite:false,fog:false}));
- sky.rotation.y=.5;scene.add(sky);scene.background=new THREE.Color(0x667c8e);scene.fog=new THREE.FogExp2(0x92a6b0,.006);
+ sky.rotation.y=.5;scene.add(sky);scene.background=new THREE.Color(0x241637);scene.fog=new THREE.FogExp2(0x372452,.006);
 }
 cinematicBackdrop();
 
 const clouds=[];
 function addAtmosphere(){
  const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
- const g=x.createRadialGradient(64,64,0,64,64,63);g.addColorStop(0,'rgba(237,249,246,.40)');g.addColorStop(.45,'rgba(219,236,239,.17)');g.addColorStop(1,'rgba(219,236,239,0)');x.fillStyle=g;x.fillRect(0,0,128,128);
+ const g=x.createRadialGradient(64,64,0,64,64,63);g.addColorStop(0,'rgba(173,112,238,.28)');g.addColorStop(.45,'rgba(130,83,196,.13)');g.addColorStop(1,'rgba(130,83,196,0)');x.fillStyle=g;x.fillRect(0,0,128,128);
  const tex=new THREE.CanvasTexture(c);
  for(let i=0;i<38;i++){const a=rand(i+90)*Math.PI*2,r=15+rand(i+111)*55;
   const o=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,opacity:.58}));
@@ -258,8 +265,8 @@ function build(){
  // Portal front oriented toward the student route.
  box(4.5,7.5,.8,dark,0,7.3,8);
  box(5.4,.8,1.1,gold,0,11.2,8);
- const portal=box(3.15,5.8,.15,mat(0xffd17a,{emissive:0xffb12e,emissiveIntensity:2.2}),0,7.2,8.52);
- const portalLight=new THREE.PointLight(0xffb650,22,23);portalLight.position.set(0,8,10);scene.add(portalLight);
+ const portal=box(3.15,5.8,.15,mat(0xdfb2ff,{emissive:0x963dff,emissiveIntensity:2.2}),0,7.2,8.52);
+ const portalLight=new THREE.PointLight(0xb466ff,32,23);portalLight.position.set(0,8,10);scene.add(portalLight);
  for(let k=0;k<10;k++){const a=k*2.399,r=5.3+rand(k)*3.5;boulder(Math.cos(a)*r,3.8,Math.sin(a)*r,.5,stoneDetail[k%3]);}
  // Hanging ivy on the temple.
  for(let i=0;i<35;i++){const a=rand(i+350)*Math.PI*2,x=Math.cos(a)*8.3,z=Math.sin(a)*8.3;
@@ -396,7 +403,7 @@ function build(){
   banner.rotation.y=side*.20;
  }
  // Layered, irregular mountain silhouettes; no triangular cone mountains.
- const mountainPalette=[0x738a87,0x819895,0x6c8583,0x9da9a3];
+ const mountainPalette=[0x625a78,0x716489,0x4e506c,0x81738e];
  for(let i=0;i<18;i++){
   const a=i*2.399,r=83+rand(i+220)*47,x=Math.cos(a)*r,z=Math.sin(a)*r;
   const height=24+rand(i+60)*28;
@@ -868,16 +875,24 @@ export function draw3D(canvas,state,view,teamId,time){
  const yaw=finalCourse.visible?Math.PI:(figure?.rotation.y??Math.atan2(-target.x,-target.z));
  const side=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
- // Keep the camera close to the avatar, not behind trees or cliffs.
- // A modest side offset preserves a visible profile; a high angle shows the path.
- const desired=target.clone().addScaledVector(side,5.8).addScaledVector(forward,-1.2).add(new THREE.Vector3(0,5.4,0));
- const aim=(figure?.position||target).clone().add(new THREE.Vector3(0,1.35,0));
- // Prevent the camera from ending up behind opaque scenery.
- const from=aim.clone(),toward=desired.clone().sub(from),distance=toward.length();
- const ray=new THREE.Raycaster(from,toward.normalize(),0.1,distance);
- const obstacles=ray.intersectObjects(world.children,true);
- const blocking=obstacles.find(hit=>hit.object.isMesh&&hit.distance>1.5&&hit.object.visible&&hit.object.material?.transparent!==true);
- if(blocking){desired.copy(from).addScaledVector(toward,Math.max(1.8,blocking.distance-0.65));}
+ const aim=(figure?.position||target).clone().add(new THREE.Vector3(0,1.65,0));
+ const desired=aim.clone().addScaledVector(side,8.5).addScaledVector(forward,-3.2);
+ desired.y+=7.2;
+ const ray=new THREE.Raycaster();
+ const stage=finalCourse.visible?finalCourse:world;
+ const isClear=point=>{
+  const direction=point.clone().sub(aim);
+  ray.far=direction.length();
+  ray.set(aim,direction.normalize());
+  return !ray.intersectObject(stage,true).some(hit=>
+   hit.distance>0.35&&hit.object.isMesh&&hit.object.visible&&!hit.object.material?.transparent);
+ };
+ if(!isClear(desired)){
+  const opposite=aim.clone().addScaledVector(side,-8.5).addScaledVector(forward,-3.2);
+  opposite.y+=7.2;
+  if(isClear(opposite))desired.copy(opposite);
+  else desired.copy(aim).addScaledVector(forward,-2.8).y+=9.5;
+ }
  camera.position.lerp(desired,.16);
  if(failing>=0&&failing<2200&&figure?.userData.fallStage===0)aim.y=figure.position.y+1;
  camera.lookAt(aim);
