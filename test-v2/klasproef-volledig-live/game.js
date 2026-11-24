@@ -965,7 +965,7 @@ function tokenPuzzle(q,action,progress){
   choices.ondrop=e=>{e.preventDefault();const raw=e.dataTransfer.getData('text/plain');if(!raw.startsWith('placed:'))return;const at=Number(raw.slice(7));if(Number.isInteger(at)&&at>=0&&at<selected.length){selected.splice(at,1);paint();publishDraft();}};
   q.tokens.forEach((word,i)=>{
    if(selected.includes(i))return;
-   const b=document.createElement('button');b.type='button';b.textContent=word;b.draggable=true;
+   const b=document.createElement('button');b.type='button';b.textContent=word;b.dataset.cardIndex=i;b.dataset.cardCount=q.tokens.length;b.draggable=true;
    b.ondragstart=e=>e.dataTransfer.setData('text/plain',String(i));
    b.onclick=()=>{selected.push(i);paint();publishDraft();};choices.appendChild(b);
   });
@@ -1150,7 +1150,7 @@ function drawStudentCamera(time){
 }
 
 let draw3D=null,getFantasyPortraits=null,fantasyPortraits=null,portraitCheck=0,worldError='';
-import('./world3d.js?v=finaleclose15').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>{worldError='De 3D-wereld kon niet starten. Controleer of WebGL beschikbaar is.';console.warn(worldError,error);const loading=$('previewLoading');if(loading){loading.textContent=worldError;loading.classList.add('world-error');}for(const frame of document.querySelectorAll('.worldframe,.adventure-view')){const warning=document.createElement('div');warning.className='world-warning';warning.textContent=worldError;frame.appendChild(warning);}currentSignature='';if(state)render();});
+import('./world3d.js?v=walk-cards').then(module=>{draw3D=module.draw3D;getFantasyPortraits=module.getFantasyPortraits;}).catch(error=>{worldError='De 3D-wereld kon niet starten. Controleer of WebGL beschikbaar is.';console.warn(worldError,error);const loading=$('previewLoading');if(loading){loading.textContent=worldError;loading.classList.add('world-error');}for(const frame of document.querySelectorAll('.worldframe,.adventure-view')){const warning=document.createElement('div');warning.className='world-warning';warning.textContent=worldError;frame.appendChild(warning);}currentSignature='';if(state)render();});
 function drawWelcomeFallback(canvas,time){
  if(!canvas)return;
  const ctx=canvas.getContext('2d');if(!ctx)return;

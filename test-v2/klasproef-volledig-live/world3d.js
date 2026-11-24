@@ -751,6 +751,55 @@ export function getFantasyPortraits(){
 const lerp=(a,b,t)=>a.clone().lerp(b,Math.max(0,Math.min(1,t)));
 let activeRaceSlots=[];
 function position(team,phase){const p=teamPosition(team,phase,activeRaceSlots);return new THREE.Vector3(p.x,p.y,p.z);}
+const movementKeys=new Set();
+const playerField=document.querySelector('#student .adventure-view');
+const cardGroup=new THREE.Group();
+scene.add(cardGroup);
+const movementOffset=new THREE.Vector2();
+let movementTime=0, movementStation='', cardSignature='';
+const arrowKeys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'];
+playerField?.addEventListener('pointerdown',()=>playerField.focus({preventScroll:true}));
+playerField?.addEventListener('keydown',event=>{
+ if(!arrowKeys.includes(event.key))return;
+ event.preventDefault();
+ movementKeys.add(event.key);
+});
+window.addEventListener('keyup',event=>movementKeys.delete(event.key));
+window.addEventListener('blur',()=>movementKeys.clear());
+playerField?.addEventListener('blur',()=>movementKeys.clear());
+
+function updateCards(buttons,center,forward,right){
+ const signature=JSON.stringify(buttons.map(button=>[button.dataset.cardIndex,button.textContent]));
+ if(signature!==cardSignature){
+  for(const card of [...cardGroup.children]){
+   card.material.map.dispose();
+   card.material.dispose();
+   cardGroup.remove(card);
+  }
+  cardSignature=signature;
+  buttons.forEach(button=>{
+   const label=document.createElement('canvas');label.width=384;label.height=112;
+   const ctx=label.getContext('2d');
+   ctx.fillStyle='#1e122d';ctx.fillRect(4,4,376,104);
+   ctx.strokeStyle='#f4cc82';ctx.lineWidth=6;ctx.strokeRect(4,4,376,104);
+   ctx.fillStyle='#fff1cc';ctx.textAlign='center';ctx.textBaseline='middle';
+   ctx.font='bold 38px sans-serif';ctx.fillText(button.textContent,192,56,346);
+   const texture=new THREE.CanvasTexture(label);
+   texture.colorSpace=THREE.SRGBColorSpace;
+   const card=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false}));
+   card.scale.set(1.25,.37,1);
+   card.renderOrder=5;
+   cardGroup.add(card);
+  });
+ }
+ cardGroup.children.forEach((card,index)=>{
+  const angle=Number(buttons[index].dataset.cardIndex)*Math.PI*2/Number(buttons[index].dataset.cardCount);
+  card.position.copy(center).addScaledVector(right,Math.cos(angle)*1.65)
+   .addScaledVector(forward,Math.sin(angle)*1.65);
+  card.position.y+=.85;
+ });
+}
+
 let lastCanvas=null,frame=0;
 export function draw3D(canvas,state,view,teamId,time){
  if(!canvas)return false;
@@ -764,6 +813,8 @@ export function draw3D(canvas,state,view,teamId,time){
  scene.background=illustratedBackdrop?null:opaqueSky;
  scene.fog.density=finalCourse.visible?.002:.006;
  sun.position.z=24+(finalCourse.visible?RACE.originZ:0);sun.target.position.z=finalCourse.visible?RACE.originZ:0;
+ const isPlayerView=canvas.id==='studentWorld'&&view==='student';
+ cardGroup.visible=isPlayerView&&state?.phase==='playing';
  const teams=Object.values(state?.teams||{});const ids=new Set(teams.map(t=>t.id));
   if(finalCourse.visible){
    const slots=teams.map(t=>Number.isInteger(t.slot)?t.slot:(t.route||0)).sort((a,b)=>a-b).slice(0,RACE.lanes);
@@ -803,8 +854,36 @@ export function draw3D(canvas,state,view,teamId,time){
  if(!g.userData.anchor)g.userData.anchor=p.clone();
  g.userData.anchor.lerp(p,.075);g.position.copy(g.userData.anchor);
  g.rotation.set(0,Math.atan2(-p.x,-p.z),0);g.scale.setScalar(finalCourse.visible?1:.8);
+ let walking=false;
+ if(isPlayerView&&t.id===teamId&&state.phase==='playing'){
+  const station=[teamId,t.step,t.wrong].join(':');
+  if(station!==movementStation){movementStation=station;movementOffset.set(0,0);movementTime=time;}
+  const seconds=Math.min(.05,Math.max(0,(time-movementTime)/1000));
+  movementTime=time;
+  const input=new THREE.Vector2(
+   Number(movementKeys.has('ArrowRight'))-Number(movementKeys.has('ArrowLeft')),
+   Number(movementKeys.has('ArrowUp'))-Number(movementKeys.has('ArrowDown'))
+  );
+  const forward=new THREE.Vector3(-p.x,0,-p.z).normalize();
+  const right=new THREE.Vector3(-forward.z,0,forward.x);
+  const before=movementOffset.clone();
+  movementOffset.addScaledVector(input.normalize(),seconds*2.9).clampLength(0,1.75);
+  const travel=movementOffset.clone().sub(before);
+  walking=travel.lengthSq()>.000001;
+  if(walking){
+   const heading=right.clone().multiplyScalar(travel.x).addScaledVector(forward,travel.y);
+   g.rotation.y=Math.atan2(heading.x,heading.z);
+  }
+  g.position.addScaledVector(right,movementOffset.x).addScaledVector(forward,movementOffset.y);
+  const buttons=[...document.querySelectorAll('#student .token-source button[data-card-index]')];
+  updateCards(buttons,g.userData.anchor,forward,right);
+  if(walking){
+   const picked=cardGroup.children.findIndex(card=>Math.hypot(card.position.x-g.position.x,card.position.z-g.position.z)<.38);
+   if(picked>=0)buttons[picked].click();
+  }
+ }
  const actions=g.userData.actions;
- if(actions){const next=moving?(actions.run||actions.walk||actions.idle):actions.idle;if(next&&next!==g.userData.action){g.userData.action?.fadeOut(.2);next.reset().fadeIn(.2).play();g.userData.action=next;}}
+ if(actions){const next=(moving||walking)?(actions.run||actions.walk||actions.idle):actions.idle;if(next&&next!==g.userData.action){g.userData.action?.fadeOut(.2);next.reset().fadeIn(.2).play();g.userData.action=next;}}
 
  const fallAge=time-(g.userData.fallStarted||-10000);
  if(fallAge>=0&&fallAge<2200){
@@ -851,7 +930,7 @@ export function draw3D(canvas,state,view,teamId,time){
  const failing=time-(figure?.userData.fallStarted||-10000);
  // Track the current route from behind the hero. The route direction stays
  // stable during spins and impacts so the camera does not orbit with them.
- const anchor=figure?.userData.anchor??target;
+ const anchor=figure?.position??target;
  const forward=finalCourse.visible?new THREE.Vector3(0,0,-1):
   new THREE.Vector3(-target.x,0,-target.z).normalize();
  const shoulder=new THREE.Vector3(-forward.z,0,forward.x);
