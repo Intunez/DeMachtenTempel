@@ -164,70 +164,31 @@ function build(){
  }
  world.userData.falls=falls;
 
- // Load licensed CC0 GLB vegetation from Kenney via the published asset repository.
- // Procedural vegetation is a fallback ONLY when the actual files fail to load.
- const forestAssetBase='https://cdn.jsdelivr.net/gh/syuhei176/ai-game-assets@v1/models/environment/';
- const forestLoader=new GLTFLoader();
- const treePlacements=[];
- for(let i=0;i<104;i++){
-  const angle=rand(i+24)*Math.PI*2,radius=11+rand(i+47)*17.3;
-  const nearest=Math.abs(Math.atan2(Math.sin(angle*4),Math.cos(angle*4)))/4;
-  if(nearest<.14||i%13===0)continue;
-  treePlacements.push({x:Math.cos(angle)*radius,z:Math.sin(angle)*radius,
-    pine:i%3!==0,scale:.85+rand(i+55)*.45,angle:rand(i+41)*Math.PI*2});
+ // Keep sightlines open along the eight corridors. The groves beyond them
+ // are built from shared, smoothly shaded meshes rather than low-poly props.
+ const bark=mat(0x332a30);
+ const needles=[mat(0x173b37),mat(0x24524b),mat(0x3b6657)];
+ const foliage=new THREE.SphereGeometry(1,12,9);
+ const branches=new THREE.CylinderGeometry(.075,.22,1,9);
+ const groves=new THREE.Group();
+ world.add(groves);
+ for(let i=0;i<74;i++){
+  const angle=rand(i+24)*Math.PI*2,radius=13+rand(i+47)*15;
+  const corridorAngle=Math.abs(Math.atan2(Math.sin(angle*4),Math.cos(angle*4)))/4;
+  if(radius*Math.sin(corridorAngle)<5.4)continue;
+  const x=Math.cos(angle)*radius,z=Math.sin(angle)*radius,height=3.4+rand(i+54)*2.7;
+  const trunk=groupMesh(branches,bark,x,2.85+height*.4,z,groves);
+  trunk.scale.y=height*.8;
+  trunk.rotation.z=(rand(i+72)-.5)*.18;
+  for(let j=0;j<9;j++){
+   const azimuth=j*2.4+angle, tier=j/8;
+   const spread=(1-tier*.78)*height*.22;
+   const crown=groupMesh(foliage,needles[(i+j)%3],
+    x+Math.cos(azimuth)*spread,2.85+height*(.48+.52*tier),z+Math.sin(azimuth)*spread,groves);
+   crown.scale.set(spread+.28,.52+height*.10,spread+.22);
+   crown.rotation.y=azimuth;
+  }
  }
- const forestFallback=()=>{
-   // Pine forest with organic crowns, visible gaps around the eight challenge routes.
-   const bark=mat(0x493b31,{roughness:1});
-   const needles=[mat(0x183d33),mat(0x295746),mat(0x3b6248)];
-   const canopy=[mat(0x395b3e),mat(0x527344),mat(0x65784a)];
-   for(let i=0;i<104;i++){
-    const a=rand(i+24)*Math.PI*2,r=11+rand(i+47)*17.3,x=Math.cos(a)*r,z=Math.sin(a)*r;
-    const nearest=Math.abs(Math.atan2(Math.sin(a*4),Math.cos(a*4)))/4;
-    if(nearest<.14||i%13===0)continue;
-    const height=3.8+rand(i+55)*5.2,pine=i%3!==0;
-    cylinder(.10,.22,height*.72,bark,x,height*.36+2.8,z,9);
-    if(pine){
-     for(let layer=0;layer<4;layer++){
-      const crown=groupMesh(new THREE.ConeGeometry((1.3-layer*.21)*(.8+rand(i+3)*.3),height*.42,11),needles[(i+layer)%3],x,2.8+height*.32+layer*height*.19,z);
-      crown.rotation.y=rand(i+layer)*6;
-     }
-    }else{
-     for(let layer=0;layer<5;layer++){
-      const angle=layer*2.4;
-      const crown=groupMesh(new THREE.IcosahedronGeometry(1,3),canopy[(i+layer)%3],x+Math.sin(angle)*.5,2.8+height*.65+Math.sin(layer)*.5,z+Math.cos(angle)*.5);
-      crown.scale.set(.85+rand(i+layer)*.6,1+rand(i+layer+4)*.55,.9+rand(i+layer+6)*.6);
-     }
-    }
-   }
-  
- };
- Promise.all([
-  forestLoader.loadAsync(forestAssetBase+'tree_pine.glb'),
-  forestLoader.loadAsync(forestAssetBase+'tree_oak.glb'),
-  forestLoader.loadAsync(forestAssetBase+'rock_large.glb')
- ]).then(([pine,oak,rockAsset])=>{
-  const sources=[pine.scene,oak.scene,rockAsset.scene];
-  const bounds=sources.map(source=>{const box=new THREE.Box3().setFromObject(source);return Math.max(.01,box.max.y-box.min.y);});
-  const bases=sources.map(source=>new THREE.Box3().setFromObject(source).min.y);
-  for(const item of treePlacements){
-   const kind=item.pine?0:1,tree=sources[kind].clone(true);
-   const size=(item.pine?6.4:5.2)*item.scale/bounds[kind];
-   tree.scale.setScalar(size);tree.rotation.y=item.angle;
-   tree.position.set(item.x,2.88-bases[kind]*size,item.z);
-   tree.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;}});
-   world.add(tree);
-  }
-  for(let i=0;i<35;i++){
-   const angle=rand(i+777)*Math.PI*2,radius=10+rand(i+909)*17;
-   if(Math.abs(Math.atan2(Math.sin(angle*4),Math.cos(angle*4)))/4<.16)continue;
-   const stoneModel=sources[2].clone(true),size=(.65+rand(i+330)*1.2)/bounds[2];
-   stoneModel.scale.setScalar(size);stoneModel.position.set(Math.cos(angle)*radius,2.85-bases[2]*size,Math.sin(angle)*radius);
-   stoneModel.rotation.y=rand(i+55)*6.28;stoneModel.traverse(obj=>{if(obj.isMesh)obj.receiveShadow=true;});
-   world.add(stoneModel);
-  }
-  console.info('De Machtentempel: CC0 GLB-bomen en rotsen geladen.');
- }).catch(err=>{console.warn('CC0 GLB-bos niet beschikbaar; reservevegetatie ingeschakeld',err);forestFallback();});
  // Eight raised stone bridges with individually weathered flagstones, carved balustrades and glowing rune gateways.
  for(let i=0;i<8;i++){
   const a=i*Math.PI/4,radial=new THREE.Vector3(Math.cos(a),0,Math.sin(a));
@@ -241,9 +202,21 @@ function build(){
   }
   const gateR=26.8,gx=Math.cos(a)*gateR,gz=Math.sin(a)*gateR;
   const gate=new THREE.Group();gate.position.set(gx,2.9,gz);gate.rotation.y=Math.PI/2-a;
-  for(const side of [-1,1]){const pillar=groupMesh(new THREE.CylinderGeometry(.54,.68,4.2,10),stoneDetail[i%3],side*1.45,2.1,0,gate);
-   const cap=groupMesh(new THREE.BoxGeometry(1.5,.55,1.2),gold,side*1.45,4.4,0,gate);}
-  groupMesh(new THREE.BoxGeometry(4.1,.7,1.3),stone,0,4.9,0,gate);
+  const jamb=mat(0x797188,{map:rockTex});
+  for(const side of [-1,1]){
+   const x=side*1.73;
+   groupMesh(new THREE.BoxGeometry(1.16,.35,1.23),jamb,x,.18,0,gate);
+   groupMesh(new THREE.CylinderGeometry(.39,.55,3.43,16),jamb,x,1.98,0,gate);
+   groupMesh(new THREE.CylinderGeometry(.53,.53,.16,16),gold,x,3.62,0,gate);
+   groupMesh(new THREE.BoxGeometry(.94,.28,.92),jamb,x,3.8,0,gate);
+  }
+  for(let block=0;block<13;block++){
+   const angle=Math.PI*(block+.5)/13;
+   const keystone=block===6;
+   const segment=groupMesh(new THREE.BoxGeometry(.45,keystone?.70:.54,.88),
+    keystone?gold:jamb,Math.cos(angle)*1.73,3.85+Math.sin(angle)*1.65,0,gate);
+   segment.rotation.z=angle-Math.PI/2;
+  }
   const glow=groupMesh(new THREE.TorusGeometry(1.14,.12,10,32),mat(THREE_COLORS[i],{emissive:THREE_COLORS[i],emissiveIntensity:2.8}),0,2.5,0,gate);
   glow.scale.y=1.5;world.add(gate);
  }
@@ -469,7 +442,7 @@ for(let route=0;route<8;route++){
    }
    const flame=encounterMesh(root,new THREE.ConeGeometry(.75,4.0,18),new THREE.MeshBasicMaterial({color:0xff7927,transparent:true,opacity:.85,depthWrite:false}),3.1,4.0,0);
    flame.rotation.z=Math.PI/2;root.userData.flame=flame;
-   const shield=encounterMesh(root,new THREE.SphereGeometry(2.1,32,20),new THREE.MeshStandardMaterial({color:0x78dfff,emissive:0x38baff,emissiveIntensity:1.3,transparent:true,opacity:.23,side:THREE.DoubleSide,depthWrite:false}),4.3,2.3,0);
+   const shield=encounterMesh(root,new THREE.SphereGeometry(2.1,32,20),new THREE.MeshStandardMaterial({color:0x78dfff,emissive:0x38baff,emissiveIntensity:1.3,transparent:true,opacity:.11,side:THREE.FrontSide,depthWrite:false}),4.3,2.3,0);
    root.userData.shield=shield;
   }else if(stage===3){
    const ring=encounterMesh(root,new THREE.TorusGeometry(2.3,.29,14,48),magic,0,2.3,0);
@@ -870,30 +843,27 @@ export function draw3D(canvas,state,view,teamId,time){
  if(view==='student'&&state?.teams?.[teamId]){
  const own=state.teams[teamId],target=position(own,state.phase),figure=avatars.get(teamId);
  const failing=time-(figure?.userData.fallStarted||-10000);
- // Three-quarter SIDE camera: show the hero's profile and the route ahead,
- // rather than looking over the hero's shoulder into nearby scenery.
- const yaw=finalCourse.visible?Math.PI:(figure?.rotation.y??Math.atan2(-target.x,-target.z));
- const side=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
- const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
- const aim=(figure?.position||target).clone().add(new THREE.Vector3(0,1.65,0));
- const desired=aim.clone().addScaledVector(side,8.5).addScaledVector(forward,-3.2);
- desired.y+=7.2;
- const ray=new THREE.Raycaster();
- const stage=finalCourse.visible?finalCourse:world;
- const isClear=point=>{
-  const direction=point.clone().sub(aim);
-  ray.far=direction.length();
-  ray.set(aim,direction.normalize());
-  return !ray.intersectObject(stage,true).some(hit=>
-   hit.distance>0.35&&hit.object.isMesh&&hit.object.visible&&!hit.object.material?.transparent);
- };
- if(!isClear(desired)){
-  const opposite=aim.clone().addScaledVector(side,-8.5).addScaledVector(forward,-3.2);
-  opposite.y+=7.2;
-  if(isClear(opposite))desired.copy(opposite);
-  else desired.copy(aim).addScaledVector(forward,-2.8).y+=9.5;
+ // Track the current route from behind the hero. The route direction stays
+ // stable during spins and impacts so the camera does not orbit with them.
+ const anchor=figure?.userData.anchor??target;
+ const forward=finalCourse.visible?new THREE.Vector3(0,0,-1):
+  new THREE.Vector3(-target.x,0,-target.z).normalize();
+ const shoulder=new THREE.Vector3(-forward.z,0,forward.x);
+ const aim=anchor.clone().addScaledVector(forward,2.8);
+ aim.y+=1.75;
+ const desired=anchor.clone().addScaledVector(forward,-7.4).addScaledVector(shoulder,1.55);
+ desired.y+=4.0;
+ const eye=anchor.clone();eye.y+=1.7;
+ const sceneGeometry=finalCourse.visible?finalCourse:world;
+ const direction=desired.clone().sub(eye);
+ const ray=new THREE.Raycaster(eye,direction.clone().normalize(),.4,direction.length());
+ const blocked=ray.intersectObject(sceneGeometry,true).some(({object})=>
+  object.visible&&object.isMesh&&!object.material?.transparent);
+ if(blocked){
+  desired.addScaledVector(shoulder,-1.55).addScaledVector(forward,1.7);
+  desired.y+=2.1;
  }
- camera.position.lerp(desired,.16);
+ camera.position.lerp(desired,.18);
  if(failing>=0&&failing<2200&&figure?.userData.fallStage===0)aim.y=figure.position.y+1;
  camera.lookAt(aim);
  }else if(finalCourse.visible){
