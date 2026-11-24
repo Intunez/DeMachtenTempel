@@ -229,3 +229,25 @@ body {
     linear-gradient(145deg, #1d1329f7, #0c0916f7),
     var(--temple-art) center / cover;
 }
+
+/* Let the illustrated temple establish the scene before play begins. */
+#app .welcome {
+  grid-template-columns: minmax(0, 520px);
+  min-height: clamp(540px, 78svh, 880px);
+  background:
+    linear-gradient(90deg, #10091c88, transparent 70%),
+    linear-gradient(0deg, #10091cde, transparent 70%),
+    var(--temple-art) 50% 44% / cover, #251a37;
+}
+
+#app .welcome .preview {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  #app .welcome {
+    min-height: clamp(500px, 80svh, 740px);
+    background-position: center, center, 63% 35%;
+    padding-top: clamp(110px, 35vw, 225px);
+  }
+}
